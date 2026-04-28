@@ -8,7 +8,7 @@
       <div class="footer-brand">
   
         <img
-          src="../assets/images/logo.png"
+          src="../assets/images/logo-white.png"
           alt="XUENAV"
           class="footer-logo"
         />
