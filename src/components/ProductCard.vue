@@ -8,7 +8,6 @@
         :alt="product.name"
         class="card-image"
       />
-      <span class="card-badge">HOT</span>
     </div>
   
     <div class="card-body">
