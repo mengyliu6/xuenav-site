@@ -1,52 +1,43 @@
-<!-- components/HeaderBar.vue -->
 <template>
   <header class="top-header">
     <div class="container top-inner">
   
-      <!-- 左侧 LOGO -->
-      <div class="brand-wrap">
+      <!-- 左侧logo -->
+      <div class="logo-side">
         <img
           src="../assets/images/logo.png"
-          alt="XUENAV Logo"
           class="logo-img"
+          alt="XUENAV"
         />
       </div>
   
-      <!-- 右侧联系方式 -->
-      <div class="contact-area">
+      <!-- 中间 Wendy -->
+      <div class="info-side">
+        <h3>{{ site.contactName }}</h3>
+        <p>WhatsApp Business Account</p>
+      </div>
   
-        <!-- 二维码 -->
-        <div class="qr-wrap">
-          <img
-            src="../assets/images/qr.png"
-            alt="WhatsApp QR"
-            class="qr-img"
-          />
-        </div>
+      <!-- 二维码 -->
+      <div class="qr-side">
+        <img
+          src="../assets/images/qr.png"
+          class="qr-img"
+        />
+      </div>
   
-        <!-- 联系信息 -->
-        <div class="contact-info">
+      <!-- 右侧按钮 -->
+      <div class="action-side">
   
-          <h3>{{ site.contactName }}</h3>
+        <a
+          :href="`https://wa.me/${site.whatsapp}`"
+          target="_blank"
+          class="wa-btn"
+        >
+          Chat on WhatsApp
+        </a>
   
-          <span class="sub-title">
-            WhatsApp Business Account
-          </span>
-  
-          <a
-            :href="`https://wa.me/${site.whatsapp}`"
-            target="_blank"
-            class="wa-btn"
-          >
-            Chat on WhatsApp
-          </a>
-  
-          <div class="contact-lines">
-            <p>Email: {{ site.email }}</p>
-            <p>Website: {{ site.website }}</p>
-          </div>
-  
-        </div>
+        <span>Email: {{ site.email }}</span>
+        <span>Website: {{ site.website }}</span>
   
       </div>
   
