@@ -9,7 +9,7 @@
 
       <div class="card-contact">
         <p>WhatsApp: Wendy</p>
-        <p>Email: support@xuenav.com</p>
+        <p>Email: xuenav666@163.com</p>
       </div>
 
       <a class="card-btn">GET SUPPORT</a>

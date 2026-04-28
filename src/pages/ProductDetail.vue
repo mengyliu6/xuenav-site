@@ -1,11 +1,14 @@
 <template>
   <div class="container product-detail">
+    <h1>{{ product?.name || "Product Not Found" }}</h1>
 
-    <!-- 标题 -->
-    <h1>{{ product.title }}</h1>
+    <img
+      v-if="product?.image"
+      :src="product.image"
+      class="detail-image"
+    />
 
-    <!-- 视频 -->
-    <div class="video-box">
+    <div v-if="product?.video" class="video-box">
       <iframe
         :src="product.video"
         frameborder="0"
@@ -13,39 +16,21 @@
       ></iframe>
     </div>
 
-    <!-- 联系方式 -->
     <div class="contact-box">
       <h3>Contact Support</h3>
-
-      <a class="wa-btn" href="https://wa.me/xxxx" target="_blank">
+      <a class="wa-btn" href="https://wa.me/8613800000000" target="_blank">
         Chat on WhatsApp
       </a>
-
-      <p>Email: support@xuenav.com</p>
+      <p>Email: xuenav666@163.com</p>
       <p>Website: www.xuenav.com</p>
     </div>
-
   </div>
 </template>
 
 <script setup>
-import { useRoute } from 'vue-router'
+import { useRoute } from "vue-router";
+import { products } from "../data/products.js";
 
-const route = useRoute()
-
-const products = {
-  "lexus-es": {
-    title: "Lexus ES Decoder",
-    video: "https://www.youtube.com/embed/VIDEO_ID"
-  },
-  "bmw-screen": {
-    title: "BMW Android Screen",
-    video: "https://www.youtube.com/embed/VIDEO_ID"
-  }
-}
-
-const product = products[route.params.id] || {
-  title: "Product",
-  video: ""
-}
+const route = useRoute();
+const product = products.find((item) => item.id === route.params.id);
 </script>
