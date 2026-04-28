@@ -44,7 +44,7 @@
         <p>{{ site.website }}</p>
   
         <a
-          :href="`https://wa.me/${site.whatsapp}`"
+          :href="site.whatsappLink"
           target="_blank"
           class="footer-btn"
         >

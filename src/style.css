@@ -194,84 +194,59 @@ a{
 }
 
 /* ========= Hero ========= */
-.hero-banner{
+.hero-banner {
   background:
-  linear-gradient(rgba(0,0,0,.58),rgba(0,0,0,.58)),
-  url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1600')
-  center/cover no-repeat;
+    linear-gradient(90deg, rgba(0, 0, 0, .88) 0%, rgba(0, 0, 0, .62) 42%, rgba(0, 0, 0, .12) 100%),
+    url('https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&w=1800') center / cover no-repeat;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
 }
 
-.hero-mask{
-  min-height:560px;
+.hero-mask {
+  min-height: 430px;
 }
 
-.hero-content{
-  min-height:560px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  color:#fff;
+.hero-content {
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #fff;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
-.hero-tag{
-  color:#ffb88b;
-  font-size:14px;
-  letter-spacing:1px;
-  margin-bottom:12px;
+.hero-content h1 {
+  font-size: 56px;
+  line-height: 1;
+  color: var(--main);
+  font-weight: 900;
+  letter-spacing: .5px;
+  margin-bottom: 14px;
 }
 
-.hero-content h1{
-  font-size:76px;
-  line-height:1;
-  color:var(--main);
+.hero-content h2 {
+  font-size: 46px;
+  line-height: 1.05;
+  max-width: 620px;
+  font-weight: 900;
+  letter-spacing: .2px;
 }
 
-.hero-content h2{
-  font-size:52px;
-  line-height:1.1;
-  margin-top:10px;
-  max-width:760px;
+.hero-content p {
+  margin-top: 18px;
+  font-size: 20px;
+  line-height: 1.45;
+  color: #f3f4f6;
+  max-width: 640px;
 }
 
-.hero-content p{
-  margin-top:18px;
-  font-size:19px;
-  color:#e5e7eb;
-  max-width:720px;
+/* 删除按钮后不再需要 */
+.hero-tag,
+.hero-actions,
+.hero-btn {
+  display: none;
 }
 
-.hero-actions{
-  margin-top:30px;
-  display:flex;
-  gap:16px;
-  flex-wrap:wrap;
-}
-
-.hero-btn{
-  padding:14px 26px;
-  border-radius:10px;
-  font-weight:700;
-  transition:.25s;
-}
-
-.hero-btn.primary{
-  background:var(--main);
-  color:#fff;
-}
-
-.hero-btn.primary:hover{
-  background:var(--main-dark);
-}
-
-.hero-btn.ghost{
-  border:2px solid #fff;
-  color:#fff;
-}
-
-.hero-btn.ghost:hover{
-  background:#fff;
-  color:#111;
-}
 
 /* ========= Products ========= */
 .product-grid{
@@ -477,22 +452,21 @@ a{
 .nav-inner{
   gap:24px;
 }
-
 .hero-mask,
-.hero-content{
-  min-height:460px;
+.hero-content {
+  min-height: 340px;
 }
 
-.hero-content h1{
-  font-size:42px;
+.hero-content h1 {
+  font-size: 42px;
 }
 
-.hero-content h2{
-  font-size:30px;
+.hero-content h2 {
+  font-size: 32px;
 }
 
-.hero-content p{
-  font-size:16px;
+.hero-content p {
+  font-size: 16px;
 }
 
 .section-head{

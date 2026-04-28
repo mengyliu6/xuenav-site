@@ -31,7 +31,7 @@
       <div class="action-side">
   
         <a
-          :href="`https://wa.me/${site.whatsapp}`"
+          :href="site.whatsappLink"
           target="_blank"
           class="wa-btn"
         >
