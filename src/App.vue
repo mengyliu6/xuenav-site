@@ -1,34 +1,31 @@
+<!-- src/App.vue -->
 <template>
-  <div>
+  <div class="site-wrap">
   
     <HeaderBar />
     <NavBar />
+    <HeroBanner />
   
-    <section class="hero">
-      <div class="container hero-inner">
-        <h1>XUENAV</h1>
-        <h2>AFTER-SALES SUPPORT CENTER</h2>
-        <p>Professional support for Car Radio</p>
-      </div>
-    </section>
+    <main class="section-area">
+      <div class="container">
   
-    <section class="container products-wrap">
+        <div class="section-head">
+          <h2>PRODUCT SUPPORT</h2>
+          <a href="#">View All Products →</a>
+        </div>
   
-      <h2 class="section-title">
-        PRODUCT SUPPORT
-      </h2>
+        <div class="product-grid">
   
-      <div class="grid">
+          <ProductCard
+            v-for="(item,index) in products"
+            :key="index"
+            :product="item"
+          />
   
-        <ProductCard
-          v-for="(item,index) in products"
-          :key="index"
-          :product="item"
-        />
+        </div>
   
       </div>
-  
-    </section>
+    </main>
   
     <FooterBar />
   
@@ -38,6 +35,7 @@
   <script setup>
   import HeaderBar from './components/HeaderBar.vue'
   import NavBar from './components/NavBar.vue'
+  import HeroBanner from './components/HeroBanner.vue'
   import ProductCard from './components/ProductCard.vue'
   import FooterBar from './components/FooterBar.vue'
   

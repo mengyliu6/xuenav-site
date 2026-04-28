@@ -1,31 +1,33 @@
+<!-- src/components/HeaderBar.vue -->
 <template>
   <header class="top-header">
-    <div class="container top-inner">
+    <div class="container top-grid">
   
-      <!-- 左侧logo -->
+      <!-- Logo -->
       <div class="logo-side">
         <img
           src="../assets/images/logo.png"
-          class="logo-img"
           alt="XUENAV"
+          class="logo-img"
         />
       </div>
   
-      <!-- 中间 Wendy -->
-      <div class="info-side">
+      <!-- Wendy -->
+      <div class="name-side">
         <h3>{{ site.contactName }}</h3>
         <p>WhatsApp Business Account</p>
       </div>
   
-      <!-- 二维码 -->
+      <!-- QR -->
       <div class="qr-side">
         <img
           src="../assets/images/qr.png"
+          alt="QR"
           class="qr-img"
         />
       </div>
   
-      <!-- 右侧按钮 -->
+      <!-- Right -->
       <div class="action-side">
   
         <a

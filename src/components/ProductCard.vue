@@ -1,20 +1,39 @@
+<!-- src/components/ProductCard.vue -->
 <template>
-  <div class="card">
+  <div class="product-card">
   
-    <img :src="product.image" />
+    <div class="card-image-wrap">
+      <img
+        :src="product.image"
+        :alt="product.name"
+        class="card-image"
+      />
+      <span class="card-badge">HOT</span>
+    </div>
   
-    <h3>{{ product.name }}</h3>
+    <div class="card-body">
   
-    <p>WhatsApp: {{ site.contactName }}</p>
-    <p>Email: {{ site.email }}</p>
+      <h3>{{ product.name }}</h3>
   
-    <a
-      :href="`https://wa.me/${site.whatsapp}`"
-      target="_blank"
-      class="card-btn"
-    >
-      GET SUPPORT
-    </a>
+      <p class="card-desc">
+        Professional installation guidance,
+        troubleshooting and technical support.
+      </p>
+  
+      <div class="card-contact">
+        <span>{{ site.contactName }}</span>
+        <span>{{ site.email }}</span>
+      </div>
+  
+      <a
+        :href="`https://wa.me/${site.whatsapp}`"
+        target="_blank"
+        class="card-btn"
+      >
+        GET SUPPORT
+      </a>
+  
+    </div>
   
   </div>
   </template>

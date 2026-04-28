@@ -1,25 +1,43 @@
-<!-- components/FooterBar.vue -->
+<!-- src/components/FooterBar.vue -->
 <template>
   <footer class="footer">
   
     <div class="container footer-grid">
   
-      <!-- logo -->
-      <div>
+      <!-- left -->
+      <div class="footer-brand">
+  
         <img
           src="../assets/images/logo.png"
+          alt="XUENAV"
           class="footer-logo"
         />
   
         <p class="footer-desc">
-          Professional after-sales support for
-          CarPlay / Android Auto / OEM Integration.
+          XUENAV provides professional after-sales support
+          for automotive multimedia systems, CarPlay,
+          Android Auto and OEM integration solutions.
         </p>
+  
       </div>
   
-      <!-- 联系方式 -->
-      <div>
-        <h4>CONTACT</h4>
+      <!-- middle -->
+      <div class="footer-links">
+  
+        <h4>QUICK LINKS</h4>
+  
+        <a href="#">Home</a>
+        <a href="#">Products</a>
+        <a href="#">Installation</a>
+        <a href="#">FAQ</a>
+        <a href="#">Downloads</a>
+  
+      </div>
+  
+      <!-- right -->
+      <div class="footer-contact">
+  
+        <h4>CONTACT US</h4>
   
         <p>{{ site.contactName }}</p>
         <p>{{ site.email }}</p>
@@ -32,20 +50,19 @@
         >
           WhatsApp Us
         </a>
-      </div>
   
-      <!-- 二维码 -->
-      <div class="footer-qr-wrap">
         <img
           src="../assets/images/qr.png"
+          alt="QR Code"
           class="footer-qr"
         />
+  
       </div>
   
     </div>
   
     <div class="copy">
-      © 2026 XUENAV All Rights Reserved.
+      © 2026 XUENAV. All Rights Reserved.
     </div>
   
   </footer>
