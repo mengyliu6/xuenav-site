@@ -17,11 +17,12 @@
         <div class="product-grid">
   
           <ProductCard
-            v-for="(item,index) in products"
-            :key="index"
-            :product="item"
+            v-for="item in products"
+            :key="item.id"
+            :id="item.id"
+            :title="item.name"
+            :image="item.image"
           />
-  
         </div>
   
       </div>

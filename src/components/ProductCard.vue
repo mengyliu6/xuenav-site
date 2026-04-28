@@ -1,46 +1,34 @@
-<!-- src/components/ProductCard.vue -->
 <template>
-  <div class="product-card">
-  
+  <div class="product-card" @click="goDetail">
     <div class="card-image-wrap">
-      <img
-        :src="product.image"
-        :alt="product.name"
-        class="card-image"
-      />
+      <img :src="image" class="card-image" />
     </div>
-  
+
     <div class="card-body">
-  
-      <h3>{{ product.name }}</h3>
-  
-      <p class="card-desc">
-        Professional installation guidance,
-        troubleshooting and technical support.
-      </p>
-  
+      <h3>{{ title }}</h3>
+
       <div class="card-contact">
-        <span>{{ site.contactName }}</span>
-        <span>{{ site.email }}</span>
+        <p>WhatsApp: Wendy</p>
+        <p>Email: support@xuenav.com</p>
       </div>
-  
-      <a
-        :href="`https://wa.me/${site.whatsapp}`"
-        target="_blank"
-        class="card-btn"
-      >
-        GET SUPPORT
-      </a>
-  
+
+      <a class="card-btn">GET SUPPORT</a>
     </div>
-  
   </div>
-  </template>
-  
-  <script setup>
-  import { siteInfo as site } from '../data/site'
-  
-  defineProps({
-    product: Object
-  })
-  </script>
+</template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+
+const props = defineProps({
+  id: String,
+  title: String,
+  image: String
+})
+
+const router = useRouter()
+
+const goDetail = () => {
+  router.push(`/product/${props.id}`)
+}
+</script>
