@@ -70,6 +70,5 @@
   </template>
   
   <script setup>
-  import { siteInfo as site } from '../data/site'
   import { CONTACT } from "../config/contact";
   </script>
