@@ -1,129 +1,148 @@
 <template>
-  <main class="product-detail-page">
-    <div class="container">
-      <nav class="product-breadcrumb">
-        <RouterLink to="/">Home</RouterLink>
-        <span>/</span>
-        <span>Product Detail</span>
-      </nav>
+  <div class="site-wrap">
+    <HeaderBar />
+    <NavBar />
 
-      <template v-if="product">
-        <section class="product-hero">
-          <div class="product-hero__media">
-            <VideoModal
-              :video-url="product.videoUrl || product.videoId"
-              :cover="product.image"
-              :start="product.start || 0"
-            />
-          </div>
+    <main class="product-detail-page">
+      <div class="container">
+        <nav class="product-breadcrumb">
+          <RouterLink to="/">Home</RouterLink>
+          <span>/</span>
+          <RouterLink to="/">Product Support</RouterLink>
+          <span>/</span>
+          <span>{{ product?.name || "Product Detail" }}</span>
+        </nav>
 
-          <div class="product-hero__content">
-            <span class="product-eyebrow">OEM Style Upgrade Solution</span>
-
-            <h1>{{ product.name }}</h1>
-
-            <p class="product-summary">
-              Professional car multimedia upgrade solution with stable fitment,
-              modern interface and installation support for global B2B customers.
-            </p>
-
-            <div class="product-badges">
-              <span>Vehicle Specific</span>
-              <span>Factory Style</span>
-              <span>Installation Support</span>
+        <template v-if="product">
+          <section class="product-hero">
+            <div class="product-hero__media">
+              <VideoModal
+                :video-url="product.videoUrl || product.video"
+                :video-id="product.videoId"
+                :cover="product.image"
+                :start="product.start || 0"
+              />
             </div>
 
-            <div class="product-actions">
-              <a class="primary-btn" :href="whatsappUrl" target="_blank">
-                Get Quote
-              </a>
+            <div class="product-hero__content">
+              <span class="product-eyebrow">Xuenav After-Sales Support</span>
 
-              <a class="secondary-btn" :href="emailUrl">
-                Email Us
-              </a>
-            </div>
+              <h1>{{ product.name }}</h1>
 
-            <div class="trust-row">
-              <div>
-                <strong>10+</strong>
-                <span>Years Experience</span>
+              <p class="product-summary">
+                Get installation guidance, troubleshooting support and product
+                confirmation for your Xuenav multimedia upgrade system.
+              </p>
+
+              <div class="product-badges">
+                <span>Installation Support</span>
+                <span>Model Confirmation</span>
+                <span>Issue Diagnosis</span>
               </div>
-              <div>
-                <strong>B2B</strong>
-                <span>Wholesale Supply</span>
-              </div>
-              <div>
-                <strong>Fast</strong>
-                <span>Online Response</span>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section class="detail-grid">
-          <article class="detail-card">
-            <div class="section-title">
-              <span>Support Process</span>
-              <h2>After-Sales Support</h2>
-            </div>
+              <div class="product-actions">
+                <a class="primary-btn" :href="whatsappUrl" target="_blank">
+                  Get Support Now
+                </a>
 
-            <div class="feature-list">
-              <div
-                v-for="(item, index) in featureList"
-                :key="item.title"
-                class="feature-item"
-              >
-                <span class="feature-number">{{ index + 1 }}</span>
+                <a class="secondary-btn" :href="emailUrl">
+                  Email Support
+                </a>
+              </div>
+
+              <div class="trust-row">
                 <div>
-                  <h3>{{ item.title }}</h3>
-                  <p>{{ item.desc }}</p>
+                  <strong>Fast</strong>
+                  <span>Online Response</span>
+                </div>
+
+                <div>
+                  <strong>Video</strong>
+                  <span>Issue Diagnosis</span>
+                </div>
+
+                <div>
+                  <strong>Step</strong>
+                  <span>Guided Support</span>
                 </div>
               </div>
             </div>
-          </article>
+          </section>
 
-          <aside class="detail-card specification-card">
-            <div class="section-title">
-              <span>Service Info</span>
-              <h2>Support Details</h2>
-            </div>
-
-            <div class="spec-table">
-              <div v-for="row in specRows" :key="row.label">
-                <span>{{ row.label }}</span>
-                <strong>{{ row.value }}</strong>
+          <section class="detail-grid">
+            <article class="detail-card">
+              <div class="section-title">
+                <span>Support Process</span>
+                <h2>After-Sales Support</h2>
               </div>
+
+              <div class="feature-list">
+                <div
+                  v-for="(item, index) in featureList"
+                  :key="item.title"
+                  class="feature-item"
+                >
+                  <span class="feature-number">{{ index + 1 }}</span>
+
+                  <div>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.desc }}</p>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <aside class="detail-card specification-card">
+              <div class="section-title">
+                <span>Service Info</span>
+                <h2>Support Details</h2>
+              </div>
+
+              <div class="spec-table">
+                <div v-for="row in specRows" :key="row.label">
+                  <span>{{ row.label }}</span>
+                  <strong>{{ row.value }}</strong>
+                </div>
+              </div>
+            </aside>
+          </section>
+
+          <section class="inquiry-banner">
+            <div>
+              <span>Need after-sales support?</span>
+              <h2>
+                Send us your order number, car model, year and issue video.
+              </h2>
             </div>
-          </aside>
-        </section>
 
-        <section class="inquiry-banner">
-          <div>
-            <span>Need after-sales support?</span>
-            <h2>Send us your order number, car model, year and issue video.</h2>
-          </div>
+            <a class="primary-btn white-btn" :href="whatsappUrl" target="_blank">
+              Contact Us
+            </a>
+          </section>
+        </template>
 
-          <a class="primary-btn white-btn" :href="whatsappUrl" target="_blank">
-            Get Support Now
-          </a>
-        </section>
-      </template>
+        <template v-else>
+          <section class="not-found-box">
+            <h1>Product not found</h1>
+            <p>Please return to the product support center.</p>
+            <RouterLink to="/">Back to Home</RouterLink>
+          </section>
+        </template>
+      </div>
+    </main>
 
-      <template v-else>
-        <section class="not-found-box">
-          <h1>Product not found</h1>
-          <RouterLink to="/">Back to Home</RouterLink>
-        </section>
-      </template>
-    </div>
-  </main>
+    <FooterBar />
+  </div>
 </template>
 
 <script setup>
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { products } from "../data/products";
+import HeaderBar from "../components/HeaderBar.vue";
+import NavBar from "../components/NavBar.vue";
+import FooterBar from "../components/FooterBar.vue";
 import VideoModal from "../components/VideoModal.vue";
+import { products } from "../data/products";
 
 const route = useRoute();
 
@@ -135,15 +154,17 @@ const whatsappNumber = "8613800000000";
 const email = "xuenav666@163.com";
 
 const whatsappUrl = computed(() => {
-  const productName = product.value?.name || "your car radio product";
+  const productName = product.value?.name || "Xuenav product";
 
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    `Hello, I want to know more about ${productName}.`
+    `Hello, I need after-sales support for ${productName}. My car model/year is: . My issue is: .`
   )}`;
 });
 
 const emailUrl = computed(() => {
-  const subject = product.value?.name || "Product Inquiry";
+  const subject = product.value?.name
+    ? `After-sales support - ${product.value.name}`
+    : "Xuenav After-sales Support";
 
   return `mailto:${email}?subject=${encodeURIComponent(subject)}`;
 });

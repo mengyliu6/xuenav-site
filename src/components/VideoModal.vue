@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="video-card" @click="open">
-      <img :src="coverUrl" alt="Product video cover" />
+      <img :src="coverUrl" alt="Product support video cover" />
       <div class="play-btn">▶</div>
     </div>
 
@@ -104,7 +104,7 @@ const parseYoutubeVideo = (value) => {
     let id = "";
 
     if (host === "youtu.be") {
-      id = pathParts[0];
+      id = pathParts[0] || "";
     }
 
     if (host.includes("youtube.com")) {
