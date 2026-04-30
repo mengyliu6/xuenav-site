@@ -1552,3 +1552,53 @@ a {
     display: none;
   }
 }
+
+/* ========= Back To Top ========= */
+.back-to-top {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 998;
+
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #ffffff;
+  background: linear-gradient(180deg, #182230 0%, #07111c 100%);
+  box-shadow: 0 14px 30px rgba(7, 17, 28, 0.22);
+
+  font-size: 24px;
+  font-weight: 900;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.back-to-top:hover {
+  transform: translateY(-4px);
+  background: linear-gradient(180deg, #ff7a1a 0%, #ff6a00 100%);
+  box-shadow: 0 16px 34px rgba(255, 106, 0, 0.28);
+}
+
+.back-to-top:active {
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .back-to-top {
+    right: 18px;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+}

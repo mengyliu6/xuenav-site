@@ -143,6 +143,7 @@ import NavBar from "../components/NavBar.vue";
 import FooterBar from "../components/FooterBar.vue";
 import VideoModal from "../components/VideoModal.vue";
 import { products } from "../data/products";
+import { CONTACT } from "../config/contact";
 
 const route = useRoute();
 
@@ -150,15 +151,14 @@ const product = computed(() =>
   products.find((item) => item.id === route.params.id)
 );
 
-const whatsappNumber = "8613800000000";
-const email = "xuenav666@163.com";
+
 
 const whatsappUrl = computed(() => {
   const productName = product.value?.name || "Xuenav product";
 
-  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+  return CONTACT.whatsappLink(
     `Hello, I need after-sales support for ${productName}. My car model/year is: . My issue is: .`
-  )}`;
+  );
 });
 
 const emailUrl = computed(() => {
@@ -166,7 +166,7 @@ const emailUrl = computed(() => {
     ? `After-sales support - ${product.value.name}`
     : "Xuenav After-sales Support";
 
-  return `mailto:${email}?subject=${encodeURIComponent(subject)}`;
+  return CONTACT.emailLink(subject);
 });
 
 const featureList = computed(() => [
@@ -210,8 +210,8 @@ const specRows = computed(() => {
     },
     {
       label: "Contact",
-      value: "WhatsApp / Email",
-    },
+      value: `${CONTACT.whatsappDisplay} / ${CONTACT.email}`,
+    }
   ];
 });
 </script>

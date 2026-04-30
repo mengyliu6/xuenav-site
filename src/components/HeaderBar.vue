@@ -14,7 +14,7 @@
   
       <!-- Wendy -->
       <div class="name-side">
-        <h3>{{ site.contactName }}</h3>
+        <h3>{{ CONTACT.name }}</h3>
         <p>WhatsApp Business Account</p>
       </div>
   
@@ -31,15 +31,15 @@
       <div class="action-side">
   
         <a
-          :href="site.whatsappLink"
-          target="_blank"
           class="wa-btn"
+          :href="CONTACT.whatsappLink()"
+          target="_blank"
         >
           Chat on WhatsApp
         </a>
-  
-        <span>Email: {{ site.email }}</span>
-        <span>Website: {{ site.website }}</span>
+
+        <span>Email: {{ CONTACT.email }}</span>
+        <span>Website: {{ CONTACT.website }}</span>
   
       </div>
   
@@ -49,4 +49,5 @@
   
   <script setup>
   import { siteInfo as site } from '../data/site'
+  import { CONTACT } from "../config/contact";
   </script>

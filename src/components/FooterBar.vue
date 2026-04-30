@@ -39,17 +39,18 @@
   
         <h4>CONTACT US</h4>
   
-        <p>{{ site.contactName }}</p>
-        <p>{{ site.email }}</p>
-        <p>{{ site.website }}</p>
-  
-        <a
-          :href="site.whatsappLink"
-          target="_blank"
-          class="footer-btn"
-        >
-          WhatsApp Us
-        </a>
+        <p>WhatsApp: {{ CONTACT.name }}</p>
+          <p>{{ CONTACT.whatsappDisplay }}</p>
+          <p>Email: {{ CONTACT.email }}</p>
+          <p>Website: {{ CONTACT.website }}</p>
+
+          <a
+            class="footer-btn"
+            :href="CONTACT.whatsappLink()"
+            target="_blank"
+          >
+            Chat on WhatsApp
+          </a>
   
         <img
           src="../assets/images/qr.png"
@@ -70,4 +71,5 @@
   
   <script setup>
   import { siteInfo as site } from '../data/site'
+  import { CONTACT } from "../config/contact";
   </script>

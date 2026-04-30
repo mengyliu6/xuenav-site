@@ -1,17 +1,15 @@
-<!-- src/components/NavBar.vue -->
 <template>
   <nav class="navbar">
     <div class="container nav-inner">
-  
-      <a href="#">HOME</a>
-      <a href="#">PRODUCTS</a>
-      <a href="#">INSTALLATION</a>
-      <a href="#">FAQ</a>
-      <a href="#">CONTACT US</a>
-  
+      <RouterLink to="/">HOME</RouterLink>
+      <RouterLink to="/#support-products">PRODUCTS</RouterLink>
+      <a href="#installation">INSTALLATION</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">CONTACT US</a>
     </div>
   </nav>
-  </template>
-  
-  <script setup>
-  </script>
+</template>
+
+<script setup>
+import { RouterLink } from "vue-router";
+</script>
