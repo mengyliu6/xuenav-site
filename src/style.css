@@ -246,8 +246,7 @@ a {
       rgba(0, 0, 0, 0.62) 42%,
       rgba(0, 0, 0, 0.12) 100%
     ),
-    url("https://images.unsplash.com/photo-1550355291-bbee04a92027?q=80&w=1800")
-      center / cover no-repeat;
+    var(--hero-bg) center / cover no-repeat;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -818,6 +817,59 @@ a {
 }
 
 /* 重点：播放键固定在视频卡片正中间 */
+.video-card--static {
+  cursor: default;
+  background: linear-gradient(135deg, #111827 0%, #263244 100%);
+}
+
+.video-card--static:hover img {
+  opacity: 1;
+  transform: none;
+}
+
+.video-card__text {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 42px;
+  color: #ffffff;
+}
+
+.video-card__text span {
+  color: #ffb36d;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.video-card__text strong {
+  max-width: 680px;
+  font-size: 34px;
+  line-height: 1.18;
+}
+
+.video-card__text p {
+  max-width: 560px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.video-card__label {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgba(7, 17, 28, 0.72);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .play-btn {
   position: absolute;
   top: 50%;
@@ -1554,14 +1606,59 @@ a {
 }
 
 /* ========= Back To Top ========= */
+.card-image {
+  aspect-ratio: 1 / 1;
+}
+
+.card-image-wrap {
+  aspect-ratio: 1 / 1;
+}
+
+.card-image-wrap .card-image {
+  height: 100%;
+}
+
+.product-card {
+  height: 100%;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.card-body h3 {
+  min-height: 54px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--dark);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.card-contact {
+  display: none;
+}
+
+.card-btn {
+  min-height: 46px;
+  margin-top: auto;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
 .whatsapp-float {
   position: fixed;
   right: 28px;
-  bottom: 92px;
+  bottom: 88px;
   z-index: 998;
 
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
 
   display: flex;
@@ -1589,8 +1686,8 @@ a {
 }
 
 .whatsapp-float__icon {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
 }
 
 .back-to-top {
@@ -1635,14 +1732,14 @@ a {
 @media (max-width: 640px) {
   .whatsapp-float {
     right: 18px;
-    bottom: 76px;
-    width: 50px;
-    height: 50px;
+    bottom: 74px;
+    width: 44px;
+    height: 44px;
   }
 
   .whatsapp-float__icon {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
   }
 
   .back-to-top {

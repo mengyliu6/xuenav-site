@@ -20,6 +20,7 @@
                 :video-url="product.videoUrl || product.video"
                 :video-id="product.videoId"
                 :cover="product.image"
+                :title="product.name"
                 :start="product.start || 0"
               />
             </div>
@@ -41,7 +42,12 @@
               </div>
 
               <div class="product-actions">
-                <a class="primary-btn" :href="whatsappUrl" target="_blank">
+                <a
+                  class="primary-btn"
+                  :href="whatsappUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Get Support Now
                 </a>
 
@@ -115,7 +121,12 @@
               </h2>
             </div>
 
-            <a class="primary-btn white-btn" :href="whatsappUrl" target="_blank">
+            <a
+              class="primary-btn white-btn"
+              :href="whatsappUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Contact Us
             </a>
           </section>

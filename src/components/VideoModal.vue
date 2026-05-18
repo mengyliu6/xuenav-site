@@ -1,8 +1,24 @@
 <template>
   <div>
-    <div class="video-card" @click="open">
-      <img :src="coverUrl" alt="Product support video cover" />
-      <div class="play-btn">▶</div>
+    <div
+      class="video-card"
+      :class="{ 'video-card--static': !hasVideo }"
+      @click="open"
+    >
+      <img
+        v-if="coverUrl"
+        :src="coverUrl"
+        :alt="hasVideo ? 'Product support video cover' : 'Product support image'"
+      />
+
+      <div v-else class="video-card__text">
+        <span>Support Details</span>
+        <strong>{{ title || "Xuenav Product Support" }}</strong>
+        <p>Contact us for model confirmation, installation help and troubleshooting.</p>
+      </div>
+
+      <div v-if="hasVideo" class="play-btn">▶</div>
+      <div v-else class="video-card__label">Support available</div>
     </div>
 
     <div v-if="visible" class="video-modal" @click.self="close">
@@ -17,7 +33,7 @@
           allowfullscreen
         ></iframe>
 
-        <span class="close-btn" @click="close">✕</span>
+        <span class="close-btn" @click="close">×</span>
       </div>
     </div>
   </div>
@@ -39,6 +55,10 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  title: {
+    type: String,
+    default: "",
+  },
   start: {
     type: Number,
     default: 0,
@@ -48,6 +68,8 @@ const props = defineProps({
 const visible = ref(false);
 
 const open = () => {
+  if (!hasVideo.value) return;
+
   visible.value = true;
 };
 
@@ -125,9 +147,10 @@ const parseYoutubeVideo = (value) => {
     const matched = raw.match(
       /(?:v=|youtu\.be\/|embed\/|shorts\/|live\/)([a-zA-Z0-9_-]{11})/
     );
+    const cleanedRaw = cleanVideoId(raw);
 
     return {
-      id: cleanVideoId(matched?.[1] || raw),
+      id: cleanVideoId(matched?.[1] || (cleanedRaw.length === 11 ? cleanedRaw : "")),
       start: 0,
     };
   }
@@ -141,14 +164,14 @@ const finalStart = computed(() => {
   return props.start > 0 ? props.start : parsedVideo.value.start;
 });
 
-const coverUrl = computed(() => {
-  if (props.cover) return props.cover;
+const hasVideo = computed(() => Boolean(parsedVideo.value.id));
 
+const coverUrl = computed(() => {
   if (parsedVideo.value.id) {
     return `https://img.youtube.com/vi/${parsedVideo.value.id}/hqdefault.jpg`;
   }
 
-  return "";
+  return props.cover;
 });
 
 const embedUrl = computed(() => {

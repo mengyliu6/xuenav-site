@@ -14,12 +14,6 @@
       <div class="card-body">
         <h3>{{ title }}</h3>
 
-        <div class="card-contact">
-          <p>WhatsApp: {{ CONTACT.name }}</p>
-          <p>{{ CONTACT.whatsappDisplay }}</p>
-          <p>Email: {{ CONTACT.email }}</p>
-        </div>
-
         <span class="card-btn">
           View Support
           <span class="card-btn-arrow">→</span>
@@ -32,7 +26,6 @@
 <script setup>
 import { ref } from "vue";
 import { RouterLink } from "vue-router";
-import { CONTACT } from "../config/contact";
 
 defineProps({
   id: {

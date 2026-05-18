@@ -173,9 +173,9 @@ export const products = [
   },
   {
     id: "bmw-f10-ac-11-17",
-    name: "",
+    name: "Climate Control for BMW F10 F11 5 Series 2011-2017",
     image: F10AC,
-    videoUrl: "Climate Control for BMW F10 F11 5 Series 2011-2017",
+    videoUrl: "",
     start: 0,
   },
   {
