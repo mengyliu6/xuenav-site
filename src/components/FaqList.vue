@@ -10,6 +10,13 @@
         <span>{{ item.question }}</span>
       </summary>
       <p>{{ item.answer }}</p>
+
+      <div v-if="item.images?.length" class="faq-image-grid">
+        <figure v-for="image in item.images" :key="image.url">
+          <img :src="image.url" :alt="image.caption || item.question" />
+          <figcaption v-if="image.caption">{{ image.caption }}</figcaption>
+        </figure>
+      </div>
     </details>
   </div>
 </template>

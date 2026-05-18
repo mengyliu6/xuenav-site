@@ -21,7 +21,7 @@
 
         <div class="product-grid">
           <ProductCard
-            v-for="item in products"
+            v-for="item in managedProducts"
             :key="item.id"
             :id="item.id"
             :title="item.name"
@@ -36,10 +36,14 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
 import HeroBanner from "../components/HeroBanner.vue";
 import ProductCard from "../components/ProductCard.vue";
 import FooterBar from "../components/FooterBar.vue";
 import { products } from "../data/products";
+import { mergeProductsContent } from "../utils/contentManager";
+
+const managedProducts = computed(() => mergeProductsContent(products));
 </script>

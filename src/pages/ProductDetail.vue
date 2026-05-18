@@ -13,22 +13,22 @@
           <span>{{ product?.name || "Product Detail" }}</span>
         </nav>
 
-        <template v-if="product">
+        <template v-if="productContent">
           <section class="product-hero">
             <div class="product-hero__media">
               <VideoModal
-                :video-url="product.videoUrl || product.video"
-                :video-id="product.videoId"
-                :cover="product.image"
-                :title="product.name"
-                :start="product.start || 0"
+                :video-url="productContent.videoUrl || productContent.video"
+                :video-id="productContent.videoId"
+                :cover="productContent.image"
+                :title="productContent.name"
+                :start="productContent.start || 0"
               />
             </div>
 
             <div class="product-hero__content">
               <span class="product-eyebrow">Xuenav After-Sales Support</span>
 
-              <h1>{{ product.name }}</h1>
+              <h1>{{ productContent.name }}</h1>
 
               <p class="product-summary">
                 Get installation guidance, troubleshooting support and product
@@ -75,10 +75,34 @@
             </div>
           </section>
 
+          <section class="detail-card product-gallery-panel">
+            <div class="section-title">
+              <span>Product Media</span>
+              <h2>Images & Notes</h2>
+            </div>
+
+            <div v-if="productGallery.length" class="product-gallery-grid">
+              <figure v-for="image in productGallery" :key="image.url">
+                <img :src="image.url" :alt="image.caption || productContent.name" />
+                <figcaption>
+                  {{ image.caption || productContent.name }}
+                </figcaption>
+              </figure>
+            </div>
+
+            <div v-else class="product-empty-module">
+              <strong>Media will be added soon.</strong>
+              <p>
+                Contact Xuenav support for matching photos, wiring checks and
+                model confirmation.
+              </p>
+            </div>
+          </section>
+
           <section id="faq" class="detail-card product-faq-panel">
             <div class="faq-panel__head">
               <div class="section-title">
-                <span>FAQ</span>
+                <span>{{ productContent.hasCustomFaqs ? "Product FAQ" : "FAQ" }}</span>
                 <h2>Common Support Questions</h2>
               </div>
 
@@ -87,7 +111,7 @@
               </RouterLink>
             </div>
 
-            <FaqList :items="detailFaqs" />
+            <FaqList :items="productFaqs" />
           </section>
 
           <section class="detail-grid">
@@ -172,6 +196,7 @@ import VideoModal from "../components/VideoModal.vue";
 import { products } from "../data/products";
 import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
+import { mergeProductContent } from "../utils/contentManager";
 
 const route = useRoute();
 
@@ -179,10 +204,16 @@ const product = computed(() =>
   products.find((item) => item.id === route.params.id)
 );
 
-const detailFaqs = computed(() => faqs.slice(0, 4));
+const productContent = computed(() =>
+  product.value ? mergeProductContent(product.value, faqs.slice(0, 4)) : null
+);
+
+const productFaqs = computed(() => productContent.value?.faqs || faqs.slice(0, 4));
+
+const productGallery = computed(() => productContent.value?.gallery || []);
 
 const whatsappUrl = computed(() => {
-  const productName = product.value?.name || "Xuenav product";
+  const productName = productContent.value?.name || "Xuenav product";
 
   return CONTACT.whatsappLink(
     `Hello, I need after-sales support for ${productName}. My car model/year is: . My issue is: .`
@@ -190,8 +221,8 @@ const whatsappUrl = computed(() => {
 });
 
 const emailUrl = computed(() => {
-  const subject = product.value?.name
-    ? `After-sales support - ${product.value.name}`
+  const subject = productContent.value?.name
+    ? `After-sales support - ${productContent.value.name}`
     : "Xuenav After-sales Support";
 
   return CONTACT.emailLink(subject);
@@ -217,7 +248,7 @@ const featureList = computed(() => [
 ]);
 
 const specRows = computed(() => {
-  const name = product.value?.name || "";
+  const name = productContent.value?.name || "";
 
   return [
     {
