@@ -36,14 +36,22 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
 import HeroBanner from "../components/HeroBanner.vue";
 import ProductCard from "../components/ProductCard.vue";
 import FooterBar from "../components/FooterBar.vue";
 import { products } from "../data/products";
-import { mergeProductsContent } from "../utils/contentManager";
+import {
+  loadRemoteContent,
+  mergeProductsContent,
+} from "../utils/contentManager";
 
-const managedProducts = computed(() => mergeProductsContent(products));
+const content = ref({ products: {} });
+const managedProducts = computed(() => mergeProductsContent(products, content.value));
+
+onMounted(async () => {
+  content.value = await loadRemoteContent(content.value);
+});
 </script>

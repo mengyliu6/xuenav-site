@@ -1,5 +1,3 @@
-const STORAGE_KEY = "xuenav_admin_content_v1";
-
 const isBrowser = () => typeof window !== "undefined";
 
 const emptyContent = () => ({
@@ -23,35 +21,30 @@ const normalizeFaqs = (items = []) =>
     }))
     .filter((item) => item.question && item.answer);
 
-export const loadAdminContent = () => {
-  if (!isBrowser()) return emptyContent();
+export const loadRemoteContent = async (fallback = emptyContent()) => {
+  if (!isBrowser()) return fallback;
 
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "");
+    const response = await fetch("/api/content", {
+      headers: { accept: "application/json" },
+    });
+
+    if (!response.ok) return fallback;
+
+    const data = await response.json();
     return {
-      products: parsed?.products && typeof parsed.products === "object"
-        ? parsed.products
-        : {},
+      products: data?.products && typeof data.products === "object"
+        ? data.products
+        : fallback.products || {},
+      configured: Boolean(data?.configured),
+      error: data?.error || "",
     };
   } catch {
-    return emptyContent();
+    return fallback;
   }
 };
 
-export const saveAdminContent = (content) => {
-  if (!isBrowser()) return;
-
-  window.localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      products: content?.products || {},
-    })
-  );
-
-  window.dispatchEvent(new CustomEvent("xuenav-content-updated"));
-};
-
-export const getProductOverride = (productId, content = loadAdminContent()) => {
+export const getProductOverride = (productId, content = emptyContent()) => {
   return content.products?.[productId] || {};
 };
 
@@ -86,7 +79,5 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
   };
 };
 
-export const mergeProductsContent = (products, content = loadAdminContent()) =>
+export const mergeProductsContent = (products, content = emptyContent()) =>
   products.map((product) => mergeProductContent(product, [], content));
-
-export const STORAGE_LABEL = STORAGE_KEY;

@@ -1185,10 +1185,7 @@ a {
 }
 
 .admin-topbar span,
-.admin-section-title span,
-.admin-search span,
-.admin-form-grid span,
-.admin-repeat-item span {
+.admin-section-title span {
   color: var(--main);
   font-size: 12px;
   font-weight: 900;
@@ -1203,149 +1200,13 @@ a {
   line-height: 1.05;
 }
 
-.admin-shell {
-  display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
-  gap: 22px;
-  max-width: 1440px;
+.admin-guide {
+  max-width: 1180px;
   margin: 0 auto;
   padding: 24px;
 }
 
-.admin-auth {
-  min-height: calc(100vh - 92px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-}
-
-.admin-auth form {
-  width: min(460px, 100%);
-  display: grid;
-  gap: 14px;
-  padding: 28px;
-  border: 1px solid #e6ebf2;
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow: 0 24px 80px rgba(7, 17, 28, 0.08);
-}
-
-.admin-auth span {
-  color: var(--main);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.admin-auth h2 {
-  color: var(--dark);
-  font-size: 30px;
-}
-
-.admin-auth p {
-  color: #64748b;
-  line-height: 1.7;
-}
-
-.admin-auth input {
-  min-height: 48px;
-  padding: 0 14px;
-  border: 1px solid #d7dee7;
-  border-radius: 12px;
-  color: #0f172a;
-  font: inherit;
-}
-
-.admin-sidebar,
-.admin-editor,
-.admin-card,
-.admin-notice {
-  min-width: 0;
-}
-
-.admin-sidebar {
-  position: sticky;
-  top: 104px;
-  height: calc(100vh - 128px);
-  overflow: auto;
-  padding: 18px;
-  border: 1px solid #e6ebf2;
-  border-radius: 22px;
-  background: #ffffff;
-  box-shadow: 0 16px 40px rgba(7, 17, 28, 0.05);
-}
-
-.admin-search {
-  display: grid;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.admin-search input,
-.admin-form-grid input,
-.admin-repeat-item input,
-.admin-repeat-item textarea,
-.admin-json {
-  width: 100%;
-  border: 1px solid #d7dee7;
-  border-radius: 12px;
-  color: #0f172a;
-  background: #ffffff;
-  font: inherit;
-}
-
-.admin-search input,
-.admin-form-grid input,
-.admin-repeat-item input {
-  min-height: 46px;
-  padding: 0 14px;
-}
-
-.admin-repeat-item textarea,
-.admin-json {
-  padding: 12px 14px;
-  resize: vertical;
-}
-
-.admin-product-list {
-  display: grid;
-  gap: 8px;
-}
-
-.admin-product-list button {
-  display: grid;
-  gap: 4px;
-  padding: 13px 14px;
-  border: 1px solid #e6ebf2;
-  border-radius: 14px;
-  text-align: left;
-  background: #fbfcfe;
-  cursor: pointer;
-}
-
-.admin-product-list button.active {
-  border-color: #fed7aa;
-  background: #fff7ed;
-  box-shadow: inset 3px 0 0 var(--main);
-}
-
-.admin-product-list strong {
-  color: var(--dark);
-  line-height: 1.35;
-}
-
-.admin-product-list small {
-  color: #64748b;
-}
-
-.admin-editor {
-  display: grid;
-  gap: 18px;
-}
-
-.admin-notice,
+.admin-guide-hero,
 .admin-card {
   border: 1px solid #e6ebf2;
   border-radius: 22px;
@@ -1353,21 +1214,34 @@ a {
   box-shadow: 0 16px 40px rgba(7, 17, 28, 0.05);
 }
 
-.admin-notice {
+.admin-guide-hero {
   display: grid;
-  gap: 4px;
-  padding: 18px 20px;
-  border-color: #fed7aa;
-  background: #fffaf5;
+  justify-items: start;
+  gap: 16px;
+  padding: 34px;
+  margin-bottom: 24px;
 }
 
-.admin-notice strong {
-  color: #7c2d12;
+.admin-guide-hero h2 {
+  max-width: 760px;
+  color: var(--dark);
+  font-size: clamp(30px, 5vw, 54px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
 }
 
-.admin-notice span {
-  color: #92400e;
-  line-height: 1.65;
+.admin-guide-hero p {
+  max-width: 780px;
+  color: #475569;
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.admin-guide-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
 }
 
 .admin-card {
@@ -1380,85 +1254,48 @@ a {
   font-size: 24px;
 }
 
-.admin-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.admin-form-grid label,
-.admin-repeat-item label {
+.admin-table-schema {
   display: grid;
   gap: 8px;
+  padding: 18px 0;
+  border-top: 1px solid #e6ebf2;
 }
 
-.admin-repeater {
-  display: grid;
-  gap: 14px;
-}
-
-.admin-repeat-item {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
-  gap: 12px;
-  align-items: end;
-  padding: 14px;
-  border: 1px solid #e6ebf2;
-  border-radius: 18px;
-  background: #fbfcfe;
-}
-
-.admin-faq-edit {
-  grid-template-columns: 1fr;
-  align-items: stretch;
-}
-
-.admin-faq-images {
-  display: grid;
-  gap: 10px;
-}
-
-.admin-inline-image {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) auto;
-  gap: 10px;
-}
-
-.admin-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.admin-add-btn,
-.admin-danger {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  border: 1px solid #d7dee7;
-  border-radius: 12px;
+.admin-table-schema h3 {
   color: var(--dark);
-  background: #ffffff;
-  font-weight: 800;
-  cursor: pointer;
+  font-size: 19px;
 }
 
-.admin-add-btn {
-  margin-top: 14px;
+.admin-table-schema p,
+.admin-help-text {
+  color: #64748b;
+  line-height: 1.7;
 }
 
-.admin-danger {
-  color: #b91c1c;
-  border-color: #fecaca;
-  background: #fff1f2;
+.admin-table-schema ul {
+  display: grid;
+  gap: 10px;
+  padding-left: 18px;
+  color: #334155;
 }
 
-.admin-json {
-  min-height: 180px;
-  font-family: Consolas, Monaco, monospace;
+.admin-env-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-env-list code {
+  display: block;
+  padding: 10px 12px;
+  border: 1px solid #e6ebf2;
+  border-radius: 10px;
+  color: #7c2d12;
+  background: #fff7ed;
   font-size: 13px;
+}
+
+.admin-help-text {
+  margin-top: 18px;
 }
 
 /* ========= Footer ========= */
@@ -1563,17 +1400,12 @@ a {
   .product-hero,
   .detail-grid,
   .faq-page-grid,
-  .admin-shell,
-  .admin-form-grid,
-  .admin-repeat-item,
-  .admin-inline-image {
+  .admin-guide-grid {
     grid-template-columns: 1fr;
   }
 
-  .faq-contact-card,
-  .admin-sidebar {
+  .faq-contact-card {
     position: static;
-    height: auto;
   }
 
   .trust-row {
@@ -1697,7 +1529,7 @@ a {
     padding: 18px 16px;
   }
 
-  .admin-shell {
+  .admin-guide {
     padding: 16px;
   }
 

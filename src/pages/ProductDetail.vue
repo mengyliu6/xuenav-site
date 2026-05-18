@@ -186,7 +186,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
@@ -196,16 +196,20 @@ import VideoModal from "../components/VideoModal.vue";
 import { products } from "../data/products";
 import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
-import { mergeProductContent } from "../utils/contentManager";
+import {
+  loadRemoteContent,
+  mergeProductContent,
+} from "../utils/contentManager";
 
 const route = useRoute();
+const content = ref({ products: {} });
 
 const product = computed(() =>
   products.find((item) => item.id === route.params.id)
 );
 
 const productContent = computed(() =>
-  product.value ? mergeProductContent(product.value, faqs.slice(0, 4)) : null
+  product.value ? mergeProductContent(product.value, faqs.slice(0, 4), content.value) : null
 );
 
 const productFaqs = computed(() => productContent.value?.faqs || faqs.slice(0, 4));
@@ -272,5 +276,9 @@ const specRows = computed(() => {
       value: `${CONTACT.whatsappDisplay} / ${CONTACT.email}`,
     }
   ];
+});
+
+onMounted(async () => {
+  content.value = await loadRemoteContent(content.value);
 });
 </script>

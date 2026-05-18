@@ -1,0 +1,217 @@
+const FEISHU_API = "https://open.feishu.cn/open-apis";
+
+const FIELD_ALIASES = {
+  productId: ["Product ID", "productId", "product_id", "商品ID", "商品 ID"],
+  name: ["Name", "Product Name", "name", "商品名称", "产品名称"],
+  image: ["Cover Image", "Cover", "Image", "image", "封面图", "封面图片"],
+  videoUrl: ["Video URL", "Video", "videoUrl", "video_url", "视频链接"],
+  start: ["Start", "Start Time", "start", "开始时间"],
+  status: ["Status", "status", "状态"],
+  sort: ["Sort", "sort", "排序"],
+  question: ["Question", "question", "问题"],
+  answer: ["Answer", "answer", "回答", "答案"],
+  galleryImage: ["Image", "Images", "Gallery Image", "image", "图片", "商品图片"],
+  faqImages: ["Images", "FAQ Images", "images", "图片", "FAQ图片"],
+  caption: ["Caption", "caption", "说明", "图片说明"],
+};
+
+const getEnv = (name) => process.env[name] || "";
+
+const getField = (fields, key) => {
+  const aliases = FIELD_ALIASES[key] || [key];
+  const found = aliases.find((name) => fields[name] !== undefined);
+  return found ? fields[found] : undefined;
+};
+
+const textFromValue = (value) => {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (typeof value === "boolean") return value ? "true" : "false";
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string" || typeof item === "number") return String(item);
+        return item?.text || item?.name || item?.url || item?.link || "";
+      })
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+  }
+  return String(value.text || value.name || value.url || value.link || "").trim();
+};
+
+const imagesFromValue = (value) => {
+  if (!value) return [];
+  const items = Array.isArray(value) ? value : [value];
+
+  return items
+    .map((item) => {
+      if (typeof item === "string") return { url: item, caption: "" };
+      return {
+        url: item?.url || item?.tmp_url || item?.link || "",
+        caption: item?.name || item?.text || "",
+      };
+    })
+    .filter((item) => item.url);
+};
+
+const isPublished = (fields) => {
+  const status = textFromValue(getField(fields, "status")).toLowerCase();
+  return !status || ["published", "publish", "active", "online", "yes", "true", "已发布", "启用"].includes(status);
+};
+
+const sortRecords = (a, b) => {
+  const left = Number(textFromValue(getField(a.fields, "sort")) || 0);
+  const right = Number(textFromValue(getField(b.fields, "sort")) || 0);
+  return left - right;
+};
+
+const getTenantAccessToken = async () => {
+  const appId = getEnv("FEISHU_APP_ID");
+  const appSecret = getEnv("FEISHU_APP_SECRET");
+
+  if (!appId || !appSecret) {
+    throw new Error("Missing FEISHU_APP_ID or FEISHU_APP_SECRET");
+  }
+
+  const response = await fetch(`${FEISHU_API}/auth/v3/tenant_access_token/internal`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      app_id: appId,
+      app_secret: appSecret,
+    }),
+  });
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 0) {
+    throw new Error(data.msg || "Failed to get Feishu tenant_access_token");
+  }
+
+  return data.tenant_access_token;
+};
+
+const listRecords = async (token, appToken, tableId) => {
+  if (!tableId) return [];
+
+  const records = [];
+  let pageToken = "";
+
+  do {
+    const params = new URLSearchParams({ page_size: "500" });
+    if (pageToken) params.set("page_token", pageToken);
+
+    const response = await fetch(
+      `${FEISHU_API}/bitable/v1/apps/${appToken}/tables/${tableId}/records?${params.toString()}`,
+      {
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    const data = await response.json();
+
+    if (!response.ok || data.code !== 0) {
+      throw new Error(data.msg || `Failed to list records: ${tableId}`);
+    }
+
+    records.push(...(data.data?.items || []));
+    pageToken = data.data?.page_token || "";
+  } while (pageToken);
+
+  return records.filter((record) => isPublished(record.fields || {})).sort(sortRecords);
+};
+
+const toContent = ({ products, faqs, gallery }) => {
+  const content = { products: {} };
+
+  products.forEach((record) => {
+    const fields = record.fields || {};
+    const productId = textFromValue(getField(fields, "productId"));
+    if (!productId) return;
+
+    const cover = imagesFromValue(getField(fields, "image"))[0]?.url || textFromValue(getField(fields, "image"));
+    content.products[productId] = {
+      name: textFromValue(getField(fields, "name")),
+      image: cover,
+      videoUrl: textFromValue(getField(fields, "videoUrl")),
+      start: Number(textFromValue(getField(fields, "start")) || 0),
+      gallery: [],
+      faqs: [],
+    };
+  });
+
+  gallery.forEach((record) => {
+    const fields = record.fields || {};
+    const productId = textFromValue(getField(fields, "productId"));
+    if (!productId) return;
+
+    content.products[productId] ||= { gallery: [], faqs: [] };
+    imagesFromValue(getField(fields, "galleryImage")).forEach((image) => {
+      content.products[productId].gallery.push({
+        url: image.url,
+        caption: textFromValue(getField(fields, "caption")) || image.caption,
+      });
+    });
+  });
+
+  faqs.forEach((record) => {
+    const fields = record.fields || {};
+    const productId = textFromValue(getField(fields, "productId"));
+    if (!productId) return;
+
+    const question = textFromValue(getField(fields, "question"));
+    const answer = textFromValue(getField(fields, "answer"));
+    if (!question || !answer) return;
+
+    content.products[productId] ||= { gallery: [], faqs: [] };
+    content.products[productId].faqs.push({
+      question,
+      answer,
+      images: imagesFromValue(getField(fields, "faqImages")),
+    });
+  });
+
+  return content;
+};
+
+export default async function handler(req, res) {
+  if (req.method !== "GET") {
+    res.status(405).json({ error: "Method not allowed" });
+    return;
+  }
+
+  try {
+    const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
+    const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
+    const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
+    const galleryTable = getEnv("FEISHU_GALLERY_TABLE_ID");
+
+    if (!appToken || !productsTable) {
+      res.status(200).json({
+        configured: false,
+        products: {},
+      });
+      return;
+    }
+
+    const token = await getTenantAccessToken();
+    const [products, faqs, gallery] = await Promise.all([
+      listRecords(token, appToken, productsTable),
+      listRecords(token, appToken, faqsTable),
+      listRecords(token, appToken, galleryTable),
+    ]);
+
+    res.setHeader("cache-control", "s-maxage=60, stale-while-revalidate=300");
+    res.status(200).json({
+      configured: true,
+      ...toContent({ products, faqs, gallery }),
+    });
+  } catch (error) {
+    res.status(500).json({
+      configured: false,
+      products: {},
+      error: error.message || "Failed to load content",
+    });
+  }
+}
