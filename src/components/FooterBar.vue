@@ -1,6 +1,6 @@
 <!-- src/components/FooterBar.vue -->
 <template>
-  <footer class="footer">
+  <footer id="contact" class="footer">
   
     <div class="container footer-grid">
   
@@ -26,10 +26,10 @@
   
         <h4>QUICK LINKS</h4>
   
-        <a href="#">Home</a>
-        <a href="#">Products</a>
+        <RouterLink to="/">Home</RouterLink>
+        <RouterLink to="/#support-products">Products</RouterLink>
         <a href="#">Installation</a>
-        <a href="#">FAQ</a>
+        <RouterLink to="/faq">FAQ</RouterLink>
         <a href="#">Downloads</a>
   
       </div>
@@ -70,5 +70,6 @@
   </template>
   
   <script setup>
+  import { RouterLink } from "vue-router";
   import { CONTACT } from "../config/contact";
   </script>

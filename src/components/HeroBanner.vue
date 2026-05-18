@@ -1,5 +1,5 @@
 <template>
-  <section class="hero-banner" :style="heroStyle">
+  <section class="hero-banner">
     <div class="hero-mask">
       <div class="container hero-content">
         <h1>XUENAV</h1>
@@ -16,11 +16,3 @@
     </div>
   </section>
 </template>
-
-<script setup>
-import heroBackground from "../assets/images/product/chevrolet-camaro-radio-2010-2015.jpg.jpeg";
-
-const heroStyle = {
-  "--hero-bg": `url("${heroBackground}")`,
-};
-</script>

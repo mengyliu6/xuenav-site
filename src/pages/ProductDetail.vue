@@ -75,6 +75,21 @@
             </div>
           </section>
 
+          <section id="faq" class="detail-card product-faq-panel">
+            <div class="faq-panel__head">
+              <div class="section-title">
+                <span>FAQ</span>
+                <h2>Common Support Questions</h2>
+              </div>
+
+              <RouterLink class="secondary-btn faq-page-link" to="/faq">
+                View Full FAQ
+              </RouterLink>
+            </div>
+
+            <FaqList :items="detailFaqs" />
+          </section>
+
           <section class="detail-grid">
             <article class="detail-card">
               <div class="section-title">
@@ -152,8 +167,10 @@ import { RouterLink, useRoute } from "vue-router";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
 import FooterBar from "../components/FooterBar.vue";
+import FaqList from "../components/FaqList.vue";
 import VideoModal from "../components/VideoModal.vue";
 import { products } from "../data/products";
+import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
 
 const route = useRoute();
@@ -162,7 +179,7 @@ const product = computed(() =>
   products.find((item) => item.id === route.params.id)
 );
 
-
+const detailFaqs = computed(() => faqs.slice(0, 4));
 
 const whatsappUrl = computed(() => {
   const productName = product.value?.name || "Xuenav product";

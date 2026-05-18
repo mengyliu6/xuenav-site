@@ -4,7 +4,7 @@
       <RouterLink to="/">HOME</RouterLink>
       <RouterLink to="/#support-products">PRODUCTS</RouterLink>
       <a href="#installation">INSTALLATION</a>
-      <a href="#faq">FAQ</a>
+      <RouterLink to="/faq">FAQ</RouterLink>
       <a href="#contact">CONTACT US</a>
     </div>
   </nav>
