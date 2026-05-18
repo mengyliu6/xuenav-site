@@ -1,0 +1,4 @@
+Product ID,Name,Cover Image,Video URL,Start,Sort,Status
+camaro-radio-10-15,Car Radio for Chevrolet Camaro 2010-2015,https://example.com/images/camaro-radio-cover.jpg,https://www.youtube.com/watch?v=eOQ_AGZgMEM,0,1,Published
+camaro-cluster-10-15,Digital Cluster for Chevrolet Camaro SS 2010-2015,https://example.com/images/camaro-cluster-cover.jpg,https://www.youtube.com/watch?v=gbw0AUKcKzY,0,2,Published
+gmc-radio-07-13,Car Radio for Chevrolet Silverado GMC 2007-2013,https://example.com/images/gmc-radio-cover.jpg,,0,3,Published
