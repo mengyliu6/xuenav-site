@@ -1171,10 +1171,52 @@ a {
   gap: 12px;
 }
 
-.admin-dashboard {
+.admin-dashboard,
+.admin-workspace {
   max-width: 1280px;
   margin: 0 auto;
   padding: 24px;
+}
+
+.admin-auth {
+  min-height: calc(100vh - 86px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.admin-auth form {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+  padding: 28px;
+  border: 1px solid #e6ebf2;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 24px 80px rgba(7, 17, 28, 0.08);
+}
+
+.admin-auth span {
+  color: var(--main);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-auth h2 {
+  color: var(--dark);
+  font-size: 30px;
+}
+
+.admin-auth p {
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.admin-auth code {
+  color: #7c2d12;
 }
 
 .admin-status-card,
@@ -1248,6 +1290,24 @@ a {
   align-items: start;
 }
 
+.admin-editor-grid {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-sidebar {
+  position: sticky;
+  top: 96px;
+}
+
+.admin-editor-main {
+  min-width: 0;
+  display: grid;
+  gap: 22px;
+}
+
 .admin-card {
   padding: 22px;
 }
@@ -1265,6 +1325,132 @@ a {
   padding-left: 20px;
   color: #334155;
   line-height: 1.7;
+}
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.admin-form-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 180px));
+}
+
+.admin-form-grid label,
+.admin-faq-card label {
+  display: grid;
+  gap: 7px;
+}
+
+.admin-form-grid span,
+.admin-faq-card span {
+  color: var(--main);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-faq-card input,
+.admin-faq-card textarea,
+.admin-auth input {
+  width: 100%;
+  border: 1px solid #d7dee7;
+  border-radius: 12px;
+  color: #0f172a;
+  background: #ffffff;
+  font: inherit;
+}
+
+.admin-form-grid input,
+.admin-form-grid select,
+.admin-faq-card input,
+.admin-auth input {
+  min-height: 46px;
+  padding: 0 13px;
+}
+
+.admin-faq-card textarea {
+  padding: 12px 13px;
+  resize: vertical;
+}
+
+.admin-actions,
+.admin-status-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.admin-add-btn,
+.admin-danger {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border: 1px solid #d7dee7;
+  border-radius: 12px;
+  color: var(--dark);
+  background: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-add-btn {
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.admin-danger {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fff1f2;
+}
+
+.admin-product-list,
+.admin-faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-product-list button {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid #e6ebf2;
+  border-radius: 14px;
+  text-align: left;
+  background: #fbfcfe;
+  cursor: pointer;
+}
+
+.admin-product-list button.active {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  box-shadow: inset 3px 0 0 var(--main);
+}
+
+.admin-product-list strong {
+  color: var(--dark);
+  line-height: 1.35;
+}
+
+.admin-product-list small {
+  color: #64748b;
+}
+
+.admin-faq-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #e6ebf2;
+  border-radius: 18px;
+  background: #fbfcfe;
 }
 
 .admin-env-list {
@@ -1432,11 +1618,13 @@ a {
   .product-hero,
   .detail-grid,
   .faq-page-grid,
-  .admin-content-grid {
+  .admin-content-grid,
+  .admin-editor-grid {
     grid-template-columns: 1fr;
   }
 
-  .faq-contact-card {
+  .faq-contact-card,
+  .admin-sidebar {
     position: static;
   }
 
@@ -1560,7 +1748,8 @@ a {
     padding: 18px 16px;
   }
 
-  .admin-dashboard {
+  .admin-dashboard,
+  .admin-workspace {
     padding: 16px;
   }
 
@@ -1577,6 +1766,11 @@ a {
 
   .admin-product-table__head {
     display: none;
+  }
+
+  .admin-form-grid,
+  .admin-form-grid.compact {
+    grid-template-columns: 1fr;
   }
 
   .product-actions {

@@ -45,6 +45,14 @@ const textFromValue = (value) => {
 const imagesFromValue = (value) => {
   if (!value) return [];
 
+  if (typeof value === "string") {
+    return value
+      .split(/[\n,]/)
+      .map((url) => url.trim())
+      .filter(Boolean)
+      .map((url) => ({ url, caption: "" }));
+  }
+
   const items = Array.isArray(value) ? value : [value];
 
   return items
