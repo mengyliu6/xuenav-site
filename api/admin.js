@@ -200,8 +200,27 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
     throw new Error("Invalid resource or missing table configuration");
   }
 
+  const nextFields = cleanFields(fields, allowedFields);
+
+  // 飞书 Link 字段格式修复
+  if (resource === "product") {
+    if (nextFields["Cover Image"]) {
+      nextFields["Cover Image"] = {
+        link: nextFields["Cover Image"],
+        text: nextFields["Cover Image"],
+      };
+    }
+
+    if (nextFields["Video URL"]) {
+      nextFields["Video URL"] = {
+        link: nextFields["Video URL"],
+        text: nextFields["Video URL"],
+      };
+    }
+  }
+
   const body = JSON.stringify({
-    fields: cleanFields(fields, allowedFields),
+    fields: nextFields,
   });
   const baseUrl = `${FEISHU_API}/bitable/v1/apps/${appToken}/tables/${tableId}/records`;
   const response = await fetch(recordId ? `${baseUrl}/${recordId}` : baseUrl, {
