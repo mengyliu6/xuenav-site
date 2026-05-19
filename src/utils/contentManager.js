@@ -72,6 +72,8 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
     name,
     image,
     videoUrl,
+    start: Number(override.start ?? product.start ?? 0),
+    sort: Number(override.sort ?? product.sort ?? 0),
     gallery,
     faqs: productFaqs,
     hasCustomGallery: normalizeImages(override.gallery).length > 0,
@@ -79,5 +81,68 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
   };
 };
 
-export const mergeProductsContent = (products, content = emptyContent()) =>
-  products.map((product) => mergeProductContent(product, [], content));
+const productFromRemote = ([id, item]) =>
+  mergeProductContent(
+    {
+      id,
+      name: "",
+      image: "",
+      videoUrl: "",
+      start: 0,
+      sort: 0,
+    },
+    [],
+    {
+      products: {
+        [id]: item,
+      },
+    }
+  );
+
+const bySortThenName = (a, b) => {
+  const sortA = Number(a.sort || 0);
+  const sortB = Number(b.sort || 0);
+
+  if (sortA !== sortB) return sortA - sortB;
+
+  return String(a.name || a.id).localeCompare(String(b.name || b.id));
+};
+
+export const mergeProductsContent = (products, content = emptyContent()) => {
+  const remoteProducts = Object.entries(content.products || {});
+
+  if (content.configured && remoteProducts.length) {
+    return remoteProducts.map(productFromRemote).sort(bySortThenName);
+  }
+
+  return products
+    .map((product) => mergeProductContent(product, [], content))
+    .sort(bySortThenName);
+};
+
+export const resolveProductContent = (
+  productId,
+  products,
+  fallbackFaqs = [],
+  content = emptyContent()
+) => {
+  const staticProduct = products.find((item) => item.id === productId);
+  const remoteProduct = content.products?.[productId];
+
+  if (remoteProduct) {
+    return mergeProductContent(
+      staticProduct || {
+        id: productId,
+        name: "",
+        image: "",
+        videoUrl: "",
+        start: 0,
+        sort: 0,
+      },
+      fallbackFaqs,
+      content
+    );
+  }
+
+  return staticProduct ? mergeProductContent(staticProduct, fallbackFaqs, content) : null;
+};

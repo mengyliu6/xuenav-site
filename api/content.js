@@ -1,18 +1,18 @@
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 
 const FIELD_ALIASES = {
-  productId: ["Product ID", "productId", "product_id", "商品ID", "商品 ID"],
-  name: ["Name", "Product Name", "name", "商品名称", "产品名称"],
-  image: ["Cover Image", "Cover", "Image", "image", "封面图", "封面图片"],
-  videoUrl: ["Video URL", "Video", "videoUrl", "video_url", "视频链接"],
-  start: ["Start", "Start Time", "start", "开始时间"],
-  status: ["Status", "status", "状态"],
-  sort: ["Sort", "sort", "排序"],
-  question: ["Question", "question", "问题"],
-  answer: ["Answer", "answer", "回答", "答案"],
-  galleryImage: ["Image", "Images", "Gallery Image", "image", "图片", "商品图片"],
-  faqImages: ["Images", "FAQ Images", "images", "图片", "FAQ图片"],
-  caption: ["Caption", "caption", "说明", "图片说明"],
+  productId: ["Product ID", "productId", "product_id", "\u5546\u54c1ID", "\u5546\u54c1 ID"],
+  name: ["Name", "Product Name", "name", "\u5546\u54c1\u540d\u79f0", "\u4ea7\u54c1\u540d\u79f0"],
+  image: ["Cover Image", "Cover", "Image", "image", "\u5c01\u9762\u56fe", "\u5c01\u9762\u56fe\u7247"],
+  videoUrl: ["Video URL", "Video", "videoUrl", "video_url", "\u89c6\u9891\u94fe\u63a5"],
+  start: ["Start", "Start Time", "start", "\u5f00\u59cb\u65f6\u95f4", "\u5f00\u59cb\u79d2\u6570"],
+  status: ["Status", "status", "\u72b6\u6001"],
+  sort: ["Sort", "sort", "\u6392\u5e8f"],
+  question: ["Question", "question", "\u95ee\u9898"],
+  answer: ["Answer", "answer", "\u56de\u7b54", "\u7b54\u6848"],
+  galleryImage: ["Image", "Images", "Gallery Image", "image", "\u56fe\u7247", "\u5546\u54c1\u56fe\u7247"],
+  faqImages: ["Images", "FAQ Images", "images", "\u56fe\u7247", "FAQ\u56fe\u7247"],
+  caption: ["Caption", "caption", "\u8bf4\u660e", "\u56fe\u7247\u8bf4\u660e"],
 };
 
 const getEnv = (name) => process.env[name] || "";
@@ -27,26 +27,30 @@ const textFromValue = (value) => {
   if (value === undefined || value === null) return "";
   if (typeof value === "string" || typeof value === "number") return String(value).trim();
   if (typeof value === "boolean") return value ? "true" : "false";
+
   if (Array.isArray(value)) {
     return value
       .map((item) => {
         if (typeof item === "string" || typeof item === "number") return String(item);
-        return item?.text || item?.name || item?.url || item?.link || "";
+        return item?.text || item?.name || item?.url || item?.tmp_url || item?.link || "";
       })
       .filter(Boolean)
       .join(" ")
       .trim();
   }
-  return String(value.text || value.name || value.url || value.link || "").trim();
+
+  return String(value.text || value.name || value.url || value.tmp_url || value.link || "").trim();
 };
 
 const imagesFromValue = (value) => {
   if (!value) return [];
+
   const items = Array.isArray(value) ? value : [value];
 
   return items
     .map((item) => {
       if (typeof item === "string") return { url: item, caption: "" };
+
       return {
         url: item?.url || item?.tmp_url || item?.link || "",
         caption: item?.name || item?.text || "",
@@ -57,7 +61,21 @@ const imagesFromValue = (value) => {
 
 const isPublished = (fields) => {
   const status = textFromValue(getField(fields, "status")).toLowerCase();
-  return !status || ["published", "publish", "active", "online", "yes", "true", "已发布", "启用"].includes(status);
+  const hiddenStatuses = [
+    "draft",
+    "hidden",
+    "disabled",
+    "offline",
+    "unpublished",
+    "no",
+    "false",
+    "\u8349\u7a3f",
+    "\u672a\u53d1\u5e03",
+    "\u4e0b\u7ebf",
+    "\u7981\u7528",
+  ];
+
+  return !hiddenStatuses.includes(status);
 };
 
 const sortRecords = (a, b) => {
@@ -130,12 +148,16 @@ const toContent = ({ products, faqs, gallery }) => {
     const productId = textFromValue(getField(fields, "productId"));
     if (!productId) return;
 
-    const cover = imagesFromValue(getField(fields, "image"))[0]?.url || textFromValue(getField(fields, "image"));
+    const cover =
+      imagesFromValue(getField(fields, "image"))[0]?.url ||
+      textFromValue(getField(fields, "image"));
+
     content.products[productId] = {
       name: textFromValue(getField(fields, "name")),
       image: cover,
       videoUrl: textFromValue(getField(fields, "videoUrl")),
       start: Number(textFromValue(getField(fields, "start")) || 0),
+      sort: Number(textFromValue(getField(fields, "sort")) || 0),
       gallery: [],
       faqs: [],
     };
@@ -146,9 +168,11 @@ const toContent = ({ products, faqs, gallery }) => {
     const productId = textFromValue(getField(fields, "productId"));
     if (!productId) return;
 
-    content.products[productId] ||= { gallery: [], faqs: [] };
+    const product = content.products[productId];
+    if (!product) return;
+
     imagesFromValue(getField(fields, "galleryImage")).forEach((image) => {
-      content.products[productId].gallery.push({
+      product.gallery.push({
         url: image.url,
         caption: textFromValue(getField(fields, "caption")) || image.caption,
       });
@@ -164,8 +188,10 @@ const toContent = ({ products, faqs, gallery }) => {
     const answer = textFromValue(getField(fields, "answer"));
     if (!question || !answer) return;
 
-    content.products[productId] ||= { gallery: [], faqs: [] };
-    content.products[productId].faqs.push({
+    const product = content.products[productId];
+    if (!product) return;
+
+    product.faqs.push({
       question,
       answer,
       images: imagesFromValue(getField(fields, "faqImages")),

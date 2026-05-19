@@ -48,7 +48,7 @@ import {
   mergeProductsContent,
 } from "../utils/contentManager";
 
-const content = ref({ products: {} });
+const content = ref({ configured: false, products: {} });
 const managedProducts = computed(() => mergeProductsContent(products, content.value));
 
 onMounted(async () => {

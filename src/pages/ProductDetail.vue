@@ -10,7 +10,7 @@
           <span>/</span>
           <RouterLink to="/">Product Support</RouterLink>
           <span>/</span>
-          <span>{{ product?.name || "Product Detail" }}</span>
+          <span>{{ productContent?.name || "Product Detail" }}</span>
         </nav>
 
         <template v-if="productContent">
@@ -147,7 +147,7 @@
           </section>
         </template>
 
-        <template v-else>
+        <template v-else-if="contentLoaded">
           <section class="not-found-box">
             <h1>Product not found</h1>
             <p>Please return to the product support center.</p>
@@ -174,18 +174,15 @@ import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
 import {
   loadRemoteContent,
-  mergeProductContent,
+  resolveProductContent,
 } from "../utils/contentManager";
 
 const route = useRoute();
-const content = ref({ products: {} });
-
-const product = computed(() =>
-  products.find((item) => item.id === route.params.id)
-);
+const content = ref({ configured: false, products: {} });
+const contentLoaded = ref(false);
 
 const productContent = computed(() =>
-  product.value ? mergeProductContent(product.value, faqs.slice(0, 4), content.value) : null
+  resolveProductContent(route.params.id, products, faqs.slice(0, 4), content.value)
 );
 
 const productFaqs = computed(() => productContent.value?.faqs || faqs.slice(0, 4));
@@ -254,5 +251,6 @@ const specRows = computed(() => {
 
 onMounted(async () => {
   content.value = await loadRemoteContent(content.value);
+  contentLoaded.value = true;
 });
 </script>
