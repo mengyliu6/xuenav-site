@@ -75,30 +75,6 @@
             </div>
           </section>
 
-          <section class="detail-card product-gallery-panel">
-            <div class="section-title">
-              <span>Product Media</span>
-              <h2>Images & Notes</h2>
-            </div>
-
-            <div v-if="productGallery.length" class="product-gallery-grid">
-              <figure v-for="image in productGallery" :key="image.url">
-                <img :src="image.url" :alt="image.caption || productContent.name" />
-                <figcaption>
-                  {{ image.caption || productContent.name }}
-                </figcaption>
-              </figure>
-            </div>
-
-            <div v-else class="product-empty-module">
-              <strong>Media will be added soon.</strong>
-              <p>
-                Contact Xuenav support for matching photos, wiring checks and
-                model confirmation.
-              </p>
-            </div>
-          </section>
-
           <section id="faq" class="detail-card product-faq-panel">
             <div class="faq-panel__head">
               <div class="section-title">
@@ -213,8 +189,6 @@ const productContent = computed(() =>
 );
 
 const productFaqs = computed(() => productContent.value?.faqs || faqs.slice(0, 4));
-
-const productGallery = computed(() => productContent.value?.gallery || []);
 
 const whatsappUrl = computed(() => {
   const productName = productContent.value?.name || "Xuenav product";

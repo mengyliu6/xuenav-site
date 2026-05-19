@@ -2,21 +2,11 @@
   <div class="admin-page">
     <header class="admin-topbar">
       <div>
-        <span>XUENAV 内部后台</span>
-        <h1>飞书多维表格内容管理</h1>
+        <span>XUENAV Internal CMS</span>
+        <h1>飞书内容管理后台</h1>
       </div>
-      <RouterLink to="/" class="secondary-btn">返回官网</RouterLink>
-    </header>
 
-    <main class="admin-guide">
-      <section class="admin-guide-hero">
-        <span class="product-eyebrow">Internal CMS</span>
-        <h2>在飞书里编辑，官网自动读取</h2>
-        <p>
-          适合 1-2 位内部同事维护商品图片、视频链接和专属 FAQ。官网通过
-          Vercel API 服务端读取飞书，多维表格里的密钥不会暴露给访客。
-        </p>
-
+      <div class="admin-topbar__actions">
         <a
           v-if="bitableUrl"
           class="primary-btn"
@@ -24,76 +14,88 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          打开飞书后台
+          打开飞书表格
         </a>
+        <RouterLink to="/" class="secondary-btn">返回官网</RouterLink>
+      </div>
+    </header>
+
+    <main class="admin-dashboard">
+      <section class="admin-status-card">
+        <div>
+          <span class="section-eyebrow">Connection</span>
+          <h2>{{ statusTitle }}</h2>
+          <p>{{ statusText }}</p>
+        </div>
+
+        <button type="button" class="secondary-btn" @click="loadContent">
+          刷新同步状态
+        </button>
       </section>
 
-      <section class="admin-guide-grid">
+      <section class="admin-metric-grid">
+        <article>
+          <span>Products</span>
+          <strong>{{ stats.products }}</strong>
+          <p>已同步商品</p>
+        </article>
+        <article>
+          <span>FAQ</span>
+          <strong>{{ stats.faqs }}</strong>
+          <p>商品专属 FAQ</p>
+        </article>
+        <article>
+          <span>Images</span>
+          <strong>{{ stats.images }}</strong>
+          <p>封面 / FAQ 图片</p>
+        </article>
+      </section>
+
+      <section class="admin-content-grid">
         <article class="admin-card">
           <div class="admin-section-title">
-            <span>Tables</span>
-            <h2>建议建 3 张表</h2>
+            <span>Content</span>
+            <h2>商品内容状态</h2>
           </div>
 
-          <div class="admin-table-schema">
-            <h3>Products 商品表</h3>
-            <p>商品基础信息。`Product ID` 必须和代码里的商品 id 一致。</p>
-            <ul>
-              <li>Product ID / 商品ID</li>
-              <li>Name / 商品名称</li>
-              <li>Cover Image / 封面图</li>
-              <li>Video URL / 视频链接</li>
-              <li>Start / 视频开始秒数</li>
-              <li>Sort / 排序</li>
-              <li>Status / 状态，填 Published 或 已发布</li>
-            </ul>
-          </div>
+          <div class="admin-product-table">
+            <div class="admin-product-table__head">
+              <span>Product ID</span>
+              <span>Name</span>
+              <span>Video</span>
+              <span>FAQ</span>
+            </div>
 
-          <div class="admin-table-schema">
-            <h3>Gallery 商品图片表</h3>
-            <p>每个商品可以添加多张图片和说明。</p>
-            <ul>
-              <li>Product ID / 商品ID</li>
-              <li>Image / 图片</li>
-              <li>Caption / 图片说明</li>
-              <li>Sort / 排序</li>
-              <li>Status / 状态</li>
-            </ul>
-          </div>
-
-          <div class="admin-table-schema">
-            <h3>FAQs 商品 FAQ 表</h3>
-            <p>每个商品可以添加独立 FAQ，FAQ 里也可以插入多张图片。</p>
-            <ul>
-              <li>Product ID / 商品ID</li>
-              <li>Question / 问题</li>
-              <li>Answer / 回答</li>
-              <li>Images / 图片</li>
-              <li>Sort / 排序</li>
-              <li>Status / 状态</li>
-            </ul>
+            <div
+              v-for="item in productRows"
+              :key="item.id"
+              class="admin-product-row"
+            >
+              <code>{{ item.id }}</code>
+              <strong>{{ item.name || "未填写商品名称" }}</strong>
+              <span>{{ item.videoUrl ? "已配置" : "未配置" }}</span>
+              <span>{{ item.faqCount }}</span>
+            </div>
           </div>
         </article>
 
         <aside class="admin-card">
           <div class="admin-section-title">
-            <span>Vercel Env</span>
-            <h2>需要配置的环境变量</h2>
+            <span>How To Edit</span>
+            <h2>编辑方式</h2>
           </div>
+
+          <ol class="admin-steps">
+            <li>在飞书 Products 表编辑商品名称、封面图、视频链接。</li>
+            <li>在 FAQs 表添加每个商品的专属 FAQ，可插入多张 FAQ 图片。</li>
+            <li>确认 Status 为 Published 或 已发布。</li>
+            <li>回到本页面点击“刷新同步状态”。</li>
+          </ol>
 
           <div class="admin-env-list">
-            <code>FEISHU_APP_ID</code>
-            <code>FEISHU_APP_SECRET</code>
-            <code>FEISHU_BITABLE_APP_TOKEN</code>
-            <code>FEISHU_PRODUCTS_TABLE_ID</code>
-            <code>FEISHU_GALLERY_TABLE_ID</code>
-            <code>FEISHU_FAQS_TABLE_ID</code>
-            <code>VITE_FEISHU_BITABLE_URL</code>
+            <code>Products: Product ID / Name / Cover Image / Video URL</code>
+            <code>FAQs: Product ID / Question / Answer / Images</code>
           </div>
-
-          <p class="admin-help-text">
-            WPS 表格也可以走开放平台 API，但权限、附件 URL 和接口稳定性不如飞书多维表格适合做轻量 CMS。当前实现优先支持飞书。
-          </p>
         </aside>
       </section>
     </main>
@@ -101,7 +103,70 @@
 </template>
 
 <script setup>
+import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
+const content = ref({ configured: false, products: {} });
+const loading = ref(false);
+const error = ref("");
+
+const productRows = computed(() =>
+  Object.entries(content.value.products || {}).map(([id, item]) => ({
+    id,
+    name: item?.name || "",
+    videoUrl: item?.videoUrl || "",
+    faqCount: Array.isArray(item?.faqs) ? item.faqs.length : 0,
+    imageCount:
+      (item?.image ? 1 : 0) +
+      (Array.isArray(item?.faqs)
+        ? item.faqs.reduce(
+            (total, faq) => total + (Array.isArray(faq.images) ? faq.images.length : 0),
+            0
+          )
+        : 0),
+  }))
+);
+
+const stats = computed(() => ({
+  products: productRows.value.length,
+  faqs: productRows.value.reduce((total, item) => total + item.faqCount, 0),
+  images: productRows.value.reduce((total, item) => total + item.imageCount, 0),
+}));
+
+const statusTitle = computed(() => {
+  if (loading.value) return "正在读取飞书内容...";
+  if (error.value) return "飞书同步异常";
+  if (content.value.configured) return "飞书后台已连接";
+  return "飞书后台未完成配置";
+});
+
+const statusText = computed(() => {
+  if (loading.value) return "正在通过 Vercel API 读取 /api/content。";
+  if (error.value) return error.value;
+  if (content.value.configured) {
+    return "环境变量已生效，官网会读取飞书多维表格里的商品和 FAQ 内容。";
+  }
+  return "请检查 Vercel 环境变量，并重新部署测试环境。";
+});
+
+const loadContent = async () => {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const response = await fetch("/api/content", {
+      headers: { accept: "application/json" },
+    });
+    const data = await response.json();
+    content.value = data;
+    error.value = data?.error || "";
+  } catch (err) {
+    error.value = err?.message || "读取 /api/content 失败。";
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(loadContent);
 </script>
