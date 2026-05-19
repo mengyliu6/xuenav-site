@@ -38,21 +38,32 @@ const requireAdmin = (req) => {
 
 const textFromValue = (value) => {
   if (value === undefined || value === null) return "";
-  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (typeof value === "string" || typeof value === "number")
+    return String(value).trim();
   if (typeof value === "boolean") return value ? "true" : "false";
 
   if (Array.isArray(value)) {
     return value
       .map((item) => {
-        if (typeof item === "string" || typeof item === "number") return String(item);
-        return item?.text || item?.name || item?.url || item?.tmp_url || item?.link || "";
+        if (typeof item === "string" || typeof item === "number")
+          return String(item);
+        return (
+          item?.text ||
+          item?.name ||
+          item?.url ||
+          item?.tmp_url ||
+          item?.link ||
+          ""
+        );
       })
       .filter(Boolean)
       .join("\n")
       .trim();
   }
 
-  return String(value.text || value.name || value.url || value.tmp_url || value.link || "").trim();
+  return String(
+    value.text || value.name || value.url || value.tmp_url || value.link || "",
+  ).trim();
 };
 
 const cleanFields = (fields, allowed) => {
@@ -74,14 +85,17 @@ const getTenantAccessToken = async () => {
     throw new Error("Missing FEISHU_APP_ID or FEISHU_APP_SECRET");
   }
 
-  const response = await fetch(`${FEISHU_API}/auth/v3/tenant_access_token/internal`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      app_id: appId,
-      app_secret: appSecret,
-    }),
-  });
+  const response = await fetch(
+    `${FEISHU_API}/auth/v3/tenant_access_token/internal`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        app_id: appId,
+        app_secret: appSecret,
+      }),
+    },
+  );
   const data = await response.json();
 
   if (!response.ok || data.code !== 0) {
@@ -105,7 +119,7 @@ const listRecords = async (token, appToken, tableId) => {
         headers: {
           authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     const data = await response.json();
 
@@ -160,7 +174,8 @@ const respondWithAdminContent = async (res, token) => {
 
   if (!appToken || !productsTable || !faqsTable) {
     res.status(500).json({
-      error: "Missing FEISHU_BITABLE_APP_TOKEN, FEISHU_PRODUCTS_TABLE_ID or FEISHU_FAQS_TABLE_ID",
+      error:
+        "Missing FEISHU_BITABLE_APP_TOKEN, FEISHU_PRODUCTS_TABLE_ID or FEISHU_FAQS_TABLE_ID",
     });
     return;
   }
@@ -200,7 +215,8 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
   const data = await response.json();
 
   if (!response.ok || data.code !== 0) {
-    throw new Error(data.msg || "Failed to save Feishu record");
+    console.log(data);
+    throw new Error(JSON.stringify(data));
   }
 
   return data.data?.record;
@@ -221,7 +237,7 @@ const deleteRecord = async ({ token, resource, recordId }) => {
       headers: {
         authorization: `Bearer ${token}`,
       },
-    }
+    },
   );
   const data = await response.json();
 
@@ -235,7 +251,9 @@ const deleteRecord = async ({ token, resource, recordId }) => {
 export default async function handler(req, res) {
   const authError = requireAdmin(req);
   if (authError) {
-    res.status(authError.startsWith("Missing") ? 500 : 401).json({ error: authError });
+    res
+      .status(authError.startsWith("Missing") ? 500 : 401)
+      .json({ error: authError });
     return;
   }
 
@@ -249,7 +267,12 @@ export default async function handler(req, res) {
 
     if (req.method === "POST") {
       const { resource, recordId, fields } = req.body || {};
-      const record = await saveRecord({ token, resource, recordId, fields: fields || {} });
+      const record = await saveRecord({
+        token,
+        resource,
+        recordId,
+        fields: fields || {},
+      });
       res.status(200).json({ record });
       return;
     }
@@ -263,6 +286,7 @@ export default async function handler(req, res) {
 
     res.status(405).json({ error: "Method not allowed" });
   } catch (error) {
+    console.error(error);
     res.status(500).json({
       error: error.message || "Admin API failed",
     });
