@@ -30,6 +30,28 @@ const getTenantAccessToken = async () => {
   return data.tenant_access_token;
 };
 
+const fetchFeishuImage = async (token, fileToken) => {
+  const encodedToken = encodeURIComponent(fileToken);
+  const urls = [
+    `${FEISHU_API}/drive/v1/files/${encodedToken}/download`,
+    `${FEISHU_API}/drive/v1/medias/${encodedToken}/download`,
+  ];
+  let lastResponse = null;
+
+  for (const url of urls) {
+    const response = await fetch(url, {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) return response;
+    lastResponse = response;
+  }
+
+  return lastResponse;
+};
+
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method not allowed" });
@@ -44,14 +66,7 @@ export default async function handler(req, res) {
 
   try {
     const token = await getTenantAccessToken();
-    const response = await fetch(
-      `${FEISHU_API}/drive/v1/files/${encodeURIComponent(fileToken)}/download`,
-      {
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    const response = await fetchFeishuImage(token, fileToken);
 
     if (!response.ok) {
       const message = await response.text();

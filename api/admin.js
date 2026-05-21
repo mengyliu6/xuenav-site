@@ -67,8 +67,21 @@ const formatFeishuError = (data, fallback) => {
   return message;
 };
 
-const imageProxyUrlFromToken = (fileToken) =>
-  `/api/image?token=${encodeURIComponent(fileToken)}`;
+const getSiteOrigin = (req) => {
+  const configured =
+    getEnv("PUBLIC_SITE_URL") ||
+    getEnv("SITE_URL") ||
+    (getEnv("VERCEL_URL") ? `https://${getEnv("VERCEL_URL")}` : "");
+
+  if (configured) return configured.replace(/\/$/, "");
+
+  const protocol = req.headers["x-forwarded-proto"] || "https";
+  const host = req.headers["x-forwarded-host"] || req.headers.host;
+  return host ? `${protocol}://${host}` : "https://xuenav.com";
+};
+
+const imageProxyUrlFromToken = (fileToken, req) =>
+  `${getSiteOrigin(req)}/api/image?token=${encodeURIComponent(fileToken)}`;
 
 const firstLineFromValue = (value) =>
   String(value || "")
@@ -164,11 +177,11 @@ const imageFieldFromValue = (value) => {
   return value;
 };
 
-const linkFieldFromValue = (value) => {
+const linkFieldFromValue = (value, req) => {
   if (!value) return value;
 
   const link = isFeishuAttachmentToken(value)
-    ? imageProxyUrlFromToken(getFeishuAttachmentToken(value))
+    ? imageProxyUrlFromToken(getFeishuAttachmentToken(value), req)
     : firstLineFromValue(value);
 
   if (!link) return "";
@@ -344,7 +357,7 @@ const respondWithAdminContent = async (res, token) => {
   });
 };
 
-const saveRecord = async ({ token, resource, recordId, fields }) => {
+const saveRecord = async ({ token, resource, recordId, fields, req }) => {
   const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
   const tableId = tableForResource(resource);
   const allowedFields = allowedFieldsForResource(resource);
@@ -357,16 +370,16 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
 
   if (resource === "product") {
     if (nextFields["Cover Image"]) {
-      nextFields["Cover Image"] = linkFieldFromValue(nextFields["Cover Image"]);
+      nextFields["Cover Image"] = linkFieldFromValue(nextFields["Cover Image"], req);
     }
 
     if (nextFields["Video URL"]) {
-      nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
+      nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"], req);
     }
   }
 
   if (resource === "faq" && nextFields.Images) {
-    nextFields.Images = linkFieldFromValue(nextFields.Images);
+    nextFields.Images = linkFieldFromValue(nextFields.Images, req);
   }
 
   const body = JSON.stringify({
@@ -448,7 +461,7 @@ export default async function handler(req, res) {
         });
         res.status(200).json({
           fileToken,
-          url: imageProxyUrlFromToken(fileToken),
+          url: imageProxyUrlFromToken(fileToken, req),
         });
         return;
       }
@@ -458,6 +471,7 @@ export default async function handler(req, res) {
         resource,
         recordId,
         fields: fields || {},
+        req,
       });
       res.status(200).json({ record });
       return;
