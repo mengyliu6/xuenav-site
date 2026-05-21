@@ -232,7 +232,6 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
@@ -315,8 +314,6 @@ const assignProductDraft = (item) => {
   });
 };
 
-const toAttachmentToken = (fileToken) => `${FEISHU_ATTACHMENT_PREFIX}${fileToken}`;
-
 const appendLine = (value, line) => [value, line].filter(Boolean).join("\n");
 
 const fileToBase64 = (file) =>
@@ -395,7 +392,11 @@ const uploadImage = async (file) => {
     content: base64,
   });
 
-  return data.url || toAttachmentToken(data.fileToken);
+  if (!data.url) {
+    throw new Error("图片上传成功但没有返回 Blob URL，请检查 Vercel Blob 配置。");
+  }
+
+  return data.url;
 };
 
 const uploadProductCover = async (event) => {
