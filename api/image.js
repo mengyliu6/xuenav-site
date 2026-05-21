@@ -30,7 +30,10 @@ const getTenantAccessToken = async () => {
   return data.tenant_access_token;
 };
 
-const fetchFeishuImage = async (token, fileToken) => {
+const isJsonResponse = (response) =>
+  (response.headers.get("content-type") || "").includes("application/json");
+
+const fetchDirectFeishuImage = async (token, fileToken) => {
   const encodedToken = encodeURIComponent(fileToken);
   const urls = [
     `${FEISHU_API}/drive/v1/files/${encodedToken}/download`,
@@ -45,11 +48,43 @@ const fetchFeishuImage = async (token, fileToken) => {
       },
     });
 
-    if (response.ok) return response;
+    if (response.ok && !isJsonResponse(response)) return response;
     lastResponse = response;
   }
 
   return lastResponse;
+};
+
+const fetchTmpDownloadUrl = async (token, fileToken) => {
+  const params = new URLSearchParams({
+    file_tokens: fileToken,
+  });
+  const response = await fetch(
+    `${FEISHU_API}/drive/v1/medias/batch_get_tmp_download_url?${params.toString()}`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    },
+  );
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok || data.code !== 0) return "";
+
+  return data.data?.tmp_download_urls?.[0]?.tmp_download_url || "";
+};
+
+const fetchFeishuImage = async (token, fileToken) => {
+  const directResponse = await fetchDirectFeishuImage(token, fileToken);
+  if (directResponse?.ok && !isJsonResponse(directResponse)) {
+    return directResponse;
+  }
+
+  const tmpUrl = await fetchTmpDownloadUrl(token, fileToken);
+  if (!tmpUrl) return directResponse;
+
+  const tmpResponse = await fetch(tmpUrl);
+  return tmpResponse.ok ? tmpResponse : directResponse;
 };
 
 export default async function handler(req, res) {
@@ -81,6 +116,7 @@ export default async function handler(req, res) {
     const data = Buffer.from(await response.arrayBuffer());
 
     res.setHeader("content-type", contentType);
+    res.setHeader("content-disposition", "inline");
     if (contentLength) res.setHeader("content-length", contentLength);
     res.setHeader("cache-control", "s-maxage=86400, stale-while-revalidate=604800");
     res.status(200).send(data);
