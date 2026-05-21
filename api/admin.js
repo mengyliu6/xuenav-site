@@ -22,6 +22,35 @@ const FAQ_FIELDS = [
 const getEnv = (name) => process.env[name] || "";
 const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
 
+const normalizeBitableToken = (value = "") => {
+  const text = String(value || "").trim();
+  const baseMatch = text.match(/\/base\/([^/?#]+)/);
+  if (baseMatch?.[1]) return baseMatch[1];
+
+  return text;
+};
+
+const getUploadParentNode = () =>
+  normalizeBitableToken(
+    getEnv("FEISHU_UPLOAD_PARENT_NODE") ||
+      getEnv("FEISHU_BITABLE_APP_TOKEN") ||
+      getEnv("VITE_FEISHU_BITABLE_URL"),
+  );
+
+const isImageMimeType = (mimeType = "") =>
+  String(mimeType || "").toLowerCase().startsWith("image/");
+
+const formatFeishuError = (data, fallback) => {
+  const rawMessage = data?.msg || data?.message || fallback;
+  const message = String(rawMessage || fallback);
+
+  if (message.toLowerCase().includes("parent node not exist")) {
+    return "飞书图片上传失败：找不到上传父节点。请确认 FEISHU_BITABLE_APP_TOKEN 是飞书多维表格 URL 中 /base/ 后面的 token；如仍失败，请单独配置 FEISHU_UPLOAD_PARENT_NODE。";
+  }
+
+  return message;
+};
+
 const requireAdmin = (req) => {
   const expected = getEnv("ADMIN_API_TOKEN");
   const received = req.headers["x-admin-token"];
@@ -150,10 +179,10 @@ const getTenantAccessToken = async () => {
 };
 
 const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) => {
-  const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
+  const parentNode = getUploadParentNode();
 
-  if (!appToken) {
-    throw new Error("Missing FEISHU_BITABLE_APP_TOKEN");
+  if (!parentNode) {
+    throw new Error("Missing FEISHU_BITABLE_APP_TOKEN or FEISHU_UPLOAD_PARENT_NODE");
   }
 
   if (!fileName || !content) {
@@ -168,8 +197,8 @@ const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) =
     fileName,
   );
   formData.append("file_name", fileName);
-  formData.append("parent_type", "bitable_file");
-  formData.append("parent_node", appToken);
+  formData.append("parent_type", isImageMimeType(mimeType) ? "bitable_image" : "bitable_file");
+  formData.append("parent_node", parentNode);
   formData.append("size", String(size || bytes.length));
 
   const response = await fetch(`${FEISHU_API}/drive/v1/medias/upload_all`, {
@@ -182,7 +211,7 @@ const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) =
   const data = await response.json();
 
   if (!response.ok || data.code !== 0) {
-    throw new Error(data.msg || "Failed to upload Feishu media");
+    throw new Error(formatFeishuError(data, "Failed to upload Feishu media"));
   }
 
   const fileToken = data.data?.file_token;

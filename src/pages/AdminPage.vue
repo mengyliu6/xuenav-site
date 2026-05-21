@@ -1,9 +1,13 @@
 <template>
   <div class="admin-page">
+    <div v-if="toast.message" class="admin-toast" :class="`admin-toast--${toast.type}`">
+      {{ toast.message }}
+    </div>
+
     <header class="admin-topbar">
       <div>
-        <span>XUENAV Internal CMS</span>
-        <h1>飞书内容管理后台</h1>
+        <span>XUENAV Admin</span>
+        <h1>XUENAV 后台管理</h1>
       </div>
 
       <div class="admin-topbar__actions">
@@ -14,7 +18,7 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          打开飞书表格
+          打开数据表
         </a>
         <RouterLink to="/" class="secondary-btn">返回官网</RouterLink>
       </div>
@@ -22,12 +26,13 @@
 
     <main v-if="!token" class="admin-auth">
       <form @submit.prevent="saveToken">
-        <span>Admin Token</span>
-        <h2>输入内部管理令牌</h2>
+        <span>运营后台登录</span>
+        <h2>请输入后台管理令牌</h2>
         <p>
-          这个令牌对应 Vercel 环境变量 <code>ADMIN_API_TOKEN</code>，仅用于公司内部人员编辑内容。
+          登录后可以维护官网商品、封面图片和 FAQ。令牌由技术同事在 Vercel 环境变量
+          <code>ADMIN_API_TOKEN</code> 中配置。
         </p>
-        <input v-model="tokenInput" type="password" placeholder="ADMIN_API_TOKEN" />
+        <input v-model="tokenInput" type="password" placeholder="请输入 Admin Token" />
         <button type="submit" class="primary-btn">进入后台</button>
       </form>
     </main>
@@ -35,17 +40,17 @@
     <main v-else class="admin-workspace">
       <section class="admin-status-card">
         <div>
-          <span class="section-eyebrow">Feishu CMS</span>
+          <span class="section-eyebrow">XUENAV CMS</span>
           <h2>{{ statusTitle }}</h2>
           <p>{{ statusText }}</p>
         </div>
 
         <div class="admin-status-actions">
           <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
-            刷新
+            刷新数据
           </button>
           <button type="button" class="secondary-btn" @click="clearToken">
-            退出
+            退出登录
           </button>
         </div>
       </section>
@@ -53,7 +58,7 @@
       <section class="admin-editor-grid">
         <aside class="admin-card admin-sidebar">
           <div class="admin-section-title">
-            <span>Products</span>
+            <span>商品</span>
             <h2>商品列表</h2>
           </div>
 
@@ -70,7 +75,7 @@
               @click="selectProduct(item)"
             >
               <strong>{{ item.name || "未命名商品" }}</strong>
-              <small>{{ item.productId || "未填写 Product ID" }}</small>
+              <small>{{ item.productId || "未填写商品 ID" }}</small>
             </button>
           </div>
         </aside>
@@ -78,48 +83,52 @@
         <section class="admin-editor-main">
           <article class="admin-card">
             <div class="admin-section-title">
-              <span>Product Editor</span>
-              <h2>商品信息</h2>
+              <span>商品编辑</span>
+              <h2>基础信息</h2>
             </div>
 
             <div class="admin-form-grid">
               <label>
-                <span>Product ID</span>
+                <span>商品 ID</span>
                 <input v-model.trim="productDraft.productId" type="text" placeholder="camaro-radio-10-15" />
               </label>
               <label>
-                <span>Name</span>
-                <input v-model.trim="productDraft.name" type="text" placeholder="商品名称" />
+                <span>商品名称</span>
+                <input v-model.trim="productDraft.name" type="text" placeholder="官网显示的商品标题" />
               </label>
               <label class="admin-wide-field">
-                <span>Cover Image URL / Attachment</span>
-                <input v-model.trim="productDraft.image" type="text" placeholder="https://... 或上传后自动填入附件标记" />
+                <span>封面图片</span>
+                <input
+                  v-model.trim="productDraft.image"
+                  type="text"
+                  placeholder="可粘贴公网图片 URL，也可用下方按钮上传图片"
+                />
               </label>
               <div class="admin-upload-field">
-                <span>Upload Cover Image</span>
+                <span>上传封面图</span>
                 <div class="admin-upload-row">
                   <input type="file" accept="image/*" @change="uploadProductCover" />
                   <button type="button" class="secondary-btn" :disabled="uploading" @click="clearProductImage">
                     清空图片
                   </button>
                 </div>
-                <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="Cover preview" />
-                <p v-else>选择本地图片后会上传到飞书附件字段；也可以继续直接填写公网图片 URL。</p>
+                <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="封面预览" />
+                <p v-else>建议上传压缩后的 JPG/PNG 图片；上传成功后先预览，再点击“保存商品”。</p>
               </div>
               <label>
-                <span>Video URL</span>
+                <span>视频链接</span>
                 <input v-model.trim="productDraft.videoUrl" type="url" placeholder="https://www.youtube.com/..." />
               </label>
               <label>
-                <span>Start</span>
+                <span>视频开始秒数</span>
                 <input v-model.number="productDraft.start" type="number" min="0" />
               </label>
               <label>
-                <span>Sort</span>
+                <span>排序</span>
                 <input v-model.number="productDraft.sort" type="number" />
               </label>
               <label>
-                <span>Status</span>
+                <span>状态</span>
                 <select v-model="productDraft.status">
                   <option>Published</option>
                   <option>Draft</option>
@@ -129,14 +138,14 @@
             </div>
 
             <div class="admin-actions">
-              <button type="button" class="primary-btn" :disabled="loading" @click="saveProduct">
+              <button type="button" class="primary-btn" :disabled="loading || uploading" @click="saveProduct">
                 保存商品
               </button>
               <button
                 v-if="productDraft.recordId"
                 type="button"
                 class="admin-danger"
-                :disabled="loading"
+                :disabled="loading || uploading"
                 @click="deleteProduct"
               >
                 删除商品
@@ -146,8 +155,8 @@
 
           <article class="admin-card">
             <div class="admin-section-title">
-              <span>FAQ Editor</span>
-              <h2>商品 FAQ</h2>
+              <span>FAQ 编辑</span>
+              <h2>常见问题</h2>
             </div>
 
             <div class="admin-faq-list">
@@ -157,35 +166,35 @@
                 class="admin-faq-card"
               >
                 <label>
-                  <span>Question</span>
-                  <input v-model.trim="faq.question" type="text" placeholder="FAQ 问题" />
+                  <span>问题</span>
+                  <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
                 </label>
                 <label>
-                  <span>Answer</span>
-                  <textarea v-model.trim="faq.answer" rows="4" placeholder="FAQ 回答"></textarea>
+                  <span>回答</span>
+                  <textarea v-model.trim="faq.answer" rows="4" placeholder="给客户看的标准回答"></textarea>
                 </label>
                 <label>
-                  <span>Images</span>
+                  <span>图片</span>
                   <textarea
                     v-model.trim="faq.images"
                     rows="3"
-                    placeholder="可选，一行一个图片 URL；上传图片后会自动追加附件标记"
+                    placeholder="可选，一行一张图片；也可以用下方按钮上传"
                   ></textarea>
                 </label>
                 <div class="admin-upload-field compact">
-                  <span>Upload FAQ Image</span>
+                  <span>上传 FAQ 图片</span>
                   <div class="admin-upload-row">
                     <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
                   </div>
-                  <p>可重复上传多张，保存 FAQ 时一起写入飞书。</p>
+                  <p>可重复上传多张图片，最后点击“保存 FAQ”写入后台。</p>
                 </div>
                 <div class="admin-form-grid compact">
                   <label>
-                    <span>Sort</span>
+                    <span>排序</span>
                     <input v-model.number="faq.sort" type="number" />
                   </label>
                   <label>
-                    <span>Status</span>
+                    <span>状态</span>
                     <select v-model="faq.status">
                       <option>Published</option>
                       <option>Draft</option>
@@ -194,14 +203,14 @@
                   </label>
                 </div>
                 <div class="admin-actions">
-                  <button type="button" class="secondary-btn" :disabled="loading" @click="saveFaq(faq)">
+                  <button type="button" class="secondary-btn" :disabled="loading || uploading" @click="saveFaq(faq)">
                     保存 FAQ
                   </button>
                   <button
                     v-if="faq.recordId"
                     type="button"
                     class="admin-danger"
-                    :disabled="loading"
+                    :disabled="loading || uploading"
                     @click="deleteFaq(faq)"
                   >
                     删除 FAQ
@@ -225,6 +234,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
+const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
 const tokenInput = ref("");
@@ -233,6 +243,11 @@ const uploading = ref(false);
 const error = ref("");
 const products = ref([]);
 const faqs = ref([]);
+const toast = reactive({
+  message: "",
+  type: "info",
+  timer: null,
+});
 
 const emptyProduct = () => ({
   recordId: "",
@@ -255,7 +270,7 @@ const sortedProducts = computed(() =>
 
     if (sortA !== sortB) return sortA - sortB;
 
-    return String(a.name || a.productId).localeCompare(String(b.name || b.productId));
+    return String(a.name || a.productId).localeCompare(String(b.name || b.productId), "zh-CN");
   })
 );
 
@@ -266,29 +281,39 @@ const selectedFaqs = computed(() =>
 );
 
 const statusTitle = computed(() => {
-  if (uploading.value) return "正在上传图片...";
-  if (loading.value) return "正在同步飞书...";
+  if (uploading.value) return "正在上传图片";
+  if (loading.value) return "正在同步数据";
   if (error.value) return "同步失败";
-  return "飞书后台已连接";
+  return "后台数据已连接";
 });
 
 const statusText = computed(() => {
-  if (uploading.value) return "图片正在上传到飞书附件，请稍等。";
-  if (loading.value) return "正在读取或写入飞书多维表格。";
+  if (uploading.value) return "图片上传成功后，请继续点击保存按钮。";
+  if (loading.value) return "正在读取或写入商品数据，请稍等。";
   if (error.value) return error.value;
   return `当前已读取 ${products.value.length} 个商品，${faqs.value.length} 条 FAQ。`;
 });
+
+const notify = (message, type = "info") => {
+  if (toast.timer) window.clearTimeout(toast.timer);
+  toast.message = message;
+  toast.type = type;
+  toast.timer = window.setTimeout(() => {
+    toast.message = "";
+    toast.timer = null;
+  }, 3600);
+};
+
+const imageCanPreview = (value = "") => {
+  const image = String(value || "");
+  return image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:");
+};
 
 const assignProductDraft = (item) => {
   Object.assign(productDraft, emptyProduct(), {
     ...item,
     imagePreview: imageCanPreview(item?.image) ? item.image : "",
   });
-};
-
-const imageCanPreview = (value = "") => {
-  const image = String(value || "");
-  return image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:");
 };
 
 const toAttachmentToken = (fileToken) => `${FEISHU_ATTACHMENT_PREFIX}${fileToken}`;
@@ -302,7 +327,7 @@ const fileToBase64 = (file) =>
       const result = String(reader.result || "");
       resolve(result.includes(",") ? result.split(",").pop() : result);
     };
-    reader.onerror = () => reject(reader.error || new Error("读取文件失败"));
+    reader.onerror = () => reject(reader.error || new Error("读取文件失败，请重新选择图片。"));
     reader.readAsDataURL(file);
   });
 
@@ -319,21 +344,47 @@ const requestAdmin = async (method = "GET", body) => {
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data?.error || "后台 API 请求失败");
+    throw new Error(data?.error || "后台请求失败，请稍后重试。");
   }
 
   return data;
 };
 
+const validateProductDraft = () => {
+  const productId = productDraft.productId.trim();
+
+  if (!productId) return "请填写商品 ID。";
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(productId)) {
+    return "商品 ID 只能使用英文、数字、短横线或下划线，不能包含空格。";
+  }
+  if (!productDraft.name.trim()) return "请填写商品名称。";
+  if (productDraft.videoUrl && !/^https?:\/\//i.test(productDraft.videoUrl)) {
+    return "视频链接需要以 http:// 或 https:// 开头。";
+  }
+
+  const duplicate = products.value.find(
+    (item) => item.productId === productId && item.recordId !== productDraft.recordId
+  );
+  if (duplicate) return `商品 ID「${productId}」已经存在，请换一个 ID。`;
+
+  return "";
+};
+
+const validateFaqDraft = (faq) => {
+  if (!productDraft.productId) return "请先选择或保存一个商品。";
+  if (!faq.question?.trim()) return "请填写 FAQ 问题。";
+  if (!faq.answer?.trim()) return "请填写 FAQ 回答。";
+  return "";
+};
+
 const uploadImage = async (file) => {
   if (!file) return null;
   if (!file.type.startsWith("image/")) {
-    throw new Error("请选择图片文件");
+    throw new Error("请选择 JPG、PNG、WebP 等图片文件。");
   }
 
-  const maxSize = 20 * 1024 * 1024;
-  if (file.size > maxSize) {
-    throw new Error("图片不能超过 20MB");
+  if (file.size > MAX_UPLOAD_SIZE) {
+    throw new Error("图片不能超过 3MB，请先压缩后再上传。");
   }
 
   const base64 = await fileToBase64(file);
@@ -355,13 +406,16 @@ const uploadProductCover = async (event) => {
 
   uploading.value = true;
   error.value = "";
+  notify("正在上传封面图，请稍等...", "info");
 
   try {
     const fileToken = await uploadImage(file);
     productDraft.image = toAttachmentToken(fileToken);
     productDraft.imagePreview = URL.createObjectURL(file);
+    notify("封面图上传成功，请点击“保存商品”完成提交。", "success");
   } catch (err) {
-    error.value = err?.message || "上传封面图片失败";
+    error.value = err?.message || "上传封面图失败。";
+    notify(error.value, "error");
   } finally {
     uploading.value = false;
   }
@@ -374,12 +428,15 @@ const uploadFaqImage = async (event, faq) => {
 
   uploading.value = true;
   error.value = "";
+  notify("正在上传 FAQ 图片，请稍等...", "info");
 
   try {
     const fileToken = await uploadImage(file);
     faq.images = appendLine(faq.images, toAttachmentToken(fileToken));
+    notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
-    error.value = err?.message || "上传 FAQ 图片失败";
+    error.value = err?.message || "上传 FAQ 图片失败。";
+    notify(error.value, "error");
   } finally {
     uploading.value = false;
   }
@@ -388,6 +445,7 @@ const uploadFaqImage = async (event, faq) => {
 const clearProductImage = () => {
   productDraft.image = "";
   productDraft.imagePreview = "";
+  notify("已清空封面图，保存商品后生效。", "info");
 };
 
 const loadAdminContent = async () => {
@@ -404,8 +462,10 @@ const loadAdminContent = async () => {
     const current =
       products.value.find((item) => item.productId === productDraft.productId) || products.value[0];
     if (current) assignProductDraft(current);
+    notify("后台数据已刷新。", "success");
   } catch (err) {
-    error.value = err?.message || "读取飞书数据失败";
+    error.value = err?.message || "读取后台数据失败。";
+    notify(error.value, "error");
   } finally {
     loading.value = false;
   }
@@ -414,12 +474,13 @@ const loadAdminContent = async () => {
 const saveToken = () => {
   const nextToken = tokenInput.value.trim();
   if (!nextToken) {
-    window.alert("请填写 Admin Token。");
+    notify("请先输入后台管理令牌。", "error");
     return;
   }
 
   token.value = nextToken;
   window.sessionStorage.setItem("xuenav_admin_token", token.value);
+  notify("正在进入后台...", "info");
   loadAdminContent();
 };
 
@@ -428,34 +489,40 @@ const clearToken = () => {
   tokenInput.value = "";
   products.value = [];
   faqs.value = [];
+  assignProductDraft(emptyProduct());
   window.sessionStorage.removeItem("xuenav_admin_token");
+  notify("已退出后台。", "success");
 };
 
 const selectProduct = (item) => {
   assignProductDraft(item);
+  notify(`正在编辑：${item.name || item.productId}`, "info");
 };
 
 const newProduct = () => {
   assignProductDraft(emptyProduct());
+  notify("已新建商品草稿，请填写信息后保存。", "info");
 };
 
 const saveProduct = async () => {
-  if (!productDraft.productId) {
-    window.alert("请填写 Product ID。");
+  const validationError = validateProductDraft();
+  if (validationError) {
+    notify(validationError, "error");
     return;
   }
 
   loading.value = true;
   error.value = "";
+  notify("正在保存商品，请稍等...", "info");
 
   try {
-    const productId = productDraft.productId;
+    const productId = productDraft.productId.trim();
     await requestAdmin("POST", {
       resource: "product",
       recordId: productDraft.recordId,
       fields: {
         "Product ID": productId,
-        Name: productDraft.name,
+        Name: productDraft.name.trim(),
         "Cover Image": productDraft.image,
         "Video URL": productDraft.videoUrl,
         Start: Number(productDraft.start || 0),
@@ -466,8 +533,10 @@ const saveProduct = async () => {
     await loadAdminContent();
     const current = products.value.find((item) => item.productId === productId);
     if (current) assignProductDraft(current);
+    notify("商品保存成功，官网会在缓存刷新后显示最新内容。", "success");
   } catch (err) {
-    error.value = err?.message || "保存商品失败";
+    error.value = err?.message || "保存商品失败。";
+    notify(error.value, "error");
   } finally {
     loading.value = false;
   }
@@ -478,6 +547,7 @@ const deleteProduct = async () => {
 
   loading.value = true;
   error.value = "";
+  notify("正在删除商品...", "info");
 
   try {
     await requestAdmin("DELETE", {
@@ -486,8 +556,10 @@ const deleteProduct = async () => {
     });
     assignProductDraft(emptyProduct());
     await loadAdminContent();
+    notify("商品已删除。", "success");
   } catch (err) {
-    error.value = err?.message || "删除商品失败";
+    error.value = err?.message || "删除商品失败。";
+    notify(error.value, "error");
   } finally {
     loading.value = false;
   }
@@ -495,7 +567,7 @@ const deleteProduct = async () => {
 
 const newFaq = () => {
   if (!productDraft.productId) {
-    window.alert("请先选择或保存一个商品。");
+    notify("请先选择或保存一个商品，再新增 FAQ。", "error");
     return;
   }
 
@@ -509,16 +581,19 @@ const newFaq = () => {
     sort: selectedFaqs.value.length + 1,
     status: "Published",
   });
+  notify("已新增 FAQ 草稿，请填写后保存。", "info");
 };
 
 const saveFaq = async (faq) => {
-  if (!productDraft.productId || !faq.question || !faq.answer) {
-    window.alert("请填写 FAQ 的问题和回答。");
+  const validationError = validateFaqDraft(faq);
+  if (validationError) {
+    notify(validationError, "error");
     return;
   }
 
   loading.value = true;
   error.value = "";
+  notify("正在保存 FAQ，请稍等...", "info");
 
   try {
     await requestAdmin("POST", {
@@ -526,16 +601,18 @@ const saveFaq = async (faq) => {
       recordId: faq.recordId,
       fields: {
         "Product ID": productDraft.productId,
-        Question: faq.question,
-        Answer: faq.answer,
+        Question: faq.question.trim(),
+        Answer: faq.answer.trim(),
         Images: faq.images,
         Sort: Number(faq.sort || 0),
         Status: faq.status || "Published",
       },
     });
     await loadAdminContent();
+    notify("FAQ 保存成功。", "success");
   } catch (err) {
-    error.value = err?.message || "保存 FAQ 失败";
+    error.value = err?.message || "保存 FAQ 失败。";
+    notify(error.value, "error");
   } finally {
     loading.value = false;
   }
@@ -546,6 +623,7 @@ const deleteFaq = async (faq) => {
 
   loading.value = true;
   error.value = "";
+  notify("正在删除 FAQ...", "info");
 
   try {
     await requestAdmin("DELETE", {
@@ -553,8 +631,10 @@ const deleteFaq = async (faq) => {
       recordId: faq.recordId,
     });
     await loadAdminContent();
+    notify("FAQ 已删除。", "success");
   } catch (err) {
-    error.value = err?.message || "删除 FAQ 失败";
+    error.value = err?.message || "删除 FAQ 失败。";
+    notify(error.value, "error");
   } finally {
     loading.value = false;
   }
