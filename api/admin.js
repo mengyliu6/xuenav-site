@@ -22,20 +22,36 @@ const FAQ_FIELDS = [
 const getEnv = (name) => process.env[name] || "";
 const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
 
-const normalizeBitableToken = (value = "") => {
+const normalizeFeishuNodeToken = (value = "") => {
   const text = String(value || "").trim();
   const baseMatch = text.match(/\/base\/([^/?#]+)/);
   if (baseMatch?.[1]) return baseMatch[1];
 
+  const folderMatch = text.match(/\/folder\/([^/?#]+)/);
+  if (folderMatch?.[1]) return folderMatch[1];
+
   return text;
 };
 
-const getUploadParentNode = () =>
-  normalizeBitableToken(
-    getEnv("FEISHU_UPLOAD_PARENT_NODE") ||
-      getEnv("FEISHU_BITABLE_APP_TOKEN") ||
-      getEnv("VITE_FEISHU_BITABLE_URL"),
-  );
+const getUploadParent = () => {
+  const folderNode = normalizeFeishuNodeToken(getEnv("FEISHU_UPLOAD_PARENT_NODE"));
+
+  if (folderNode) {
+    return {
+      node: folderNode,
+      type: "explorer",
+      endpoint: `${FEISHU_API}/drive/v1/files/upload_all`,
+    };
+  }
+
+  return {
+    node: normalizeFeishuNodeToken(
+      getEnv("FEISHU_BITABLE_APP_TOKEN") || getEnv("VITE_FEISHU_BITABLE_URL"),
+    ),
+    type: "bitable",
+    endpoint: `${FEISHU_API}/drive/v1/medias/upload_all`,
+  };
+};
 
 const isImageMimeType = (mimeType = "") =>
   String(mimeType || "").toLowerCase().startsWith("image/");
@@ -45,11 +61,20 @@ const formatFeishuError = (data, fallback) => {
   const message = String(rawMessage || fallback);
 
   if (message.toLowerCase().includes("parent node not exist")) {
-    return "飞书图片上传失败：找不到上传父节点。请确认 FEISHU_BITABLE_APP_TOKEN 是飞书多维表格 URL 中 /base/ 后面的 token；如仍失败，请单独配置 FEISHU_UPLOAD_PARENT_NODE。";
+    return "飞书图片上传失败：找不到上传文件夹。请确认 FEISHU_UPLOAD_PARENT_NODE 填的是云文档文件夹链接里 /folder/ 后面的 token，并且飞书自建应用已加入该文件夹协作者。";
   }
 
   return message;
 };
+
+const imageProxyUrlFromToken = (fileToken) =>
+  `/api/image?token=${encodeURIComponent(fileToken)}`;
+
+const firstLineFromValue = (value) =>
+  String(value || "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean)[0] || "";
 
 const requireAdmin = (req) => {
   const expected = getEnv("ADMIN_API_TOKEN");
@@ -140,13 +165,17 @@ const imageFieldFromValue = (value) => {
 };
 
 const linkFieldFromValue = (value) => {
-  if (!value || typeof value !== "string" || isFeishuAttachmentToken(value)) {
-    return value;
-  }
+  if (!value) return value;
+
+  const link = isFeishuAttachmentToken(value)
+    ? imageProxyUrlFromToken(getFeishuAttachmentToken(value))
+    : firstLineFromValue(value);
+
+  if (!link) return "";
 
   return {
-    link: value,
-    text: value,
+    link,
+    text: link,
   };
 };
 
@@ -179,9 +208,9 @@ const getTenantAccessToken = async () => {
 };
 
 const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) => {
-  const parentNode = getUploadParentNode();
+  const parent = getUploadParent();
 
-  if (!parentNode) {
+  if (!parent.node) {
     throw new Error("Missing FEISHU_BITABLE_APP_TOKEN or FEISHU_UPLOAD_PARENT_NODE");
   }
 
@@ -197,11 +226,18 @@ const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) =
     fileName,
   );
   formData.append("file_name", fileName);
-  formData.append("parent_type", isImageMimeType(mimeType) ? "bitable_image" : "bitable_file");
-  formData.append("parent_node", parentNode);
+  formData.append(
+    "parent_type",
+    parent.type === "explorer"
+      ? "explorer"
+      : isImageMimeType(mimeType)
+        ? "bitable_image"
+        : "bitable_file",
+  );
+  formData.append("parent_node", parent.node);
   formData.append("size", String(size || bytes.length));
 
-  const response = await fetch(`${FEISHU_API}/drive/v1/medias/upload_all`, {
+  const response = await fetch(parent.endpoint, {
     method: "POST",
     headers: {
       authorization: `Bearer ${token}`,
@@ -321,8 +357,7 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
 
   if (resource === "product") {
     if (nextFields["Cover Image"]) {
-      const coverImage = imageFieldFromValue(nextFields["Cover Image"]);
-      nextFields["Cover Image"] = linkFieldFromValue(coverImage);
+      nextFields["Cover Image"] = linkFieldFromValue(nextFields["Cover Image"]);
     }
 
     if (nextFields["Video URL"]) {
@@ -331,7 +366,7 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
   }
 
   if (resource === "faq" && nextFields.Images) {
-    nextFields.Images = imageFieldFromValue(nextFields.Images);
+    nextFields.Images = linkFieldFromValue(nextFields.Images);
   }
 
   const body = JSON.stringify({
@@ -411,7 +446,10 @@ export default async function handler(req, res) {
           size,
           content,
         });
-        res.status(200).json({ fileToken });
+        res.status(200).json({
+          fileToken,
+          url: imageProxyUrlFromToken(fileToken),
+        });
         return;
       }
 

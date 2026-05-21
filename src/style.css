@@ -1514,6 +1514,22 @@ a {
   gap: 10px;
 }
 
+.admin-product-list {
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  padding-right: 6px;
+  overscroll-behavior: contain;
+}
+
+.admin-product-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.admin-product-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
 .admin-product-list button {
   display: grid;
   gap: 4px;
@@ -1867,6 +1883,10 @@ a {
   .admin-form-grid,
   .admin-form-grid.compact {
     grid-template-columns: 1fr;
+  }
+
+  .admin-product-list {
+    max-height: 48vh;
   }
 
   .product-actions {

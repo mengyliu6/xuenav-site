@@ -207,11 +207,10 @@
                     保存 FAQ
                   </button>
                   <button
-                    v-if="faq.recordId"
                     type="button"
                     class="admin-danger"
                     :disabled="loading || uploading"
-                    @click="deleteFaq(faq)"
+                    @click="faq.recordId ? deleteFaq(faq) : removeFaqDraft(faq)"
                   >
                     删除 FAQ
                   </button>
@@ -396,7 +395,7 @@ const uploadImage = async (file) => {
     content: base64,
   });
 
-  return data.fileToken;
+  return data.url || toAttachmentToken(data.fileToken);
 };
 
 const uploadProductCover = async (event) => {
@@ -409,8 +408,8 @@ const uploadProductCover = async (event) => {
   notify("正在上传封面图，请稍等...", "info");
 
   try {
-    const fileToken = await uploadImage(file);
-    productDraft.image = toAttachmentToken(fileToken);
+    const imageUrl = await uploadImage(file);
+    productDraft.image = imageUrl;
     productDraft.imagePreview = URL.createObjectURL(file);
     notify("封面图上传成功，请点击“保存商品”完成提交。", "success");
   } catch (err) {
@@ -431,8 +430,8 @@ const uploadFaqImage = async (event, faq) => {
   notify("正在上传 FAQ 图片，请稍等...", "info");
 
   try {
-    const fileToken = await uploadImage(file);
-    faq.images = appendLine(faq.images, toAttachmentToken(fileToken));
+    const imageUrl = await uploadImage(file);
+    faq.images = appendLine(faq.images, imageUrl);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
     error.value = err?.message || "上传 FAQ 图片失败。";
@@ -582,6 +581,11 @@ const newFaq = () => {
     status: "Published",
   });
   notify("已新增 FAQ 草稿，请填写后保存。", "info");
+};
+
+const removeFaqDraft = (faq) => {
+  faqs.value = faqs.value.filter((item) => item !== faq);
+  notify("已删除未保存的 FAQ 草稿。", "success");
 };
 
 const saveFaq = async (faq) => {
