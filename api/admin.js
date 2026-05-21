@@ -20,6 +20,7 @@ const FAQ_FIELDS = [
 ];
 
 const getEnv = (name) => process.env[name] || "";
+const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
 
 const requireAdmin = (req) => {
   const expected = getEnv("ADMIN_API_TOKEN");
@@ -49,10 +50,11 @@ const textFromValue = (value) => {
           return String(item);
         return (
           item?.text ||
-          item?.name ||
           item?.url ||
           item?.tmp_url ||
           item?.link ||
+          item?.name ||
+          (item?.file_token ? `${FEISHU_ATTACHMENT_PREFIX}${item.file_token}` : "") ||
           ""
         );
       })
@@ -62,7 +64,13 @@ const textFromValue = (value) => {
   }
 
   return String(
-    value.text || value.name || value.url || value.tmp_url || value.link || "",
+    value.text ||
+      value.url ||
+      value.tmp_url ||
+      value.link ||
+      value.name ||
+      (value.file_token ? `${FEISHU_ATTACHMENT_PREFIX}${value.file_token}` : "") ||
+      "",
   ).trim();
 };
 
@@ -75,6 +83,42 @@ const cleanFields = (fields, allowed) => {
   });
 
   return next;
+};
+
+const isFeishuAttachmentToken = (value) =>
+  typeof value === "string" && value.startsWith(FEISHU_ATTACHMENT_PREFIX);
+
+const getFeishuAttachmentToken = (value) =>
+  String(value || "").replace(FEISHU_ATTACHMENT_PREFIX, "").trim();
+
+const imageFieldFromValue = (value) => {
+  if (!value) return value;
+
+  if (isFeishuAttachmentToken(value)) {
+    return [{ file_token: getFeishuAttachmentToken(value) }];
+  }
+
+  const lines = String(value)
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (lines.length && lines.every(isFeishuAttachmentToken)) {
+    return lines.map((item) => ({ file_token: getFeishuAttachmentToken(item) }));
+  }
+
+  return value;
+};
+
+const linkFieldFromValue = (value) => {
+  if (!value || typeof value !== "string" || isFeishuAttachmentToken(value)) {
+    return value;
+  }
+
+  return {
+    link: value,
+    text: value,
+  };
 };
 
 const getTenantAccessToken = async () => {
@@ -103,6 +147,50 @@ const getTenantAccessToken = async () => {
   }
 
   return data.tenant_access_token;
+};
+
+const uploadBitableFile = async ({ token, fileName, mimeType, size, content }) => {
+  const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
+
+  if (!appToken) {
+    throw new Error("Missing FEISHU_BITABLE_APP_TOKEN");
+  }
+
+  if (!fileName || !content) {
+    throw new Error("Missing upload file name or content");
+  }
+
+  const bytes = Buffer.from(content, "base64");
+  const formData = new FormData();
+  formData.append(
+    "file",
+    new Blob([bytes], { type: mimeType || "application/octet-stream" }),
+    fileName,
+  );
+  formData.append("file_name", fileName);
+  formData.append("parent_type", "bitable_file");
+  formData.append("parent_node", appToken);
+  formData.append("size", String(size || bytes.length));
+
+  const response = await fetch(`${FEISHU_API}/drive/v1/medias/upload_all`, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 0) {
+    throw new Error(data.msg || "Failed to upload Feishu media");
+  }
+
+  const fileToken = data.data?.file_token;
+  if (!fileToken) {
+    throw new Error("Feishu upload did not return file_token");
+  }
+
+  return fileToken;
 };
 
 const listRecords = async (token, appToken, tableId) => {
@@ -202,21 +290,19 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
 
   const nextFields = cleanFields(fields, allowedFields);
 
-  // 飞书 Link 字段格式修复
   if (resource === "product") {
     if (nextFields["Cover Image"]) {
-      nextFields["Cover Image"] = {
-        link: nextFields["Cover Image"],
-        text: nextFields["Cover Image"],
-      };
+      const coverImage = imageFieldFromValue(nextFields["Cover Image"]);
+      nextFields["Cover Image"] = linkFieldFromValue(coverImage);
     }
 
     if (nextFields["Video URL"]) {
-      nextFields["Video URL"] = {
-        link: nextFields["Video URL"],
-        text: nextFields["Video URL"],
-      };
+      nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
+  }
+
+  if (resource === "faq" && nextFields.Images) {
+    nextFields.Images = imageFieldFromValue(nextFields.Images);
   }
 
   const body = JSON.stringify({
@@ -285,7 +371,21 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const { resource, recordId, fields } = req.body || {};
+      const { resource, recordId, fields, fileName, mimeType, size, content } =
+        req.body || {};
+
+      if (resource === "upload") {
+        const fileToken = await uploadBitableFile({
+          token,
+          fileName,
+          mimeType,
+          size,
+          content,
+        });
+        res.status(200).json({ fileToken });
+        return;
+      }
+
       const record = await saveRecord({
         token,
         resource,

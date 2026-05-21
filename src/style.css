@@ -1338,13 +1338,15 @@ a {
 }
 
 .admin-form-grid label,
-.admin-faq-card label {
+.admin-faq-card label,
+.admin-upload-field {
   display: grid;
   gap: 7px;
 }
 
 .admin-form-grid span,
-.admin-faq-card span {
+.admin-faq-card span,
+.admin-upload-field > span {
   color: var(--main);
   font-size: 12px;
   font-weight: 900;
@@ -1376,6 +1378,63 @@ a {
 .admin-faq-card textarea {
   padding: 12px 13px;
   resize: vertical;
+}
+
+.admin-wide-field,
+.admin-upload-field {
+  grid-column: 1 / -1;
+}
+
+.admin-upload-field {
+  padding: 14px;
+  border: 1px dashed #d7dee7;
+  border-radius: 14px;
+  background: #fbfcfe;
+}
+
+.admin-upload-field.compact {
+  padding: 12px;
+}
+
+.admin-upload-field p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.admin-upload-field img {
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #e6ebf2;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #ffffff;
+}
+
+.admin-upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-upload-row input[type="file"] {
+  min-width: 0;
+  flex: 1 1 260px;
+  padding: 10px;
+  border: 1px solid #d7dee7;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.primary-btn:disabled,
+.secondary-btn:disabled,
+.admin-add-btn:disabled,
+.admin-danger:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .admin-actions,

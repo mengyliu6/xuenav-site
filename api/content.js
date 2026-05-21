@@ -1,4 +1,5 @@
 const FEISHU_API = "https://open.feishu.cn/open-apis";
+const FEISHU_ATTACHMENT_PREFIX = "feishu:file_token:";
 
 const FIELD_ALIASES = {
   productId: ["Product ID", "productId", "product_id", "\u5546\u54c1ID", "\u5546\u54c1 ID"],
@@ -32,14 +33,30 @@ const textFromValue = (value) => {
     return value
       .map((item) => {
         if (typeof item === "string" || typeof item === "number") return String(item);
-        return item?.text || item?.name || item?.url || item?.tmp_url || item?.link || "";
+        return (
+          item?.text ||
+          item?.url ||
+          item?.tmp_url ||
+          item?.link ||
+          item?.name ||
+          (item?.file_token ? `${FEISHU_ATTACHMENT_PREFIX}${item.file_token}` : "") ||
+          ""
+        );
       })
       .filter(Boolean)
       .join(" ")
       .trim();
   }
 
-  return String(value.text || value.name || value.url || value.tmp_url || value.link || "").trim();
+  return String(
+    value.text ||
+      value.url ||
+      value.tmp_url ||
+      value.link ||
+      value.name ||
+      (value.file_token ? `${FEISHU_ATTACHMENT_PREFIX}${value.file_token}` : "") ||
+      "",
+  ).trim();
 };
 
 const imagesFromValue = (value) => {
