@@ -88,12 +88,18 @@
 
             <div class="admin-product-list">
               <button
-                v-for="item in sortedProducts"
+                v-for="(item, index) in sortedProducts"
                 :key="item.recordId || item.productId"
                 type="button"
+                draggable="true"
                 :class="{ active: item.productId === productDraft.productId }"
+                @dragstart="startProductDrag(item)"
+                @dragover.prevent
+                @drop.prevent="dropProduct(index)"
+                @dragend="endDrag"
                 @click="selectProduct(item)"
               >
+                <span class="admin-drag-handle" aria-hidden="true">↕</span>
                 <strong>{{ item.name || "未命名商品" }}</strong>
                 <small>{{ item.productId || "未填写商品 ID" }}</small>
               </button>
@@ -182,10 +188,19 @@
 
             <div class="admin-faq-list">
               <div
-                v-for="faq in selectedFaqs"
+                v-for="(faq, index) in selectedFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
+                draggable="true"
+                @dragstart="startFaqDrag(faq)"
+                @dragover.prevent
+                @drop.prevent="dropFaq(index, productDraft.productId)"
+                @dragend="endDrag"
               >
+                <div class="admin-card-toolbar">
+                  <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                  <small>拖动调整 FAQ 顺序</small>
+                </div>
                 <label>
                   <span>问题</span>
                   <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
@@ -194,20 +209,30 @@
                   <span>回答</span>
                   <textarea v-model.trim="faq.answer" rows="4" placeholder="给客户看的标准回答"></textarea>
                 </label>
-                <label>
-                  <span>图片</span>
+                <div
+                  class="admin-upload-field compact admin-dropzone"
+                  @dragover.prevent.stop
+                  @drop.prevent.stop="dropFaqImage($event, faq)"
+                >
+                  <span>FAQ 图片</span>
+                  <label class="admin-file-drop">
+                    <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
+                    <strong>拖入图片或点击上传</strong>
+                    <small>上传后会立即预览，保存 FAQ 后写入后台。</small>
+                  </label>
+                  <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
+                    <figure v-for="image in faqImageList(faq)" :key="image">
+                      <img :src="image" alt="FAQ 图片预览" />
+                      <button type="button" class="admin-image-remove" @click="removeFaqImage(faq, image)">
+                        删除
+                      </button>
+                    </figure>
+                  </div>
                   <textarea
                     v-model.trim="faq.images"
-                    rows="3"
-                    placeholder="可选，一行一张图片；也可以用下方按钮上传"
+                    rows="2"
+                    placeholder="图片 URL 会自动填写，也可以手动粘贴"
                   ></textarea>
-                </label>
-                <div class="admin-upload-field compact">
-                  <span>上传 FAQ 图片</span>
-                  <div class="admin-upload-row">
-                    <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
-                  </div>
-                  <p>可重复上传多张图片，最后点击“保存 FAQ”写入后台。</p>
                 </div>
                 <div class="admin-form-grid compact">
                   <label>
@@ -258,10 +283,19 @@
 
           <div class="admin-faq-list">
             <div
-              v-for="faq in defaultFaqs"
+              v-for="(faq, index) in defaultFaqs"
               :key="faq.recordId || faq.localId"
               class="admin-faq-card"
+              draggable="true"
+              @dragstart="startFaqDrag(faq)"
+              @dragover.prevent
+              @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
+              @dragend="endDrag"
             >
+              <div class="admin-card-toolbar">
+                <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                <small>拖动调整 FAQ 顺序</small>
+              </div>
               <label>
                 <span>问题</span>
                 <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
@@ -270,6 +304,31 @@
                 <span>回答</span>
                 <textarea v-model.trim="faq.answer" rows="4" placeholder="默认 FAQ 回答"></textarea>
               </label>
+              <div
+                class="admin-upload-field compact admin-dropzone"
+                @dragover.prevent.stop
+                @drop.prevent.stop="dropFaqImage($event, faq)"
+              >
+                <span>FAQ 图片</span>
+                <label class="admin-file-drop">
+                  <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
+                  <strong>拖入图片或点击上传</strong>
+                  <small>上传后会立即预览，保存 FAQ 后写入后台。</small>
+                </label>
+                <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
+                  <figure v-for="image in faqImageList(faq)" :key="image">
+                    <img :src="image" alt="FAQ 图片预览" />
+                    <button type="button" class="admin-image-remove" @click="removeFaqImage(faq, image)">
+                      删除
+                    </button>
+                  </figure>
+                </div>
+                <textarea
+                  v-model.trim="faq.images"
+                  rows="2"
+                  placeholder="图片 URL 会自动填写，也可以手动粘贴"
+                ></textarea>
+              </div>
               <div class="admin-form-grid compact">
                 <label>
                   <span>排序</span>
@@ -325,6 +384,8 @@ const error = ref("");
 const products = ref([]);
 const faqs = ref([]);
 const activeTab = ref("products");
+const draggingProductId = ref("");
+const draggingFaqId = ref("");
 const toast = reactive({
   message: "",
   type: "info",
@@ -397,14 +458,24 @@ const imageCanPreview = (value = "") => {
   return image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:");
 };
 
+const itemKey = (item) => item?.recordId || item?.localId || item?.productId || "";
+
+const faqImageList = (faq) =>
+  String(faq?.images || "")
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter((item) => imageCanPreview(item));
+
+const setFaqImages = (faq, images) => {
+  faq.images = [...new Set(images.map((item) => String(item || "").trim()).filter(Boolean))].join("\n");
+};
+
 const assignProductDraft = (item) => {
   Object.assign(productDraft, emptyProduct(), {
     ...item,
     imagePreview: imageCanPreview(item?.image) ? item.image : "",
   });
 };
-
-const appendLine = (value, line) => [value, line].filter(Boolean).join("\n");
 
 const fileToBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -511,9 +582,7 @@ const uploadProductCover = async (event) => {
   }
 };
 
-const uploadFaqImage = async (event, faq) => {
-  const file = event.target.files?.[0];
-  event.target.value = "";
+const uploadFaqImageFile = async (file, faq) => {
   if (!file) return;
 
   uploading.value = true;
@@ -522,7 +591,7 @@ const uploadFaqImage = async (event, faq) => {
 
   try {
     const imageUrl = await uploadImage(file);
-    faq.images = appendLine(faq.images, imageUrl);
+    setFaqImages(faq, [...faqImageList(faq), imageUrl]);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
     error.value = err?.message || "上传 FAQ 图片失败。";
@@ -530,6 +599,25 @@ const uploadFaqImage = async (event, faq) => {
   } finally {
     uploading.value = false;
   }
+};
+
+const uploadFaqImage = async (event, faq) => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  await uploadFaqImageFile(file, faq);
+};
+
+const dropFaqImage = async (event, faq) => {
+  const file = event.dataTransfer?.files?.[0];
+  await uploadFaqImageFile(file, faq);
+};
+
+const removeFaqImage = (faq, image) => {
+  setFaqImages(
+    faq,
+    faqImageList(faq).filter((item) => item !== image)
+  );
+  notify("已移除 FAQ 图片，保存 FAQ 后生效。", "info");
 };
 
 const clearProductImage = () => {
@@ -587,6 +675,117 @@ const clearToken = () => {
 const selectProduct = (item) => {
   assignProductDraft(item);
   notify(`正在编辑：${item.name || item.productId}`, "info");
+};
+
+const endDrag = () => {
+  draggingProductId.value = "";
+  draggingFaqId.value = "";
+};
+
+const moveItem = (items, fromIndex, toIndex) => {
+  const next = [...items];
+  const [moved] = next.splice(fromIndex, 1);
+  next.splice(toIndex, 0, moved);
+  return next;
+};
+
+const startProductDrag = (item) => {
+  draggingProductId.value = itemKey(item);
+};
+
+const saveProductOrder = async (orderedProducts) => {
+  loading.value = true;
+  error.value = "";
+  notify("正在保存商品排序...", "info");
+
+  try {
+    await Promise.all(
+      orderedProducts
+        .filter((item) => item.recordId)
+        .map((item, index) =>
+          requestAdmin("POST", {
+            resource: "product",
+            recordId: item.recordId,
+            fields: {
+              Sort: index + 1,
+            },
+          })
+        )
+    );
+    notify("商品排序已保存，首页会按左侧从上到下显示。", "success");
+  } catch (err) {
+    error.value = err?.message || "保存商品排序失败。";
+    notify(error.value, "error");
+    await loadAdminContent();
+  } finally {
+    loading.value = false;
+  }
+};
+
+const dropProduct = async (targetIndex) => {
+  const fromIndex = sortedProducts.value.findIndex((item) => itemKey(item) === draggingProductId.value);
+  if (fromIndex < 0 || fromIndex === targetIndex) return;
+
+  const orderedProducts = moveItem(sortedProducts.value, fromIndex, targetIndex).map((item, index) => ({
+    ...item,
+    sort: index + 1,
+  }));
+
+  products.value = orderedProducts;
+  const current = orderedProducts.find((item) => item.productId === productDraft.productId);
+  if (current) productDraft.sort = current.sort;
+  await saveProductOrder(orderedProducts);
+};
+
+const startFaqDrag = (faq) => {
+  draggingFaqId.value = itemKey(faq);
+};
+
+const saveFaqOrder = async (orderedFaqs) => {
+  loading.value = true;
+  error.value = "";
+  notify("正在保存 FAQ 排序...", "info");
+
+  try {
+    await Promise.all(
+      orderedFaqs
+        .filter((item) => item.recordId)
+        .map((item) =>
+          requestAdmin("POST", {
+            resource: "faq",
+            recordId: item.recordId,
+            fields: {
+              Sort: Number(item.sort || 0),
+            },
+          })
+        )
+    );
+    notify("FAQ 排序已保存。", "success");
+  } catch (err) {
+    error.value = err?.message || "保存 FAQ 排序失败。";
+    notify(error.value, "error");
+    await loadAdminContent();
+  } finally {
+    loading.value = false;
+  }
+};
+
+const dropFaq = async (targetIndex, productId) => {
+  const currentFaqs = faqs.value
+    .filter((item) => item.productId === productId)
+    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0));
+  const fromIndex = currentFaqs.findIndex((item) => itemKey(item) === draggingFaqId.value);
+  if (fromIndex < 0 || fromIndex === targetIndex) return;
+
+  const orderedFaqs = moveItem(currentFaqs, fromIndex, targetIndex).map((item, index) => ({
+    ...item,
+    sort: index + 1,
+  }));
+  const orderMap = new Map(orderedFaqs.map((item) => [itemKey(item), item.sort]));
+  faqs.value = faqs.value.map((item) =>
+    item.productId === productId ? { ...item, sort: orderMap.get(itemKey(item)) || item.sort } : item
+  );
+  await saveFaqOrder(orderedFaqs);
 };
 
 const newProduct = () => {

@@ -57,6 +57,33 @@ const textFromValue = (value) => {
   ).trim();
 };
 
+const isImageUrl = (value) => /^https?:\/\//i.test(String(value || "").trim());
+
+const urlFromValue = (value) => {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string" || typeof value === "number") {
+    const text = String(value).trim();
+    return isImageUrl(text) ? text : "";
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(urlFromValue).find(Boolean) || "";
+  }
+
+  const direct =
+    value.url ||
+    value.tmp_url ||
+    value.link ||
+    value.href ||
+    value.text ||
+    value.name ||
+    "";
+  const directUrl = urlFromValue(direct);
+  if (directUrl) return directUrl;
+
+  return urlFromValue(value.value || value.file || value.fields || value.fieldValue);
+};
+
 const imagesFromValue = (value) => {
   if (!value) return [];
 
@@ -73,10 +100,11 @@ const imagesFromValue = (value) => {
   return items
     .map((item) => {
       if (typeof item === "string") return { url: item, caption: "" };
+      const url = urlFromValue(item);
 
       return {
-        url: item?.url || item?.tmp_url || item?.link || "",
-        caption: item?.name || item?.text || "",
+        url,
+        caption: url && item?.text && item.text !== url ? item.text : item?.name || "",
       };
     })
     .filter((item) => item.url);

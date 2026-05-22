@@ -1509,6 +1509,46 @@ a {
   padding: 12px;
 }
 
+.admin-dropzone {
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-dropzone:hover {
+  border-color: #ffb37c;
+  background: #fff8f2;
+  box-shadow: inset 0 0 0 1px rgba(255, 106, 0, 0.06);
+}
+
+.admin-file-drop {
+  min-height: 88px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  padding: 16px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  color: #475569;
+  background: #ffffff;
+  text-align: center;
+  cursor: pointer;
+}
+
+.admin-file-drop input {
+  display: none;
+}
+
+.admin-file-drop strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.admin-file-drop small {
+  color: #64748b;
+}
+
 .admin-upload-field p {
   margin: 0;
   color: #64748b;
@@ -1539,6 +1579,43 @@ a {
   border: 1px solid #d7dee7;
   border-radius: 12px;
   background: #ffffff;
+}
+
+.admin-faq-image-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.admin-faq-image-preview figure {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #e6ebf2;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.admin-faq-image-preview img {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 1 / 1;
+  border: 0;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.admin-image-remove {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  min-height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.78);
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .primary-btn:disabled,
@@ -1620,13 +1697,39 @@ a {
 
 .admin-product-list button {
   display: grid;
-  gap: 4px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
   padding: 13px 14px;
   border: 1px solid #e6ebf2;
   border-radius: 14px;
   text-align: left;
   background: #fbfcfe;
   cursor: pointer;
+}
+
+.admin-product-list button strong,
+.admin-product-list button small {
+  grid-column: 2;
+}
+
+.admin-drag-handle {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #94a3b8;
+  background: #ffffff;
+  font-size: 16px;
+  cursor: grab;
+}
+
+.admin-product-list button:active .admin-drag-handle,
+.admin-faq-card:active .admin-drag-handle {
+  cursor: grabbing;
 }
 
 .admin-product-list button.active {
@@ -1651,6 +1754,18 @@ a {
   border: 1px solid #e6ebf2;
   border-radius: 18px;
   background: #fbfcfe;
+}
+
+.admin-card-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.admin-card-toolbar .admin-drag-handle {
+  grid-row: auto;
 }
 
 .admin-env-list {

@@ -55,7 +55,7 @@ const textFromValue = (value) => {
       .map((item) => {
         if (typeof item === "string" || typeof item === "number")
           return String(item);
-        return item?.text || item?.url || item?.tmp_url || item?.link || item?.name || "";
+        return item?.url || item?.tmp_url || item?.link || item?.href || item?.text || item?.name || "";
       })
       .filter(Boolean)
       .join("\n")
@@ -63,7 +63,7 @@ const textFromValue = (value) => {
   }
 
   return String(
-    value.text || value.url || value.tmp_url || value.link || value.name || "",
+    value.url || value.tmp_url || value.link || value.href || value.text || value.name || "",
   ).trim();
 };
 
@@ -79,10 +79,10 @@ const cleanFields = (fields, allowed) => {
 };
 
 const linkFieldFromValue = (value) => {
-  if (!value) return value;
+  if (!value) return null;
 
   const link = firstLineFromValue(value);
-  if (!link) return "";
+  if (!link) return null;
 
   return {
     link,
