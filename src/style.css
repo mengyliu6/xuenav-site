@@ -1212,24 +1212,26 @@ a {
 .admin-workspace {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 16px 24px 24px;
 }
 
 .admin-control-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
-  gap: 18px;
-  align-items: stretch;
-  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 .admin-tabs {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   align-content: center;
-  gap: 10px;
-  padding: 8px;
+  gap: 8px;
+  min-height: 56px;
+  padding: 6px;
   border: 1px solid #e6ebf2;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.82);
@@ -1237,11 +1239,11 @@ a {
 }
 
 .admin-tabs button {
-  min-height: 42px;
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 18px;
+  padding: 0 16px;
   border: 1px solid transparent;
   border-radius: 10px;
   color: #475569;
@@ -1307,26 +1309,35 @@ a {
 }
 
 .admin-status-card {
+  flex: 1 1 560px;
+  max-width: 680px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 18px;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+}
+
+.admin-status-card .section-eyebrow {
+  margin-bottom: 4px;
+  padding: 5px 10px;
+  font-size: 11px;
 }
 
 .admin-status-card h2 {
-  margin: 6px 0;
+  margin: 2px 0 4px;
   color: var(--dark);
-  font-size: 22px;
-  line-height: 1.18;
+  font-size: 20px;
+  line-height: 1.15;
 }
 
 .admin-status-card p {
   max-width: none;
   margin: 0;
   color: #475569;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .admin-metric-grid {
@@ -1526,6 +1537,18 @@ a {
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
+}
+
+.admin-status-actions {
+  flex: 0 0 auto;
+  gap: 8px;
+  margin-top: 0;
+}
+
+.admin-status-actions .secondary-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
 }
 
 .admin-add-btn,
@@ -1912,12 +1935,19 @@ a {
   }
 
   .admin-control-row {
-    grid-template-columns: 1fr;
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .admin-status-card {
     flex-direction: column;
     align-items: flex-start;
+    max-width: none;
+  }
+
+  .admin-tabs,
+  .admin-status-actions {
+    width: 100%;
   }
 
   .admin-metric-grid,
