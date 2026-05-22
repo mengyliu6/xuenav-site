@@ -14,7 +14,7 @@
       <div v-if="item.images?.length" class="faq-image-grid">
         <figure v-for="image in item.images" :key="image.url">
           <img :src="image.url" :alt="image.caption || item.question" />
-          <figcaption v-if="image.caption">{{ image.caption }}</figcaption>
+          <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
         </figure>
       </div>
     </details>
@@ -32,4 +32,9 @@ defineProps({
     default: true,
   },
 });
+
+const visibleCaption = (caption = "") => {
+  const text = String(caption || "").trim();
+  return text && !/^https?:\/\//i.test(text);
+};
 </script>
