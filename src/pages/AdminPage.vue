@@ -194,8 +194,13 @@
                 @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
-                  <span class="admin-drag-handle" aria-hidden="true">↕</span>
-                  <small>拖动调整 FAQ 顺序</small>
+                  <div class="admin-card-toolbar__meta">
+                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                    <small>拖动调整 FAQ 顺序</small>
+                  </div>
+                  <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq)">
+                    预览
+                  </button>
                 </div>
                 <label>
                   <span>问题</span>
@@ -203,7 +208,7 @@
                 </label>
                 <label>
                   <span>回答</span>
-                  <textarea v-model.trim="faq.answer" rows="4" placeholder="给客户看的标准回答"></textarea>
+                  <textarea v-model.trim="faq.answer" rows="2" placeholder="给客户看的标准回答"></textarea>
                 </label>
                 <div
                   class="admin-upload-field compact admin-dropzone"
@@ -286,11 +291,16 @@
               @dragstart="startFaqDrag(faq)"
               @dragover.prevent
               @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
-              @dragend="endDrag"
-            >
+                @dragend="endDrag"
+              >
               <div class="admin-card-toolbar">
-                <span class="admin-drag-handle" aria-hidden="true">↕</span>
-                <small>拖动调整 FAQ 顺序</small>
+                <div class="admin-card-toolbar__meta">
+                  <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                  <small>拖动调整 FAQ 顺序</small>
+                </div>
+                <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq)">
+                  预览
+                </button>
               </div>
               <label>
                 <span>问题</span>
@@ -298,7 +308,7 @@
               </label>
               <label>
                 <span>回答</span>
-                <textarea v-model.trim="faq.answer" rows="4" placeholder="默认 FAQ 回答"></textarea>
+                <textarea v-model.trim="faq.answer" rows="2" placeholder="默认 FAQ 回答"></textarea>
               </label>
               <div
                 class="admin-upload-field compact admin-dropzone"
@@ -362,11 +372,25 @@
         </section>
       </section>
     </main>
+
+    <div v-if="previewFaqItems.length" class="admin-preview-modal" @click.self="closeFaqPreview">
+      <article class="admin-preview-panel">
+        <div class="admin-preview-head">
+          <div>
+            <span class="section-eyebrow">FAQ Preview</span>
+            <h2>前台展示预览</h2>
+          </div>
+          <button type="button" class="admin-preview-close" @click="closeFaqPreview">关闭</button>
+        </div>
+        <FaqList :items="previewFaqItems" />
+      </article>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import FaqList from "../components/FaqList.vue";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
@@ -383,6 +407,7 @@ const faqs = ref([]);
 const activeTab = ref("products");
 const draggingProductId = ref("");
 const draggingFaqId = ref("");
+const previewingFaq = ref(null);
 const toast = reactive({
   message: "",
   type: "info",
@@ -425,6 +450,21 @@ const defaultFaqs = computed(() =>
     .filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID)
     .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
 );
+
+const previewFaqItems = computed(() => {
+  if (!previewingFaq.value) return [];
+
+  return [
+    {
+      question: previewingFaq.value.question,
+      answer: previewingFaq.value.answer,
+      images: faqImageList(previewingFaq.value).map((url) => ({
+        url,
+        caption: "",
+      })),
+    },
+  ];
+});
 
 const statusTitle = computed(() => {
   if (uploading.value) return "正在上传图片";
@@ -664,6 +704,14 @@ const removeFaqImage = (faq, image) => {
     faqImageList(faq).filter((item) => item !== image)
   );
   notify("已移除 FAQ 图片，保存 FAQ 后生效。", "info");
+};
+
+const openFaqPreview = (faq) => {
+  previewingFaq.value = faq;
+};
+
+const closeFaqPreview = () => {
+  previewingFaq.value = null;
 };
 
 const clearProductImage = () => {

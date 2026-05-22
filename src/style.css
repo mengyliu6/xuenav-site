@@ -1526,7 +1526,7 @@ a {
 }
 
 .admin-upload-field.compact {
-  padding: 12px;
+  padding: 10px;
 }
 
 .admin-dropzone {
@@ -1543,11 +1543,11 @@ a {
 }
 
 .admin-file-drop {
-  min-height: 88px;
+  min-height: 58px;
   display: grid;
   place-items: center;
   gap: 4px;
-  padding: 16px;
+  padding: 10px;
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
   color: #475569;
@@ -1562,11 +1562,12 @@ a {
 
 .admin-file-drop strong {
   color: #0f172a;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .admin-file-drop small {
   color: #64748b;
+  font-size: 12px;
 }
 
 .admin-upload-field p {
@@ -1603,8 +1604,10 @@ a {
 
 .admin-faq-image-preview {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+  max-height: 180px;
+  gap: 8px;
+  overflow: auto;
 }
 
 .admin-faq-image-preview figure {
@@ -1769,8 +1772,8 @@ a {
 
 .admin-faq-card {
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
   border: 1px solid #e6ebf2;
   border-radius: 18px;
   background: #fbfcfe;
@@ -1779,13 +1782,78 @@ a {
 .admin-card-toolbar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   color: #64748b;
   font-size: 13px;
 }
 
+.admin-card-toolbar__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .admin-card-toolbar .admin-drag-handle {
   grid-row: auto;
+}
+
+.admin-preview-btn,
+.admin-preview-close {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid #d7dee7;
+  border-radius: 10px;
+  color: var(--dark);
+  background: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.admin-preview-btn:hover,
+.admin-preview-close:hover {
+  color: var(--main);
+  border-color: #ffcfaa;
+  background: #fff8f2;
+}
+
+.admin-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 17, 28, 0.46);
+  backdrop-filter: blur(10px);
+}
+
+.admin-preview-panel {
+  width: min(720px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 30px 90px rgba(7, 17, 28, 0.24);
+}
+
+.admin-preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.admin-preview-head h2 {
+  margin: 0;
+  color: var(--dark);
+  font-size: 24px;
 }
 
 .admin-env-list {
