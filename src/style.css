@@ -1177,9 +1177,9 @@ a {
   top: 0;
   z-index: 20;
   display: grid;
-  grid-template-columns: minmax(260px, 340px) minmax(420px, 760px) auto;
+  grid-template-columns: minmax(260px, 390px) minmax(360px, 1fr) auto;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
   padding: 14px 28px;
   border-bottom: 1px solid #e6ebf2;
   background: rgba(255, 255, 255, 0.94);
@@ -1329,11 +1329,12 @@ a {
 .admin-status-card--topbar {
   width: 100%;
   max-width: none;
-  justify-self: center;
-  padding: 10px 12px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 12px 34px rgba(7, 17, 28, 0.06);
+  justify-self: stretch;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .admin-status-card .section-eyebrow {
