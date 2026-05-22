@@ -13,6 +13,10 @@
           :key="image"
           :src="image"
           :alt="title"
+          :loading="imageLoading"
+          :fetchpriority="imageFetchPriority"
+          :sizes="imageSizes"
+          decoding="async"
           class="card-image"
           :class="{ 'is-loaded': imageLoaded }"
           @load="imageLoaded = true"
@@ -53,6 +57,18 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false,
+  },
+  imageLoading: {
+    type: String,
+    default: "lazy",
+  },
+  imageFetchPriority: {
+    type: String,
+    default: "auto",
+  },
+  imageSizes: {
+    type: String,
+    default: "(max-width: 768px) 100vw, (max-width: 1100px) 50vw, 33vw",
   },
 });
 

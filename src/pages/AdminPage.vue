@@ -138,7 +138,7 @@
                   </button>
                 </div>
                 <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="封面预览" />
-                <p v-else>建议上传压缩后的 JPG/PNG 图片；上传成功后先预览，再点击“保存商品”。</p>
+                <p v-else>上传 JPG/PNG/WebP 后会自动压缩为首页封面 WebP；预览无误后点击“保存商品”。</p>
               </div>
               <label>
                 <span>视频链接</span>
@@ -373,6 +373,8 @@ import { RouterLink } from "vue-router";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
+const PRODUCT_COVER_MAX_WIDTH = 900;
+const PRODUCT_COVER_QUALITY = 0.82;
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
 const tokenInput = ref("");
@@ -486,6 +488,54 @@ const fileToBase64 = (file) =>
     reader.readAsDataURL(file);
   });
 
+const loadImageElement = (file) =>
+  new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("图片读取失败，请换一张图片重试。"));
+    };
+    image.src = url;
+  });
+
+const canvasToBlob = (canvas, type, quality) =>
+  new Promise((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
+
+const webpFileName = (fileName = "cover") =>
+  String(fileName).replace(/\.[^.]+$/, "") + ".webp";
+
+const compressProductCover = async (file) => {
+  const image = await loadImageElement(file);
+  const scale = Math.min(1, PRODUCT_COVER_MAX_WIDTH / image.naturalWidth);
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) return file;
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await canvasToBlob(canvas, "image/webp", PRODUCT_COVER_QUALITY);
+  if (!blob) return file;
+
+  return new File([blob], webpFileName(file.name), {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
+};
+
 const requestAdmin = async (method = "GET", body) => {
   const response = await fetch("/api/admin", {
     method,
@@ -565,13 +615,14 @@ const uploadProductCover = async (event) => {
 
   uploading.value = true;
   error.value = "";
-  notify("正在上传封面图，请稍等...", "info");
+  notify("正在压缩并上传封面图，请稍等...", "info");
 
   try {
-    const imageUrl = await uploadImage(file);
+    const optimizedFile = await compressProductCover(file);
+    const imageUrl = await uploadImage(optimizedFile);
     productDraft.image = imageUrl;
-    productDraft.imagePreview = URL.createObjectURL(file);
-    notify("封面图上传成功，请点击“保存商品”完成提交。", "success");
+    productDraft.imagePreview = URL.createObjectURL(optimizedFile);
+    notify("封面图已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。", "success");
   } catch (err) {
     error.value = err?.message || "上传封面图失败。";
     notify(error.value, "error");

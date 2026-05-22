@@ -21,12 +21,14 @@
 
         <div class="product-grid">
           <ProductCard
-            v-for="item in managedProducts"
+            v-for="(item, index) in managedProducts"
             :key="item.id"
             :id="item.id"
             :title="item.name"
             :image="item.image"
             :loading="!contentReady"
+            :image-loading="index < 3 ? 'eager' : 'lazy'"
+            :image-fetch-priority="index < 3 ? 'high' : 'auto'"
           />
         </div>
       </div>
