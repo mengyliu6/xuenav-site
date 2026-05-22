@@ -38,39 +38,41 @@
     </main>
 
     <main v-else class="admin-workspace">
-      <section class="admin-status-card">
-        <div>
-          <span class="section-eyebrow">XUENAV CMS</span>
-          <h2>{{ statusTitle }}</h2>
-          <p>{{ statusText }}</p>
-        </div>
+      <section class="admin-control-row">
+        <nav class="admin-tabs" aria-label="后台管理导航">
+          <button
+            type="button"
+            :class="{ active: activeTab === 'products' }"
+            @click="activeTab = 'products'"
+          >
+            商品管理
+          </button>
+          <button
+            type="button"
+            :class="{ active: activeTab === 'defaultFaq' }"
+            @click="activeTab = 'defaultFaq'"
+          >
+            默认 FAQ
+          </button>
+        </nav>
 
-        <div class="admin-status-actions">
-          <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
-            刷新数据
-          </button>
-          <button type="button" class="secondary-btn" @click="clearToken">
-            退出登录
-          </button>
-        </div>
+        <section class="admin-status-card">
+          <div>
+            <span class="section-eyebrow">XUENAV CMS</span>
+            <h2>{{ statusTitle }}</h2>
+            <p>{{ statusText }}</p>
+          </div>
+
+          <div class="admin-status-actions">
+            <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
+              刷新数据
+            </button>
+            <button type="button" class="secondary-btn" @click="clearToken">
+              退出登录
+            </button>
+          </div>
+        </section>
       </section>
-
-      <nav class="admin-tabs" aria-label="后台管理导航">
-        <button
-          type="button"
-          :class="{ active: activeTab === 'products' }"
-          @click="activeTab = 'products'"
-        >
-          商品管理
-        </button>
-        <button
-          type="button"
-          :class="{ active: activeTab === 'defaultFaq' }"
-          @click="activeTab = 'defaultFaq'"
-        >
-          默认 FAQ
-        </button>
-      </nav>
 
       <section v-if="activeTab === 'products'" class="admin-editor-grid">
         <aside class="admin-card admin-sidebar">

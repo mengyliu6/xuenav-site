@@ -1215,11 +1215,20 @@ a {
   padding: 24px;
 }
 
+.admin-control-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 20px;
+}
+
 .admin-tabs {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
   gap: 10px;
-  margin-bottom: 20px;
   padding: 8px;
   border: 1px solid #e6ebf2;
   border-radius: 14px;
@@ -1299,26 +1308,25 @@ a {
 
 .admin-status-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  padding: 28px;
-  margin-bottom: 22px;
+  gap: 16px;
+  padding: 18px;
 }
 
 .admin-status-card h2 {
-  margin: 8px 0 8px;
+  margin: 6px 0;
   color: var(--dark);
-  font-size: clamp(28px, 5vw, 48px);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
+  font-size: 22px;
+  line-height: 1.18;
 }
 
 .admin-status-card p {
-  max-width: 720px;
+  max-width: none;
   margin: 0;
   color: #475569;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .admin-metric-grid {
@@ -1901,6 +1909,10 @@ a {
   .admin-dashboard,
   .admin-workspace {
     padding: 16px;
+  }
+
+  .admin-control-row {
+    grid-template-columns: 1fr;
   }
 
   .admin-status-card {
