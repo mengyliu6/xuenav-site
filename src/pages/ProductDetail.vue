@@ -173,13 +173,15 @@ import { products } from "../data/products";
 import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
 import {
+  getCachedContent,
   loadRemoteContent,
   resolveProductContent,
 } from "../utils/contentManager";
 
 const route = useRoute();
-const content = ref({ configured: false, products: {} });
-const contentLoaded = ref(false);
+const cachedContent = getCachedContent();
+const content = ref(cachedContent || { configured: false, products: {} });
+const contentLoaded = ref(Boolean(cachedContent));
 
 const productContent = computed(() =>
   resolveProductContent(route.params.id, products, faqs.slice(0, 4), content.value)

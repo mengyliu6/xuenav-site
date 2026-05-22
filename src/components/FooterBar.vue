@@ -11,6 +11,10 @@
           src="../assets/images/logo-white.png"
           alt="XUENAV"
           class="footer-logo"
+          width="240"
+          height="72"
+          loading="lazy"
+          decoding="async"
         />
   
         <p class="footer-desc">
@@ -56,6 +60,10 @@
           src="../assets/images/qr.png"
           alt="QR Code"
           class="footer-qr"
+          width="130"
+          height="130"
+          loading="lazy"
+          decoding="async"
         />
   
       </div>

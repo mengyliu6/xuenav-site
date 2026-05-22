@@ -47,12 +47,14 @@ import ProductCard from "../components/ProductCard.vue";
 import FooterBar from "../components/FooterBar.vue";
 import { products } from "../data/products";
 import {
+  getCachedContent,
   loadRemoteContent,
   mergeProductsContent,
 } from "../utils/contentManager";
 
-const content = ref({ configured: false, products: {}, defaultFaqs: [] });
-const contentReady = ref(false);
+const cachedContent = getCachedContent();
+const content = ref(cachedContent || { configured: false, products: {}, defaultFaqs: [] });
+const contentReady = ref(Boolean(cachedContent));
 const managedProducts = computed(() => mergeProductsContent(products, content.value));
 
 onMounted(async () => {

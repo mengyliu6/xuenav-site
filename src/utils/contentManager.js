@@ -1,4 +1,6 @@
 const isBrowser = () => typeof window !== "undefined";
+const CONTENT_CACHE_KEY = "xuenav_remote_content_v1";
+const CONTENT_CACHE_TTL = 5 * 60 * 1000;
 
 const emptyContent = () => ({
   products: {},
@@ -22,6 +24,45 @@ const normalizeFaqs = (items = []) =>
     }))
     .filter((item) => item.question && item.answer);
 
+const normalizeContent = (data, fallback = emptyContent()) => ({
+  products: data?.products && typeof data.products === "object"
+    ? data.products
+    : fallback.products || {},
+  defaultFaqs: Array.isArray(data?.defaultFaqs)
+    ? normalizeFaqs(data.defaultFaqs)
+    : normalizeFaqs(fallback.defaultFaqs),
+  configured: Boolean(data?.configured),
+  error: data?.error || "",
+});
+
+export const getCachedContent = () => {
+  if (!isBrowser()) return null;
+
+  try {
+    const cached = JSON.parse(window.sessionStorage.getItem(CONTENT_CACHE_KEY) || "null");
+    if (!cached?.savedAt || Date.now() - cached.savedAt > CONTENT_CACHE_TTL) return null;
+    return normalizeContent(cached.content);
+  } catch {
+    return null;
+  }
+};
+
+const cacheContent = (content) => {
+  if (!isBrowser() || !content?.configured) return;
+
+  try {
+    window.sessionStorage.setItem(
+      CONTENT_CACHE_KEY,
+      JSON.stringify({
+        savedAt: Date.now(),
+        content,
+      })
+    );
+  } catch {
+    // Storage can be unavailable in private browsing modes.
+  }
+};
+
 export const loadRemoteContent = async (fallback = emptyContent()) => {
   if (!isBrowser()) return fallback;
 
@@ -33,18 +74,11 @@ export const loadRemoteContent = async (fallback = emptyContent()) => {
     if (!response.ok) return fallback;
 
     const data = await response.json();
-    return {
-      products: data?.products && typeof data.products === "object"
-        ? data.products
-        : fallback.products || {},
-      defaultFaqs: Array.isArray(data?.defaultFaqs)
-        ? normalizeFaqs(data.defaultFaqs)
-        : normalizeFaqs(fallback.defaultFaqs),
-      configured: Boolean(data?.configured),
-      error: data?.error || "",
-    };
+    const content = normalizeContent(data, fallback);
+    cacheContent(content);
+    return content;
   } catch {
-    return fallback;
+    return getCachedContent() || fallback;
   }
 };
 

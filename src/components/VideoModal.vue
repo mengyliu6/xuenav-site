@@ -9,6 +9,9 @@
         v-if="coverUrl"
         :src="coverUrl"
         :alt="hasVideo ? 'Product support video cover' : 'Product support image'"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
       />
 
       <div v-else class="video-card__text">

@@ -13,7 +13,12 @@
 
       <div v-if="item.images?.length" class="faq-image-grid">
         <figure v-for="image in item.images" :key="image.url">
-          <img :src="image.url" :alt="image.caption || item.question" />
+          <img
+            :src="image.url"
+            :alt="image.caption || item.question"
+            loading="lazy"
+            decoding="async"
+          />
           <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
         </figure>
       </div>

@@ -67,9 +67,9 @@ import FooterBar from "../components/FooterBar.vue";
 import FaqList from "../components/FaqList.vue";
 import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
-import { loadRemoteContent } from "../utils/contentManager";
+import { getCachedContent, loadRemoteContent } from "../utils/contentManager";
 
-const content = ref({ configured: false, products: {}, defaultFaqs: [] });
+const content = ref(getCachedContent() || { configured: false, products: {}, defaultFaqs: [] });
 const managedFaqs = computed(() =>
   content.value.defaultFaqs?.length ? content.value.defaultFaqs : faqs
 );

@@ -9,6 +9,11 @@
           src="../assets/images/logo.png"
           alt="XUENAV"
           class="logo-img"
+          width="240"
+          height="72"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
         />
       </div>
   
@@ -24,6 +29,10 @@
           src="../assets/images/qr.png"
           alt="QR"
           class="qr-img"
+          width="112"
+          height="112"
+          loading="lazy"
+          decoding="async"
         />
       </div>
   

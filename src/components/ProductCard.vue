@@ -17,6 +17,8 @@
           :fetchpriority="imageFetchPriority"
           :sizes="imageSizes"
           decoding="async"
+          width="600"
+          height="600"
           class="card-image"
           :class="{ 'is-loaded': imageLoaded }"
           @load="imageLoaded = true"
