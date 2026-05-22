@@ -6,8 +6,18 @@
     @mouseleave="resetCard"
   >
     <article ref="cardRef" class="product-card">
-      <div class="card-image-wrap">
-        <img :src="image" :alt="title" class="card-image" />
+      <div class="card-image-wrap" :class="{ 'is-loading': loading || !imageLoaded }">
+        <span v-if="loading || !imageLoaded" class="card-image-skeleton" aria-hidden="true"></span>
+        <img
+          v-if="!loading && image"
+          :key="image"
+          :src="image"
+          :alt="title"
+          class="card-image"
+          :class="{ 'is-loaded': imageLoaded }"
+          @load="imageLoaded = true"
+          @error="imageLoaded = true"
+        />
         <span class="card-badge">Support</span>
       </div>
 
@@ -24,10 +34,10 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 
-defineProps({
+const props = defineProps({
   id: {
     type: String,
     required: true,
@@ -40,9 +50,21 @@ defineProps({
     type: String,
     required: true,
   },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const cardRef = ref(null);
+const imageLoaded = ref(false);
+
+watch(
+  () => [props.image, props.loading],
+  () => {
+    imageLoaded.value = false;
+  }
+);
 
 const handleMouseMove = (event) => {
   const card = cardRef.value;

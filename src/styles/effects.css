@@ -241,6 +241,22 @@
   animation: xuenav-fade-up 520ms var(--motion-main) both;
 }
 
+.admin-page .admin-control-row,
+.admin-page .admin-card,
+.admin-page .admin-status-card {
+  animation: none;
+}
+
+.admin-page .admin-card::before,
+.admin-page .admin-status-card::before {
+  display: none;
+}
+
+.admin-page .admin-card:hover,
+.admin-page .admin-status-card:hover {
+  transform: none;
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .top-header,
   .product-card,

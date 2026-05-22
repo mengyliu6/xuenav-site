@@ -39,23 +39,6 @@
 
     <main v-else class="admin-workspace">
       <section class="admin-control-row">
-        <nav class="admin-tabs" aria-label="后台管理导航">
-          <button
-            type="button"
-            :class="{ active: activeTab === 'products' }"
-            @click="activeTab = 'products'"
-          >
-            商品管理
-          </button>
-          <button
-            type="button"
-            :class="{ active: activeTab === 'defaultFaq' }"
-            @click="activeTab = 'defaultFaq'"
-          >
-            默认 FAQ
-          </button>
-        </nav>
-
         <section class="admin-status-card">
           <div>
             <span class="section-eyebrow">XUENAV CMS</span>
@@ -74,32 +57,51 @@
         </section>
       </section>
 
-      <section v-if="activeTab === 'products'" class="admin-editor-grid">
-        <aside class="admin-card admin-sidebar">
-          <div class="admin-section-title">
-            <span>商品</span>
-            <h2>商品列表</h2>
-          </div>
-
-          <button type="button" class="admin-add-btn" @click="newProduct">
-            新增商品
-          </button>
-
-          <div class="admin-product-list">
+      <section class="admin-management-layout">
+        <aside class="admin-left-rail">
+          <nav class="admin-tabs" aria-label="后台管理导航">
             <button
-              v-for="item in sortedProducts"
-              :key="item.recordId || item.productId"
               type="button"
-              :class="{ active: item.productId === productDraft.productId }"
-              @click="selectProduct(item)"
+              :class="{ active: activeTab === 'products' }"
+              @click="activeTab = 'products'"
             >
-              <strong>{{ item.name || "未命名商品" }}</strong>
-              <small>{{ item.productId || "未填写商品 ID" }}</small>
+              商品管理
             </button>
-          </div>
+            <button
+              type="button"
+              :class="{ active: activeTab === 'defaultFaq' }"
+              @click="activeTab = 'defaultFaq'"
+            >
+              默认 FAQ
+            </button>
+          </nav>
+
+          <aside v-if="activeTab === 'products'" class="admin-card admin-sidebar">
+            <div class="admin-section-title">
+              <span>商品</span>
+              <h2>商品列表</h2>
+            </div>
+
+            <button type="button" class="admin-add-btn" @click="newProduct">
+              新增商品
+            </button>
+
+            <div class="admin-product-list">
+              <button
+                v-for="item in sortedProducts"
+                :key="item.recordId || item.productId"
+                type="button"
+                :class="{ active: item.productId === productDraft.productId }"
+                @click="selectProduct(item)"
+              >
+                <strong>{{ item.name || "未命名商品" }}</strong>
+                <small>{{ item.productId || "未填写商品 ID" }}</small>
+              </button>
+            </div>
+          </aside>
         </aside>
 
-        <section class="admin-editor-main">
+        <section v-if="activeTab === 'products'" class="admin-editor-main">
           <article class="admin-card">
             <div class="admin-section-title">
               <span>商品编辑</span>
@@ -242,9 +244,8 @@
             </button>
           </article>
         </section>
-      </section>
 
-      <section v-else class="admin-editor-main">
+        <section v-else class="admin-editor-main">
         <article class="admin-card">
           <div class="admin-section-title">
             <span>默认 FAQ</span>
@@ -303,6 +304,7 @@
             新增默认 FAQ
           </button>
         </article>
+        </section>
       </section>
     </main>
   </div>

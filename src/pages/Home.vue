@@ -26,6 +26,7 @@
             :id="item.id"
             :title="item.name"
             :image="item.image"
+            :loading="!contentReady"
           />
         </div>
       </div>
@@ -48,10 +49,15 @@ import {
   mergeProductsContent,
 } from "../utils/contentManager";
 
-const content = ref({ configured: false, products: {} });
+const content = ref({ configured: false, products: {}, defaultFaqs: [] });
+const contentReady = ref(false);
 const managedProducts = computed(() => mergeProductsContent(products, content.value));
 
 onMounted(async () => {
-  content.value = await loadRemoteContent(content.value);
+  try {
+    content.value = await loadRemoteContent(content.value);
+  } finally {
+    contentReady.value = true;
+  }
 });
 </script>
