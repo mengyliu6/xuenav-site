@@ -257,6 +257,14 @@
   transform: none;
 }
 
+.admin-page .admin-status-card--topbar {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .top-header,
   .product-card,

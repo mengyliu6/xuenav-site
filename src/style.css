@@ -1331,10 +1331,12 @@ a {
   max-width: none;
   justify-self: stretch;
   padding: 0;
-  border: 0;
+  border: 0 !important;
   border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .admin-status-card .section-eyebrow {
@@ -1344,7 +1346,7 @@ a {
 }
 
 .admin-status-card h2 {
-  margin: 2px 0 4px;
+  margin: 0 0 4px;
   color: var(--dark);
   font-size: 20px;
   line-height: 1.15;

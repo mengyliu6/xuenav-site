@@ -12,7 +12,6 @@
 
       <section v-if="token" class="admin-status-card admin-status-card--topbar">
         <div>
-          <span class="section-eyebrow">XUENAV CMS</span>
           <h2>{{ statusTitle }}</h2>
           <p>{{ statusText }}</p>
         </div>
@@ -37,7 +36,6 @@
         >
           打开数据表
         </a>
-        <RouterLink to="/" class="secondary-btn">返回官网</RouterLink>
       </div>
     </header>
 
@@ -369,7 +367,6 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import { RouterLink } from "vue-router";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
