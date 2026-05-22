@@ -1,4 +1,5 @@
 const FEISHU_API = "https://open.feishu.cn/open-apis";
+const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 
 const FIELD_ALIASES = {
   productId: ["Product ID", "productId", "product_id", "\u5546\u54c1ID", "\u5546\u54c1 ID"],
@@ -163,7 +164,7 @@ const listRecords = async (token, appToken, tableId) => {
 };
 
 const toContent = ({ products, faqs, gallery }) => {
-  const content = { products: {} };
+  const content = { products: {}, defaultFaqs: [] };
 
   products.forEach((record) => {
     const fields = record.fields || {};
@@ -210,14 +211,21 @@ const toContent = ({ products, faqs, gallery }) => {
     const answer = textFromValue(getField(fields, "answer"));
     if (!question || !answer) return;
 
-    const product = content.products[productId];
-    if (!product) return;
-
-    product.faqs.push({
+    const item = {
       question,
       answer,
       images: imagesFromValue(getField(fields, "faqImages")),
-    });
+    };
+
+    if (productId === DEFAULT_FAQ_PRODUCT_ID) {
+      content.defaultFaqs.push(item);
+      return;
+    }
+
+    const product = content.products[productId];
+    if (!product) return;
+
+    product.faqs.push(item);
   });
 
   return content;

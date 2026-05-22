@@ -29,8 +29,8 @@
         <span>运营后台登录</span>
         <h2>请输入后台管理令牌</h2>
         <p>
-          登录后可以维护官网商品、封面图片和 FAQ。令牌由技术同事在 Vercel 环境变量
-          <code>ADMIN_API_TOKEN</code> 中配置。
+          登录后可以维护官网商品、封面图片、商品 FAQ 和全站默认 FAQ。令牌由技术同事在
+          Vercel 环境变量 <code>ADMIN_API_TOKEN</code> 中配置。
         </p>
         <input v-model="tokenInput" type="password" placeholder="请输入 Admin Token" />
         <button type="submit" class="primary-btn">进入后台</button>
@@ -55,7 +55,24 @@
         </div>
       </section>
 
-      <section class="admin-editor-grid">
+      <nav class="admin-tabs" aria-label="后台管理导航">
+        <button
+          type="button"
+          :class="{ active: activeTab === 'products' }"
+          @click="activeTab = 'products'"
+        >
+          商品管理
+        </button>
+        <button
+          type="button"
+          :class="{ active: activeTab === 'defaultFaq' }"
+          @click="activeTab = 'defaultFaq'"
+        >
+          默认 FAQ
+        </button>
+      </nav>
+
+      <section v-if="activeTab === 'products'" class="admin-editor-grid">
         <aside class="admin-card admin-sidebar">
           <div class="admin-section-title">
             <span>商品</span>
@@ -101,7 +118,7 @@
                 <input
                   v-model.trim="productDraft.image"
                   type="text"
-                  placeholder="可粘贴公网图片 URL，也可用下方按钮上传图片"
+                  placeholder="可粘贴图片 URL，也可用下方按钮上传图片"
                 />
               </label>
               <div class="admin-upload-field">
@@ -155,8 +172,8 @@
 
           <article class="admin-card">
             <div class="admin-section-title">
-              <span>FAQ 编辑</span>
-              <h2>常见问题</h2>
+              <span>商品 FAQ</span>
+              <h2>当前商品常见问题</h2>
             </div>
 
             <div class="admin-faq-list">
@@ -219,10 +236,71 @@
             </div>
 
             <button type="button" class="admin-add-btn" @click="newFaq">
-              新增 FAQ
+              新增商品 FAQ
             </button>
           </article>
         </section>
+      </section>
+
+      <section v-else class="admin-editor-main">
+        <article class="admin-card">
+          <div class="admin-section-title">
+            <span>默认 FAQ</span>
+            <h2>全站默认常见问题</h2>
+          </div>
+
+          <p class="admin-help-text">
+            这里维护 FAQ 页面默认展示的内容，也会作为没有专属 FAQ 的商品详情页兜底内容。
+          </p>
+
+          <div class="admin-faq-list">
+            <div
+              v-for="faq in defaultFaqs"
+              :key="faq.recordId || faq.localId"
+              class="admin-faq-card"
+            >
+              <label>
+                <span>问题</span>
+                <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
+              </label>
+              <label>
+                <span>回答</span>
+                <textarea v-model.trim="faq.answer" rows="4" placeholder="默认 FAQ 回答"></textarea>
+              </label>
+              <div class="admin-form-grid compact">
+                <label>
+                  <span>排序</span>
+                  <input v-model.number="faq.sort" type="number" />
+                </label>
+                <label>
+                  <span>状态</span>
+                  <select v-model="faq.status">
+                    <option>Published</option>
+                    <option>Draft</option>
+                    <option>Hidden</option>
+                  </select>
+                </label>
+              </div>
+              <div class="admin-actions">
+                <button type="button" class="secondary-btn" :disabled="loading" @click="saveDefaultFaq(faq)">
+                  保存默认 FAQ
+                </button>
+                <button
+                  type="button"
+                  class="admin-danger"
+                  :disabled="loading"
+                  @click="faq.recordId ? deleteFaq(faq) : removeFaqDraft(faq)"
+                >
+                  删除 FAQ
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="admin-add-btn" @click="newDefaultFaq">
+            新增默认 FAQ
+          </button>
+        </article>
       </section>
     </main>
   </div>
@@ -232,6 +310,7 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { RouterLink } from "vue-router";
 
+const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
@@ -241,6 +320,7 @@ const uploading = ref(false);
 const error = ref("");
 const products = ref([]);
 const faqs = ref([]);
+const activeTab = ref("products");
 const toast = reactive({
   message: "",
   type: "info",
@@ -278,6 +358,12 @@ const selectedFaqs = computed(() =>
     .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
 );
 
+const defaultFaqs = computed(() =>
+  faqs.value
+    .filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID)
+    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+);
+
 const statusTitle = computed(() => {
   if (uploading.value) return "正在上传图片";
   if (loading.value) return "正在同步数据";
@@ -287,9 +373,9 @@ const statusTitle = computed(() => {
 
 const statusText = computed(() => {
   if (uploading.value) return "图片上传成功后，请继续点击保存按钮。";
-  if (loading.value) return "正在读取或写入商品数据，请稍等。";
+  if (loading.value) return "正在读取或写入后台数据，请稍等。";
   if (error.value) return error.value;
-  return `当前已读取 ${products.value.length} 个商品，${faqs.value.length} 条 FAQ。`;
+  return `当前已读取 ${products.value.length} 个商品，${defaultFaqs.value.length} 条默认 FAQ，${faqs.value.length} 条全部 FAQ。`;
 });
 
 const notify = (message, type = "info") => {
@@ -366,8 +452,8 @@ const validateProductDraft = () => {
   return "";
 };
 
-const validateFaqDraft = (faq) => {
-  if (!productDraft.productId) return "请先选择或保存一个商品。";
+const validateFaqDraft = (faq, requireProduct = true) => {
+  if (requireProduct && !productDraft.productId) return "请先选择或保存一个商品。";
   if (!faq.question?.trim()) return "请填写 FAQ 问题。";
   if (!faq.answer?.trim()) return "请填写 FAQ 回答。";
   return "";
@@ -581,12 +667,41 @@ const newFaq = () => {
     sort: selectedFaqs.value.length + 1,
     status: "Published",
   });
-  notify("已新增 FAQ 草稿，请填写后保存。", "info");
+  notify("已新增商品 FAQ 草稿，请填写后保存。", "info");
+};
+
+const newDefaultFaq = () => {
+  faqs.value.push({
+    localId: `default-${Date.now()}`,
+    recordId: "",
+    productId: DEFAULT_FAQ_PRODUCT_ID,
+    question: "",
+    answer: "",
+    images: "",
+    sort: defaultFaqs.value.length + 1,
+    status: "Published",
+  });
+  notify("已新增默认 FAQ 草稿，请填写后保存。", "info");
 };
 
 const removeFaqDraft = (faq) => {
   faqs.value = faqs.value.filter((item) => item !== faq);
   notify("已删除未保存的 FAQ 草稿。", "success");
+};
+
+const saveFaqRecord = async (faq, productId) => {
+  await requestAdmin("POST", {
+    resource: "faq",
+    recordId: faq.recordId,
+    fields: {
+      "Product ID": productId,
+      Question: faq.question.trim(),
+      Answer: faq.answer.trim(),
+      Images: faq.images,
+      Sort: Number(faq.sort || 0),
+      Status: faq.status || "Published",
+    },
+  });
 };
 
 const saveFaq = async (faq) => {
@@ -598,25 +713,37 @@ const saveFaq = async (faq) => {
 
   loading.value = true;
   error.value = "";
-  notify("正在保存 FAQ，请稍等...", "info");
+  notify("正在保存商品 FAQ，请稍等...", "info");
 
   try {
-    await requestAdmin("POST", {
-      resource: "faq",
-      recordId: faq.recordId,
-      fields: {
-        "Product ID": productDraft.productId,
-        Question: faq.question.trim(),
-        Answer: faq.answer.trim(),
-        Images: faq.images,
-        Sort: Number(faq.sort || 0),
-        Status: faq.status || "Published",
-      },
-    });
+    await saveFaqRecord(faq, productDraft.productId);
     await loadAdminContent();
-    notify("FAQ 保存成功。", "success");
+    notify("商品 FAQ 保存成功。", "success");
   } catch (err) {
     error.value = err?.message || "保存 FAQ 失败。";
+    notify(error.value, "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const saveDefaultFaq = async (faq) => {
+  const validationError = validateFaqDraft(faq, false);
+  if (validationError) {
+    notify(validationError, "error");
+    return;
+  }
+
+  loading.value = true;
+  error.value = "";
+  notify("正在保存默认 FAQ，请稍等...", "info");
+
+  try {
+    await saveFaqRecord(faq, DEFAULT_FAQ_PRODUCT_ID);
+    await loadAdminContent();
+    notify("默认 FAQ 保存成功。", "success");
+  } catch (err) {
+    error.value = err?.message || "保存默认 FAQ 失败。";
     notify(error.value, "error");
   } finally {
     loading.value = false;

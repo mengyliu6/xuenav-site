@@ -27,7 +27,7 @@
               <h2>Before You Contact Us</h2>
             </div>
 
-            <FaqList :items="faqs" />
+            <FaqList :items="managedFaqs" />
           </article>
 
           <aside class="detail-card faq-contact-card">
@@ -59,6 +59,7 @@
 </template>
 
 <script setup>
+import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
@@ -66,4 +67,14 @@ import FooterBar from "../components/FooterBar.vue";
 import FaqList from "../components/FaqList.vue";
 import { faqs } from "../data/faqs";
 import { CONTACT } from "../config/contact";
+import { loadRemoteContent } from "../utils/contentManager";
+
+const content = ref({ configured: false, products: {}, defaultFaqs: [] });
+const managedFaqs = computed(() =>
+  content.value.defaultFaqs?.length ? content.value.defaultFaqs : faqs
+);
+
+onMounted(async () => {
+  content.value = await loadRemoteContent(content.value);
+});
 </script>

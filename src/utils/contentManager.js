@@ -2,6 +2,7 @@ const isBrowser = () => typeof window !== "undefined";
 
 const emptyContent = () => ({
   products: {},
+  defaultFaqs: [],
 });
 
 const normalizeImages = (images = []) =>
@@ -36,6 +37,9 @@ export const loadRemoteContent = async (fallback = emptyContent()) => {
       products: data?.products && typeof data.products === "object"
         ? data.products
         : fallback.products || {},
+      defaultFaqs: Array.isArray(data?.defaultFaqs)
+        ? normalizeFaqs(data.defaultFaqs)
+        : normalizeFaqs(fallback.defaultFaqs),
       configured: Boolean(data?.configured),
       error: data?.error || "",
     };
@@ -54,6 +58,7 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
   const image = String(override.image || product.image || "").trim();
   const videoUrl =
     typeof override.videoUrl === "string" ? override.videoUrl : product.videoUrl || "";
+  const defaultFaqs = normalizeFaqs(content?.defaultFaqs);
   const gallery = normalizeImages(override.gallery).length
     ? normalizeImages(override.gallery)
     : normalizeImages(product.gallery).length
@@ -65,7 +70,9 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
     ? normalizeFaqs(override.faqs)
     : normalizeFaqs(product.faqs).length
       ? normalizeFaqs(product.faqs)
-      : fallbackFaqs;
+      : defaultFaqs.length
+        ? defaultFaqs
+        : fallbackFaqs;
 
   return {
     ...product,
