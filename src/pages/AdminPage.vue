@@ -5,10 +5,27 @@
     </div>
 
     <header class="admin-topbar">
-      <div>
+      <div class="admin-topbar__brand">
         <span>XUENAV Admin</span>
         <h1>XUENAV 后台管理</h1>
       </div>
+
+      <section v-if="token" class="admin-status-card admin-status-card--topbar">
+        <div>
+          <span class="section-eyebrow">XUENAV CMS</span>
+          <h2>{{ statusTitle }}</h2>
+          <p>{{ statusText }}</p>
+        </div>
+
+        <div class="admin-status-actions">
+          <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
+            刷新数据
+          </button>
+          <button type="button" class="secondary-btn" @click="clearToken">
+            退出登录
+          </button>
+        </div>
+      </section>
 
       <div class="admin-topbar__actions">
         <a
@@ -38,25 +55,6 @@
     </main>
 
     <main v-else class="admin-workspace">
-      <section class="admin-control-row">
-        <section class="admin-status-card">
-          <div>
-            <span class="section-eyebrow">XUENAV CMS</span>
-            <h2>{{ statusTitle }}</h2>
-            <p>{{ statusText }}</p>
-          </div>
-
-          <div class="admin-status-actions">
-            <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
-              刷新数据
-            </button>
-            <button type="button" class="secondary-btn" @click="clearToken">
-              退出登录
-            </button>
-          </div>
-        </section>
-      </section>
-
       <section class="admin-management-layout">
         <aside class="admin-left-rail">
           <nav class="admin-tabs" aria-label="后台管理导航">
