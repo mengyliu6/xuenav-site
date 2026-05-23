@@ -67,6 +67,26 @@ const textFromValue = (value) => {
   ).trim();
 };
 
+const linkTextFromValue = (value) => {
+  if (value === undefined || value === null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string" || typeof item === "number") return String(item);
+        return item?.text || item?.link || item?.url || item?.tmp_url || item?.href || item?.name || "";
+      })
+      .filter(Boolean)
+      .join("\n")
+      .trim();
+  }
+
+  return String(
+    value.text || value.link || value.url || value.tmp_url || value.href || value.name || "",
+  ).trim();
+};
+
 const cleanFields = (fields, allowed) => {
   const next = {};
 
@@ -227,7 +247,7 @@ const normalizeFaq = (record) => ({
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
-  images: textFromValue(record.fields?.Images?.text || record.fields?.Images),
+  images: linkTextFromValue(record.fields?.Images),
   sort: textFromValue(record.fields?.Sort),
   status: textFromValue(record.fields?.Status) || "Published",
 });
