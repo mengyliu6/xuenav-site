@@ -112,6 +112,18 @@ const linkFieldFromValue = (value) => {
   };
 };
 
+const textFieldFromValue = (value) => {
+  const text = String(value || "").trim();
+  if (!text) return null;
+
+  return [
+    {
+      type: "text",
+      text,
+    },
+  ];
+};
+
 const sanitizeFileName = (fileName = "image") => {
   const cleaned = String(fileName)
     .trim()
@@ -279,6 +291,10 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
     if (hasField(nextFields, "Video URL")) {
       nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
+  }
+
+  if (resource === "faq" && hasField(nextFields, "Images")) {
+    nextFields.Images = textFieldFromValue(nextFields.Images);
   }
 
   const body = JSON.stringify({
