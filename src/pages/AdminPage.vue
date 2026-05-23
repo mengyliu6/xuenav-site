@@ -846,6 +846,10 @@ const uploadFaqImageFiles = async (files, faq) => {
   const imageFiles = [...files].filter(Boolean);
   if (!imageFiles.length) return;
 
+  const previousImages = faqImageList(faq);
+  const localImages = imageFiles.map((file) => URL.createObjectURL(file));
+  setFaqImages(faq, [...previousImages, ...localImages]);
+
   uploading.value = true;
   error.value = "";
   notify(`正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`, "info");
@@ -854,7 +858,7 @@ const uploadFaqImageFiles = async (files, faq) => {
     const imageUrls = await Promise.all(
       imageFiles.map((file) => uploadImage(file))
     );
-    setFaqImages(faq, [...faqImageList(faq), ...imageUrls]);
+    setFaqImages(faq, [...previousImages, ...imageUrls]);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
     setFaqImages(faq, previousImages);
