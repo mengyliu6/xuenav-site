@@ -119,32 +119,25 @@
                 <span>商品名称</span>
                 <input v-model.trim="productDraft.name" type="text" placeholder="官网显示的商品标题" />
               </label>
-              <label class="admin-wide-field">
-                <span>封面图片</span>
-                <input
-                  v-model.trim="productDraft.image"
-                  type="text"
-                  placeholder="可粘贴图片 URL，也可用下方按钮上传图片"
-                />
-              </label>
-              <div class="admin-upload-field">
-                <span>上传封面图</span>
-                <div class="admin-upload-row">
+              <div
+                class="admin-upload-field admin-product-image-field"
+                @dragover.prevent.stop
+                @drop.prevent.stop="dropProductCover"
+              >
+                <span>商品图片</span>
+                <label class="admin-product-image-drop">
                   <input type="file" accept="image/*" @change="uploadProductCover" />
-                  <button type="button" class="secondary-btn" :disabled="uploading" @click="clearProductImage">
-                    清空图片
-                  </button>
-                </div>
-                <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="封面预览" />
-                <p v-else>上传 JPG/PNG/WebP 后会自动压缩为首页封面 WebP；预览无误后点击“保存商品”。</p>
+                  <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="商品图片预览" />
+                  <strong v-else>点击上传</strong>
+                </label>
+                <button type="button" class="secondary-btn" :disabled="uploading || !productDraft.image" @click="clearProductImage">
+                  清空图片
+                </button>
+                <p>上传 JPG/PNG/WebP 后会自动压缩为首页商品图 WebP；预览无误后点击“保存商品”。</p>
               </div>
               <label>
                 <span>视频链接</span>
                 <input v-model.trim="productDraft.videoUrl" type="url" placeholder="https://www.youtube.com/..." />
-              </label>
-              <label>
-                <span>视频开始秒数</span>
-                <input v-model.number="productDraft.start" type="number" min="0" />
               </label>
               <label>
                 <span>排序</span>
@@ -181,24 +174,26 @@
               <span>商品 FAQ</span>
               <h2>当前商品常见问题</h2>
             </div>
+            <button
+              type="button"
+              class="admin-preview-btn admin-preview-all"
+              :disabled="!selectedFaqs.length"
+              @click="openFaqPreview(productDraft.productId)"
+            >
+              预览并排序
+            </button>
 
             <div class="admin-faq-list">
               <div
-                v-for="(faq, index) in selectedFaqs"
+                v-for="faq in selectedFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
-                draggable="true"
-                @dragstart="startFaqDrag(faq)"
-                @dragover.prevent
-                @drop.prevent="dropFaq(index, productDraft.productId)"
-                @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
-                    <small>拖动调整 FAQ 顺序</small>
+                    <small>FAQ 内容编辑</small>
                   </div>
-                  <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq)">
+                  <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq.productId)">
                     预览
                   </button>
                 </div>
@@ -277,6 +272,14 @@
             <span>默认 FAQ</span>
             <h2>全站默认常见问题</h2>
           </div>
+          <button
+            type="button"
+            class="admin-preview-btn admin-preview-all"
+            :disabled="!defaultFaqs.length"
+            @click="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)"
+          >
+            预览并排序
+          </button>
 
           <p class="admin-help-text">
             这里维护 FAQ 页面默认展示的内容，也会作为没有专属 FAQ 的商品详情页兜底内容。
@@ -284,21 +287,15 @@
 
           <div class="admin-faq-list">
             <div
-              v-for="(faq, index) in defaultFaqs"
+              v-for="faq in defaultFaqs"
               :key="faq.recordId || faq.localId"
               class="admin-faq-card"
-              draggable="true"
-              @dragstart="startFaqDrag(faq)"
-              @dragover.prevent
-              @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
-                @dragend="endDrag"
               >
               <div class="admin-card-toolbar">
                 <div class="admin-card-toolbar__meta">
-                  <span class="admin-drag-handle" aria-hidden="true">↕</span>
-                  <small>拖动调整 FAQ 顺序</small>
+                  <small>FAQ 内容编辑</small>
                 </div>
-                <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq)">
+                <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)">
                   预览
                 </button>
               </div>
@@ -382,7 +379,32 @@
           </div>
           <button type="button" class="admin-preview-close" @click="closeFaqPreview">关闭</button>
         </div>
-        <FaqList :items="previewFaqItems" />
+        <div class="admin-preview-sort-list">
+          <details
+            v-for="(item, index) in previewFaqItems"
+            :key="item.recordId || item.localId || item.question"
+            class="faq-item admin-preview-faq-item"
+            :open="index === 0"
+            draggable="true"
+            @dragstart="startFaqDrag(item)"
+            @dragover.prevent
+            @drop.prevent="dropFaq(index, previewFaqProductId)"
+            @dragend="endDrag"
+          >
+            <summary>
+              <span class="admin-drag-handle" aria-hidden="true">↕</span>
+              <span>{{ item.question }}</span>
+            </summary>
+            <p>{{ item.answer }}</p>
+
+            <div v-if="item.images?.length" class="faq-image-grid">
+              <figure v-for="image in item.images" :key="image.url">
+                <img :src="image.url" :alt="image.caption || item.question" loading="lazy" decoding="async" />
+                <figcaption v-if="image.caption">{{ image.caption }}</figcaption>
+              </figure>
+            </div>
+          </details>
+        </div>
       </article>
     </div>
   </div>
@@ -390,7 +412,6 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import FaqList from "../components/FaqList.vue";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
@@ -407,7 +428,7 @@ const faqs = ref([]);
 const activeTab = ref("products");
 const draggingProductId = ref("");
 const draggingFaqId = ref("");
-const previewingFaq = ref(null);
+const previewFaqProductId = ref("");
 const toast = reactive({
   message: "",
   type: "info",
@@ -452,18 +473,18 @@ const defaultFaqs = computed(() =>
 );
 
 const previewFaqItems = computed(() => {
-  if (!previewingFaq.value) return [];
+  if (!previewFaqProductId.value) return [];
 
-  return [
-    {
-      question: previewingFaq.value.question,
-      answer: previewingFaq.value.answer,
-      images: faqImageList(previewingFaq.value).map((url) => ({
+  return faqs.value
+    .filter((item) => item.productId === previewFaqProductId.value)
+    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+    .map((faq) => ({
+      ...faq,
+      images: faqImageList(faq).map((url) => ({
         url,
         caption: "",
       })),
-    },
-  ];
+    }));
 });
 
 const statusTitle = computed(() => {
@@ -650,18 +671,29 @@ const uploadProductCover = async (event) => {
   event.target.value = "";
   if (!file) return;
 
+  await handleProductCoverFile(file);
+};
+
+const dropProductCover = async (event) => {
+  const file = event.dataTransfer?.files?.[0];
+  if (!file) return;
+
+  await handleProductCoverFile(file);
+};
+
+const handleProductCoverFile = async (file) => {
   uploading.value = true;
   error.value = "";
-  notify("正在压缩并上传封面图，请稍等...", "info");
+  notify("正在压缩并上传商品图片，请稍等...", "info");
 
   try {
     const optimizedFile = await compressProductCover(file);
     const imageUrl = await uploadImage(optimizedFile);
     productDraft.image = imageUrl;
     productDraft.imagePreview = URL.createObjectURL(optimizedFile);
-    notify("封面图已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。", "success");
+    notify("商品图片已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。", "success");
   } catch (err) {
-    error.value = err?.message || "上传封面图失败。";
+    error.value = err?.message || "上传商品图片失败。";
     notify(error.value, "error");
   } finally {
     uploading.value = false;
@@ -706,12 +738,12 @@ const removeFaqImage = (faq, image) => {
   notify("已移除 FAQ 图片，保存 FAQ 后生效。", "info");
 };
 
-const openFaqPreview = (faq) => {
-  previewingFaq.value = faq;
+const openFaqPreview = (productId) => {
+  previewFaqProductId.value = productId;
 };
 
 const closeFaqPreview = () => {
-  previewingFaq.value = null;
+  previewFaqProductId.value = "";
 };
 
 const clearProductImage = () => {
@@ -908,7 +940,7 @@ const saveProduct = async () => {
         Name: productDraft.name.trim(),
         "Cover Image": productDraft.image,
         "Video URL": productDraft.videoUrl,
-        Start: Number(productDraft.start || 0),
+        Start: 0,
         Sort: Number(productDraft.sort || 0),
         Status: productDraft.status || "Published",
       },
