@@ -78,6 +78,8 @@ const cleanFields = (fields, allowed) => {
   return next;
 };
 
+const hasField = (fields, field) => Object.prototype.hasOwnProperty.call(fields, field);
+
 const linkFieldFromValue = (value) => {
   if (!value) return null;
 
@@ -250,16 +252,16 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
   const nextFields = cleanFields(fields, allowedFields);
 
   if (resource === "product") {
-    if (nextFields["Cover Image"]) {
+    if (hasField(nextFields, "Cover Image")) {
       nextFields["Cover Image"] = linkFieldFromValue(nextFields["Cover Image"]);
     }
 
-    if (nextFields["Video URL"]) {
+    if (hasField(nextFields, "Video URL")) {
       nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
   }
 
-  if (resource === "faq" && nextFields.Images) {
+  if (resource === "faq" && hasField(nextFields, "Images")) {
     nextFields.Images = linkFieldFromValue(nextFields.Images);
   }
 
