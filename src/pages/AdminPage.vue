@@ -510,19 +510,29 @@ const notify = (message, type = "info") => {
 
 const imageCanPreview = (value = "") => {
   const image = String(value || "");
-  return image.startsWith("http://") || image.startsWith("https://") || image.startsWith("data:");
+  return (
+    image.startsWith("http://") ||
+    image.startsWith("https://") ||
+    image.startsWith("data:") ||
+    image.startsWith("blob:")
+  );
 };
 
 const itemKey = (item) => item?.recordId || item?.localId || item?.productId || "";
 
 const faqImageList = (faq) =>
-  String(faq?.images || "")
-    .split(/[\n,]/)
+  (String(faq?.images || "").match(/(?:https?:\/\/|data:|blob:)[^\s,，]+/g) || [])
     .map((item) => item.trim())
     .filter((item) => imageCanPreview(item));
 
 const setFaqImages = (faq, images) => {
   faq.images = [...new Set(images.map((item) => String(item || "").trim()).filter(Boolean))].join("\n");
+};
+
+const revokeLocalImages = (images) => {
+  images
+    .filter((item) => String(item || "").startsWith("blob:"))
+    .forEach((url) => URL.revokeObjectURL(url));
 };
 
 const assignProductDraft = (item) => {
@@ -701,18 +711,24 @@ const uploadFaqImageFiles = async (files, faq) => {
   const imageFiles = [...files].filter(Boolean);
   if (!imageFiles.length) return;
 
+  const previousImages = faqImageList(faq);
+  const localImages = imageFiles.map((file) => URL.createObjectURL(file));
+  setFaqImages(faq, [...previousImages, ...localImages]);
+
   uploading.value = true;
   error.value = "";
   notify(`正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`, "info");
 
   try {
     const imageUrls = await Promise.all(imageFiles.map((file) => uploadImage(file)));
-    setFaqImages(faq, [...faqImageList(faq), ...imageUrls]);
+    setFaqImages(faq, [...previousImages, ...imageUrls]);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
+    setFaqImages(faq, previousImages);
     error.value = err?.message || "上传 FAQ 图片失败。";
     notify(error.value, "error");
   } finally {
+    revokeLocalImages(localImages);
     uploading.value = false;
   }
 };
