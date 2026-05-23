@@ -105,12 +105,14 @@
 
         <section v-if="activeTab === 'products'" class="admin-editor-main">
           <article class="admin-card">
-            <div class="admin-section-title">
-              <span>商品编辑</span>
-              <h2>基础信息</h2>
+            <div class="admin-card-head">
+              <div class="admin-section-title">
+                <span>商品编辑</span>
+                <h2>基础信息</h2>
+              </div>
             </div>
 
-            <div class="admin-form-grid">
+            <div class="admin-form-grid admin-product-form-grid">
               <label>
                 <span>商品 ID</span>
                 <input v-model.trim="productDraft.productId" type="text" placeholder="camaro-radio-10-15" />
@@ -128,7 +130,10 @@
                 <label class="admin-product-image-drop">
                   <input type="file" accept="image/*" @change="uploadProductCover" />
                   <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="商品图片预览" />
-                  <strong v-else>点击上传</strong>
+                  <span v-else class="admin-upload-copy">
+                    <strong>拖拽图片到这里</strong>
+                    <small>或点击上传</small>
+                  </span>
                 </label>
                 <button type="button" class="secondary-btn" :disabled="uploading || !productDraft.image" @click="clearProductImage">
                   清空图片
@@ -170,18 +175,20 @@
           </article>
 
           <article class="admin-card">
-            <div class="admin-section-title">
-              <span>商品 FAQ</span>
-              <h2>当前商品常见问题</h2>
+            <div class="admin-card-head">
+              <div class="admin-section-title">
+                <span>商品 FAQ</span>
+                <h2>当前商品常见问题</h2>
+              </div>
+              <button
+                type="button"
+                class="admin-preview-btn"
+                :disabled="!selectedFaqs.length"
+                @click="openFaqPreview(productDraft.productId)"
+              >
+                预览
+              </button>
             </div>
-            <button
-              type="button"
-              class="admin-preview-btn admin-preview-all"
-              :disabled="!selectedFaqs.length"
-              @click="openFaqPreview(productDraft.productId)"
-            >
-              预览并排序
-            </button>
 
             <div class="admin-faq-list">
               <div
@@ -193,18 +200,17 @@
                   <div class="admin-card-toolbar__meta">
                     <small>FAQ 内容编辑</small>
                   </div>
-                  <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(faq.productId)">
-                    预览
-                  </button>
                 </div>
-                <label>
-                  <span>问题</span>
-                  <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
-                </label>
-                <label>
-                  <span>回答</span>
-                  <textarea v-model.trim="faq.answer" rows="2" placeholder="给客户看的标准回答"></textarea>
-                </label>
+                <div class="admin-faq-content-grid">
+                  <label>
+                    <span>问题</span>
+                    <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
+                  </label>
+                  <label>
+                    <span>回答</span>
+                    <textarea v-model.trim="faq.answer" rows="3" placeholder="给客户看的标准回答"></textarea>
+                  </label>
+                </div>
                 <div
                   class="admin-upload-field compact admin-dropzone"
                   @dragover.prevent.stop
@@ -212,9 +218,9 @@
                 >
                   <span>FAQ 图片</span>
                   <label class="admin-file-drop">
-                    <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
-                    <strong>拖入图片或点击上传</strong>
-                    <small>上传后会立即预览，保存 FAQ 后写入后台。</small>
+                    <input type="file" accept="image/*" multiple @change="(event) => uploadFaqImage(event, faq)" />
+                    <strong>拖拽多张图片到这里，或点击上传</strong>
+                    <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
                   </label>
                   <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
                     <figure v-for="image in faqImageList(faq)" :key="image">
@@ -224,11 +230,6 @@
                       </button>
                     </figure>
                   </div>
-                  <textarea
-                    v-model.trim="faq.images"
-                    rows="2"
-                    placeholder="图片 URL 会自动填写，也可以手动粘贴"
-                  ></textarea>
                 </div>
                 <div class="admin-form-grid compact">
                   <label>
@@ -268,18 +269,20 @@
 
         <section v-else class="admin-editor-main">
         <article class="admin-card">
-          <div class="admin-section-title">
-            <span>默认 FAQ</span>
-            <h2>全站默认常见问题</h2>
+          <div class="admin-card-head">
+            <div class="admin-section-title">
+              <span>默认 FAQ</span>
+              <h2>全站默认常见问题</h2>
+            </div>
+            <button
+              type="button"
+              class="admin-preview-btn"
+              :disabled="!defaultFaqs.length"
+              @click="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)"
+            >
+              预览
+            </button>
           </div>
-          <button
-            type="button"
-            class="admin-preview-btn admin-preview-all"
-            :disabled="!defaultFaqs.length"
-            @click="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)"
-          >
-            预览并排序
-          </button>
 
           <p class="admin-help-text">
             这里维护 FAQ 页面默认展示的内容，也会作为没有专属 FAQ 的商品详情页兜底内容。
@@ -295,18 +298,17 @@
                 <div class="admin-card-toolbar__meta">
                   <small>FAQ 内容编辑</small>
                 </div>
-                <button type="button" class="admin-preview-btn" @click.stop="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)">
-                  预览
-                </button>
               </div>
-              <label>
-                <span>问题</span>
-                <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
-              </label>
-              <label>
-                <span>回答</span>
-                <textarea v-model.trim="faq.answer" rows="2" placeholder="默认 FAQ 回答"></textarea>
-              </label>
+              <div class="admin-faq-content-grid">
+                <label>
+                  <span>问题</span>
+                  <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
+                </label>
+                <label>
+                  <span>回答</span>
+                  <textarea v-model.trim="faq.answer" rows="3" placeholder="默认 FAQ 回答"></textarea>
+                </label>
+              </div>
               <div
                 class="admin-upload-field compact admin-dropzone"
                 @dragover.prevent.stop
@@ -314,9 +316,9 @@
               >
                 <span>FAQ 图片</span>
                 <label class="admin-file-drop">
-                  <input type="file" accept="image/*" @change="(event) => uploadFaqImage(event, faq)" />
-                  <strong>拖入图片或点击上传</strong>
-                  <small>上传后会立即预览，保存 FAQ 后写入后台。</small>
+                  <input type="file" accept="image/*" multiple @change="(event) => uploadFaqImage(event, faq)" />
+                  <strong>拖拽多张图片到这里，或点击上传</strong>
+                  <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
                 </label>
                 <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
                   <figure v-for="image in faqImageList(faq)" :key="image">
@@ -326,11 +328,6 @@
                     </button>
                   </figure>
                 </div>
-                <textarea
-                  v-model.trim="faq.images"
-                  rows="2"
-                  placeholder="图片 URL 会自动填写，也可以手动粘贴"
-                ></textarea>
               </div>
               <div class="admin-form-grid compact">
                 <label>
@@ -700,16 +697,17 @@ const handleProductCoverFile = async (file) => {
   }
 };
 
-const uploadFaqImageFile = async (file, faq) => {
-  if (!file) return;
+const uploadFaqImageFiles = async (files, faq) => {
+  const imageFiles = [...files].filter(Boolean);
+  if (!imageFiles.length) return;
 
   uploading.value = true;
   error.value = "";
-  notify("正在上传 FAQ 图片，请稍等...", "info");
+  notify(`正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`, "info");
 
   try {
-    const imageUrl = await uploadImage(file);
-    setFaqImages(faq, [...faqImageList(faq), imageUrl]);
+    const imageUrls = await Promise.all(imageFiles.map((file) => uploadImage(file)));
+    setFaqImages(faq, [...faqImageList(faq), ...imageUrls]);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
     error.value = err?.message || "上传 FAQ 图片失败。";
@@ -720,14 +718,14 @@ const uploadFaqImageFile = async (file, faq) => {
 };
 
 const uploadFaqImage = async (event, faq) => {
-  const file = event.target.files?.[0];
+  const files = event.target.files || [];
   event.target.value = "";
-  await uploadFaqImageFile(file, faq);
+  await uploadFaqImageFiles(files, faq);
 };
 
 const dropFaqImage = async (event, faq) => {
-  const file = event.dataTransfer?.files?.[0];
-  await uploadFaqImageFile(file, faq);
+  const files = event.dataTransfer?.files || [];
+  await uploadFaqImageFiles(files, faq);
 };
 
 const removeFaqImage = (faq, image) => {

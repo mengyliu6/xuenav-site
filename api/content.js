@@ -59,6 +59,12 @@ const textFromValue = (value) => {
 
 const isImageUrl = (value) => /^https?:\/\//i.test(String(value || "").trim());
 
+const urlsFromText = (value) =>
+  String(value || "")
+    .split(/[\n,]/)
+    .map((url) => url.trim())
+    .filter((url) => isImageUrl(url));
+
 const urlFromValue = (value) => {
   if (value === undefined || value === null) return "";
   if (typeof value === "string" || typeof value === "number") {
@@ -88,18 +94,20 @@ const imagesFromValue = (value) => {
   if (!value) return [];
 
   if (typeof value === "string") {
-    return value
-      .split(/[\n,]/)
-      .map((url) => url.trim())
-      .filter(Boolean)
-      .map((url) => ({ url, caption: "" }));
+    return urlsFromText(value).map((url) => ({ url, caption: "" }));
   }
 
   const items = Array.isArray(value) ? value : [value];
 
   return items
-    .map((item) => {
+    .flatMap((item) => {
       if (typeof item === "string") return { url: item, caption: "" };
+      const textUrls = urlsFromText(item?.text);
+
+      if (textUrls.length > 1) {
+        return textUrls.map((url) => ({ url, caption: "" }));
+      }
+
       const url = urlFromValue(item);
 
       return {
