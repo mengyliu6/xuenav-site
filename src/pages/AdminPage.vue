@@ -1,6 +1,10 @@
 <template>
   <div class="admin-page">
-    <div v-if="toast.message" class="admin-toast" :class="`admin-toast--${toast.type}`">
+    <div
+      v-if="toast.message"
+      class="admin-toast"
+      :class="`admin-toast--${toast.type}`"
+    >
       {{ toast.message }}
     </div>
 
@@ -17,7 +21,12 @@
         </div>
 
         <div class="admin-status-actions">
-          <button type="button" class="secondary-btn" :disabled="loading" @click="loadAdminContent">
+          <button
+            type="button"
+            class="secondary-btn"
+            :disabled="loading"
+            @click="loadAdminContent"
+          >
             刷新数据
           </button>
           <button type="button" class="secondary-btn" @click="clearToken">
@@ -44,10 +53,15 @@
         <span>运营后台登录</span>
         <h2>请输入后台管理令牌</h2>
         <p>
-          登录后可以维护官网商品、封面图片、商品 FAQ 和全站默认 FAQ。令牌由技术同事在
-          Vercel 环境变量 <code>ADMIN_API_TOKEN</code> 中配置。
+          登录后可以维护官网商品、封面图片、商品 FAQ 和全站默认
+          FAQ。令牌由技术同事在 Vercel 环境变量
+          <code>ADMIN_API_TOKEN</code> 中配置。
         </p>
-        <input v-model="tokenInput" type="password" placeholder="请输入 Admin Token" />
+        <input
+          v-model="tokenInput"
+          type="password"
+          placeholder="请输入 Admin Token"
+        />
         <button type="submit" class="primary-btn">进入后台</button>
       </form>
     </main>
@@ -72,7 +86,10 @@
             </button>
           </nav>
 
-          <aside v-if="activeTab === 'products'" class="admin-card admin-sidebar">
+          <aside
+            v-if="activeTab === 'products'"
+            class="admin-card admin-sidebar"
+          >
             <div class="admin-section-title">
               <span>商品</span>
               <h2>商品列表</h2>
@@ -115,11 +132,19 @@
             <div class="admin-form-grid admin-product-form-grid">
               <label>
                 <span>商品 ID</span>
-                <input v-model.trim="productDraft.productId" type="text" placeholder="camaro-radio-10-15" />
+                <input
+                  v-model.trim="productDraft.productId"
+                  type="text"
+                  placeholder="camaro-radio-10-15"
+                />
               </label>
               <label>
                 <span>商品名称</span>
-                <input v-model.trim="productDraft.name" type="text" placeholder="官网显示的商品标题" />
+                <input
+                  v-model.trim="productDraft.name"
+                  type="text"
+                  placeholder="官网显示的商品标题"
+                />
               </label>
               <div
                 class="admin-upload-field admin-product-image-field"
@@ -128,21 +153,41 @@
               >
                 <span>商品图片</span>
                 <label class="admin-product-image-drop">
-                  <input type="file" accept="image/*" @change="uploadProductCover" />
-                  <img v-if="productDraft.imagePreview" :src="productDraft.imagePreview" alt="商品图片预览" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    @change="uploadProductCover"
+                  />
+                  <img
+                    v-if="productDraft.imagePreview"
+                    :src="productDraft.imagePreview"
+                    alt="商品图片预览"
+                  />
                   <span v-else class="admin-upload-copy">
                     <strong>拖拽图片到这里</strong>
                     <small>或点击上传</small>
                   </span>
                 </label>
-                <button type="button" class="secondary-btn" :disabled="uploading || !productDraft.image" @click="clearProductImage">
+                <button
+                  type="button"
+                  class="secondary-btn"
+                  :disabled="uploading || !productDraft.image"
+                  @click="clearProductImage"
+                >
                   清空图片
                 </button>
-                <p>上传 JPG/PNG/WebP 后会自动压缩为首页商品图 WebP；预览无误后点击“保存商品”。</p>
+                <p>
+                  上传 JPG/PNG/WebP 后会自动压缩为首页商品图
+                  WebP；预览无误后点击“保存商品”。
+                </p>
               </div>
               <label>
                 <span>视频链接</span>
-                <input v-model.trim="productDraft.videoUrl" type="url" placeholder="https://www.youtube.com/..." />
+                <input
+                  v-model.trim="productDraft.videoUrl"
+                  type="url"
+                  placeholder="https://www.youtube.com/..."
+                />
               </label>
               <label>
                 <span>排序</span>
@@ -159,7 +204,12 @@
             </div>
 
             <div class="admin-actions">
-              <button type="button" class="primary-btn" :disabled="loading || uploading" @click="saveProduct">
+              <button
+                type="button"
+                class="primary-btn"
+                :disabled="loading || uploading"
+                @click="saveProduct"
+              >
                 保存商品
               </button>
               <button
@@ -204,11 +254,19 @@
                 <div class="admin-faq-content-grid">
                   <label>
                     <span>问题</span>
-                    <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
+                    <input
+                      v-model.trim="faq.question"
+                      type="text"
+                      placeholder="客户常问的问题"
+                    />
                   </label>
                   <label>
                     <span>回答</span>
-                    <textarea v-model.trim="faq.answer" rows="3" placeholder="给客户看的标准回答"></textarea>
+                    <textarea
+                      v-model.trim="faq.answer"
+                      rows="3"
+                      placeholder="给客户看的标准回答"
+                    ></textarea>
                   </label>
                 </div>
                 <div
@@ -218,14 +276,26 @@
                 >
                   <span>FAQ 图片</span>
                   <label class="admin-file-drop">
-                    <input type="file" accept="image/*" multiple @change="(event) => uploadFaqImage(event, faq)" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      @change="(event) => uploadFaqImage(event, faq)"
+                    />
                     <strong>拖拽多张图片到这里，或点击上传</strong>
                     <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
                   </label>
-                  <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
+                  <div
+                    v-if="faqImageList(faq).length"
+                    class="admin-faq-image-preview"
+                  >
                     <figure v-for="image in faqImageList(faq)" :key="image">
                       <img :src="image" alt="FAQ 图片预览" />
-                      <button type="button" class="admin-image-remove" @click="removeFaqImage(faq, image)">
+                      <button
+                        type="button"
+                        class="admin-image-remove"
+                        @click="removeFaqImage(faq, image)"
+                      >
                         删除
                       </button>
                     </figure>
@@ -246,7 +316,12 @@
                   </label>
                 </div>
                 <div class="admin-actions">
-                  <button type="button" class="secondary-btn" :disabled="loading || uploading" @click="saveFaq(faq)">
+                  <button
+                    type="button"
+                    class="secondary-btn"
+                    :disabled="loading || uploading"
+                    @click="saveFaq(faq)"
+                  >
                     保存 FAQ
                   </button>
                   <button
@@ -268,113 +343,149 @@
         </section>
 
         <section v-else class="admin-editor-main">
-        <article class="admin-card">
-          <div class="admin-card-head">
-            <div class="admin-section-title">
-              <span>默认 FAQ</span>
-              <h2>全站默认常见问题</h2>
-            </div>
-            <button
-              type="button"
-              class="admin-preview-btn"
-              :disabled="!defaultFaqs.length"
-              @click="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)"
-            >
-              预览
-            </button>
-          </div>
-
-          <p class="admin-help-text">
-            这里维护 FAQ 页面默认展示的内容，也会作为没有专属 FAQ 的商品详情页兜底内容。
-          </p>
-
-          <div class="admin-faq-list">
-            <div
-              v-for="faq in defaultFaqs"
-              :key="faq.recordId || faq.localId"
-              class="admin-faq-card"
+          <article class="admin-card">
+            <div class="admin-card-head">
+              <div class="admin-section-title">
+                <span>默认 FAQ</span>
+                <h2>全站默认常见问题</h2>
+              </div>
+              <button
+                type="button"
+                class="admin-preview-btn"
+                :disabled="!defaultFaqs.length"
+                @click="openFaqPreview(DEFAULT_FAQ_PRODUCT_ID)"
               >
-              <div class="admin-card-toolbar">
-                <div class="admin-card-toolbar__meta">
-                  <small>FAQ 内容编辑</small>
-                </div>
-              </div>
-              <div class="admin-faq-content-grid">
-                <label>
-                  <span>问题</span>
-                  <input v-model.trim="faq.question" type="text" placeholder="客户常问的问题" />
-                </label>
-                <label>
-                  <span>回答</span>
-                  <textarea v-model.trim="faq.answer" rows="3" placeholder="默认 FAQ 回答"></textarea>
-                </label>
-              </div>
+                预览
+              </button>
+            </div>
+
+            <p class="admin-help-text">
+              这里维护 FAQ 页面默认展示的内容，也会作为没有专属 FAQ
+              的商品详情页兜底内容。
+            </p>
+
+            <div class="admin-faq-list">
               <div
-                class="admin-upload-field compact admin-dropzone"
-                @dragover.prevent.stop
-                @drop.prevent.stop="dropFaqImage($event, faq)"
+                v-for="faq in defaultFaqs"
+                :key="faq.recordId || faq.localId"
+                class="admin-faq-card"
               >
-                <span>FAQ 图片</span>
-                <label class="admin-file-drop">
-                  <input type="file" accept="image/*" multiple @change="(event) => uploadFaqImage(event, faq)" />
-                  <strong>拖拽多张图片到这里，或点击上传</strong>
-                  <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
-                </label>
-                <div v-if="faqImageList(faq).length" class="admin-faq-image-preview">
-                  <figure v-for="image in faqImageList(faq)" :key="image">
-                    <img :src="image" alt="FAQ 图片预览" />
-                    <button type="button" class="admin-image-remove" @click="removeFaqImage(faq, image)">
-                      删除
-                    </button>
-                  </figure>
+                <div class="admin-card-toolbar">
+                  <div class="admin-card-toolbar__meta">
+                    <small>FAQ 内容编辑</small>
+                  </div>
+                </div>
+                <div class="admin-faq-content-grid">
+                  <label>
+                    <span>问题</span>
+                    <input
+                      v-model.trim="faq.question"
+                      type="text"
+                      placeholder="客户常问的问题"
+                    />
+                  </label>
+                  <label>
+                    <span>回答</span>
+                    <textarea
+                      v-model.trim="faq.answer"
+                      rows="3"
+                      placeholder="默认 FAQ 回答"
+                    ></textarea>
+                  </label>
+                </div>
+                <div
+                  class="admin-upload-field compact admin-dropzone"
+                  @dragover.prevent.stop
+                  @drop.prevent.stop="dropFaqImage($event, faq)"
+                >
+                  <span>FAQ 图片</span>
+                  <label class="admin-file-drop">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      @change="(event) => uploadFaqImage(event, faq)"
+                    />
+                    <strong>拖拽多张图片到这里，或点击上传</strong>
+                    <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
+                  </label>
+                  <div
+                    v-if="faqImageList(faq).length"
+                    class="admin-faq-image-preview"
+                  >
+                    <figure v-for="image in faqImageList(faq)" :key="image">
+                      <img :src="image" alt="FAQ 图片预览" />
+                      <button
+                        type="button"
+                        class="admin-image-remove"
+                        @click="removeFaqImage(faq, image)"
+                      >
+                        删除
+                      </button>
+                    </figure>
+                  </div>
+                </div>
+                <div class="admin-form-grid compact">
+                  <label>
+                    <span>排序</span>
+                    <input v-model.number="faq.sort" type="number" />
+                  </label>
+                  <label>
+                    <span>状态</span>
+                    <select v-model="faq.status">
+                      <option>Published</option>
+                      <option>Draft</option>
+                      <option>Hidden</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="admin-actions">
+                  <button
+                    type="button"
+                    class="secondary-btn"
+                    :disabled="loading"
+                    @click="saveDefaultFaq(faq)"
+                  >
+                    保存默认 FAQ
+                  </button>
+                  <button
+                    type="button"
+                    class="admin-danger"
+                    :disabled="loading"
+                    @click="faq.recordId ? deleteFaq(faq) : removeFaqDraft(faq)"
+                  >
+                    删除 FAQ
+                  </button>
                 </div>
               </div>
-              <div class="admin-form-grid compact">
-                <label>
-                  <span>排序</span>
-                  <input v-model.number="faq.sort" type="number" />
-                </label>
-                <label>
-                  <span>状态</span>
-                  <select v-model="faq.status">
-                    <option>Published</option>
-                    <option>Draft</option>
-                    <option>Hidden</option>
-                  </select>
-                </label>
-              </div>
-              <div class="admin-actions">
-                <button type="button" class="secondary-btn" :disabled="loading" @click="saveDefaultFaq(faq)">
-                  保存默认 FAQ
-                </button>
-                <button
-                  type="button"
-                  class="admin-danger"
-                  :disabled="loading"
-                  @click="faq.recordId ? deleteFaq(faq) : removeFaqDraft(faq)"
-                >
-                  删除 FAQ
-                </button>
-              </div>
             </div>
-          </div>
 
-          <button type="button" class="admin-add-btn" @click="newDefaultFaq">
-            新增默认 FAQ
-          </button>
-        </article>
+            <button type="button" class="admin-add-btn" @click="newDefaultFaq">
+              新增默认 FAQ
+            </button>
+          </article>
         </section>
       </section>
     </main>
 
-    <div v-if="previewFaqItems.length" class="admin-preview-modal" @click.self="closeFaqPreview">
+    <div
+      v-if="previewFaqItems.length"
+      class="admin-preview-modal"
+      @click.self="closeFaqPreview"
+    >
       <article class="admin-preview-panel">
         <div class="admin-preview-head">
           <div>
             <span class="section-eyebrow">FAQ Preview</span>
             <h2>前台展示预览</h2>
           </div>
-          <button type="button" class="admin-preview-close" @click="closeFaqPreview">关闭</button>
+          <button
+            type="button"
+            class="admin-preview-close"
+            @click="closeFaqPreview"
+          >
+            关闭
+          </button>
         </div>
         <div class="admin-preview-sort-list">
           <details
@@ -396,8 +507,15 @@
 
             <div v-if="item.images?.length" class="faq-image-grid">
               <figure v-for="image in item.images" :key="image.url">
-                <img :src="image.url" :alt="image.caption || item.question" loading="lazy" decoding="async" />
-                <figcaption v-if="image.caption">{{ image.caption }}</figcaption>
+                <img
+                  :src="image.url"
+                  :alt="image.caption || item.question"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption v-if="image.caption">
+                  {{ image.caption }}
+                </figcaption>
               </figure>
             </div>
           </details>
@@ -453,7 +571,10 @@ const sortedProducts = computed(() =>
 
     if (sortA !== sortB) return sortA - sortB;
 
-    return String(a.name || a.productId).localeCompare(String(b.name || b.productId), "zh-CN");
+    return String(a.name || a.productId).localeCompare(
+      String(b.name || b.productId),
+      "zh-CN"
+    );
   })
 );
 
@@ -518,15 +639,21 @@ const imageCanPreview = (value = "") => {
   );
 };
 
-const itemKey = (item) => item?.recordId || item?.localId || item?.productId || "";
+const itemKey = (item) =>
+  item?.recordId || item?.localId || item?.productId || "";
 
 const faqImageList = (faq) =>
-  (String(faq?.images || "").match(/(?:https?:\/\/|data:|blob:)[^\s,，]+/g) || [])
+  (
+    String(faq?.images || "").match(/(?:https?:\/\/|data:|blob:)[^\s,，]+/g) ||
+    []
+  )
     .map((item) => item.trim())
     .filter((item) => imageCanPreview(item));
 
 const setFaqImages = (faq, images) => {
-  faq.images = [...new Set(images.map((item) => String(item || "").trim()).filter(Boolean))].join("\n");
+  faq.images = [
+    ...new Set(images.map((item) => String(item || "").trim()).filter(Boolean)),
+  ].join("\n");
 };
 
 const revokeLocalImages = (images) => {
@@ -549,7 +676,8 @@ const fileToBase64 = (file) =>
       const result = String(reader.result || "");
       resolve(result.includes(",") ? result.split(",").pop() : result);
     };
-    reader.onerror = () => reject(reader.error || new Error("读取文件失败，请重新选择图片。"));
+    reader.onerror = () =>
+      reject(reader.error || new Error("读取文件失败，请重新选择图片。"));
     reader.readAsDataURL(file);
   });
 
@@ -633,7 +761,8 @@ const validateProductDraft = () => {
   }
 
   const duplicate = products.value.find(
-    (item) => item.productId === productId && item.recordId !== productDraft.recordId
+    (item) =>
+      item.productId === productId && item.recordId !== productDraft.recordId
   );
   if (duplicate) return `商品 ID「${productId}」已经存在，请换一个 ID。`;
 
@@ -641,7 +770,8 @@ const validateProductDraft = () => {
 };
 
 const validateFaqDraft = (faq, requireProduct = true) => {
-  if (requireProduct && !productDraft.productId) return "请先选择或保存一个商品。";
+  if (requireProduct && !productDraft.productId)
+    return "请先选择或保存一个商品。";
   if (!faq.question?.trim()) return "请填写 FAQ 问题。";
   if (!faq.answer?.trim()) return "请填写 FAQ 回答。";
   return "";
@@ -667,7 +797,9 @@ const uploadImage = async (file) => {
   });
 
   if (!data.url) {
-    throw new Error("图片上传成功但没有返回 Blob URL，请检查 Vercel Blob 配置。");
+    throw new Error(
+      "图片上传成功但没有返回 Blob URL，请检查 Vercel Blob 配置。"
+    );
   }
 
   return data.url;
@@ -698,7 +830,10 @@ const handleProductCoverFile = async (file) => {
     const imageUrl = await uploadImage(optimizedFile);
     productDraft.image = imageUrl;
     productDraft.imagePreview = URL.createObjectURL(optimizedFile);
-    notify("商品图片已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。", "success");
+    notify(
+      "商品图片已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。",
+      "success"
+    );
   } catch (err) {
     error.value = err?.message || "上传商品图片失败。";
     notify(error.value, "error");
@@ -711,17 +846,15 @@ const uploadFaqImageFiles = async (files, faq) => {
   const imageFiles = [...files].filter(Boolean);
   if (!imageFiles.length) return;
 
-  const previousImages = faqImageList(faq);
-  const localImages = imageFiles.map((file) => URL.createObjectURL(file));
-  setFaqImages(faq, [...previousImages, ...localImages]);
-
   uploading.value = true;
   error.value = "";
   notify(`正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`, "info");
 
   try {
-    const imageUrls = await Promise.all(imageFiles.map((file) => uploadImage(file)));
-    setFaqImages(faq, [...previousImages, ...imageUrls]);
+    const imageUrls = await Promise.all(
+      imageFiles.map((file) => uploadImage(file))
+    );
+    setFaqImages(faq, [...faqImageList(faq), ...imageUrls]);
     notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
   } catch (err) {
     setFaqImages(faq, previousImages);
@@ -778,7 +911,9 @@ const loadAdminContent = async () => {
     faqs.value = data.faqs || [];
 
     const current =
-      products.value.find((item) => item.productId === productDraft.productId) || products.value[0];
+      products.value.find(
+        (item) => item.productId === productDraft.productId
+      ) || products.value[0];
     if (current) assignProductDraft(current);
     notify("后台数据已刷新。", "success");
   } catch (err) {
@@ -863,16 +998,24 @@ const saveProductOrder = async (orderedProducts) => {
 };
 
 const dropProduct = async (targetIndex) => {
-  const fromIndex = sortedProducts.value.findIndex((item) => itemKey(item) === draggingProductId.value);
+  const fromIndex = sortedProducts.value.findIndex(
+    (item) => itemKey(item) === draggingProductId.value
+  );
   if (fromIndex < 0 || fromIndex === targetIndex) return;
 
-  const orderedProducts = moveItem(sortedProducts.value, fromIndex, targetIndex).map((item, index) => ({
+  const orderedProducts = moveItem(
+    sortedProducts.value,
+    fromIndex,
+    targetIndex
+  ).map((item, index) => ({
     ...item,
     sort: index + 1,
   }));
 
   products.value = orderedProducts;
-  const current = orderedProducts.find((item) => item.productId === productDraft.productId);
+  const current = orderedProducts.find(
+    (item) => item.productId === productDraft.productId
+  );
   if (current) productDraft.sort = current.sort;
   await saveProductOrder(orderedProducts);
 };
@@ -914,16 +1057,24 @@ const dropFaq = async (targetIndex, productId) => {
   const currentFaqs = faqs.value
     .filter((item) => item.productId === productId)
     .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0));
-  const fromIndex = currentFaqs.findIndex((item) => itemKey(item) === draggingFaqId.value);
+  const fromIndex = currentFaqs.findIndex(
+    (item) => itemKey(item) === draggingFaqId.value
+  );
   if (fromIndex < 0 || fromIndex === targetIndex) return;
 
-  const orderedFaqs = moveItem(currentFaqs, fromIndex, targetIndex).map((item, index) => ({
-    ...item,
-    sort: index + 1,
-  }));
-  const orderMap = new Map(orderedFaqs.map((item) => [itemKey(item), item.sort]));
+  const orderedFaqs = moveItem(currentFaqs, fromIndex, targetIndex).map(
+    (item, index) => ({
+      ...item,
+      sort: index + 1,
+    })
+  );
+  const orderMap = new Map(
+    orderedFaqs.map((item) => [itemKey(item), item.sort])
+  );
   faqs.value = faqs.value.map((item) =>
-    item.productId === productId ? { ...item, sort: orderMap.get(itemKey(item)) || item.sort } : item
+    item.productId === productId
+      ? { ...item, sort: orderMap.get(itemKey(item)) || item.sort }
+      : item
   );
   await saveFaqOrder(orderedFaqs);
 };

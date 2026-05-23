@@ -55,7 +55,15 @@ const textFromValue = (value) => {
       .map((item) => {
         if (typeof item === "string" || typeof item === "number")
           return String(item);
-        return item?.url || item?.tmp_url || item?.link || item?.href || item?.text || item?.name || "";
+        return (
+          item?.url ||
+          item?.tmp_url ||
+          item?.link ||
+          item?.href ||
+          item?.text ||
+          item?.name ||
+          ""
+        );
       })
       .filter(Boolean)
       .join("\n")
@@ -63,19 +71,35 @@ const textFromValue = (value) => {
   }
 
   return String(
-    value.url || value.tmp_url || value.link || value.href || value.text || value.name || "",
+    value.url ||
+      value.tmp_url ||
+      value.link ||
+      value.href ||
+      value.text ||
+      value.name ||
+      "",
   ).trim();
 };
 
 const linkTextFromValue = (value) => {
   if (value === undefined || value === null) return "";
-  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (typeof value === "string" || typeof value === "number")
+    return String(value).trim();
 
   if (Array.isArray(value)) {
     return value
       .map((item) => {
-        if (typeof item === "string" || typeof item === "number") return String(item);
-        return item?.text || item?.link || item?.url || item?.tmp_url || item?.href || item?.name || "";
+        if (typeof item === "string" || typeof item === "number")
+          return String(item);
+        return (
+          item?.text ||
+          item?.link ||
+          item?.url ||
+          item?.tmp_url ||
+          item?.href ||
+          item?.name ||
+          ""
+        );
       })
       .filter(Boolean)
       .join("\n")
@@ -83,7 +107,13 @@ const linkTextFromValue = (value) => {
   }
 
   return String(
-    value.text || value.link || value.url || value.tmp_url || value.href || value.name || "",
+    value.text ||
+      value.link ||
+      value.url ||
+      value.tmp_url ||
+      value.href ||
+      value.name ||
+      "",
   ).trim();
 };
 
@@ -98,7 +128,8 @@ const cleanFields = (fields, allowed) => {
   return next;
 };
 
-const hasField = (fields, field) => Object.prototype.hasOwnProperty.call(fields, field);
+const hasField = (fields, field) =>
+  Object.prototype.hasOwnProperty.call(fields, field);
 
 const linkFieldFromValue = (value) => {
   if (!value) return null;
@@ -112,16 +143,20 @@ const linkFieldFromValue = (value) => {
   };
 };
 
-const textFieldFromValue = (value) => {
-  const text = String(value || "").trim();
-  if (!text) return null;
+const multiLinkFieldFromValue = (value) => {
+  if (!value) return null;
 
-  return [
-    {
-      type: "text",
-      text,
-    },
-  ];
+  const links = String(value || "")
+    .split(/\r?\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (!links.length) return null;
+
+  return {
+    link: links[0],
+    text: links.join(","),
+  };
 };
 
 const sanitizeFileName = (fileName = "image") => {
@@ -243,7 +278,7 @@ const normalizeFaq = (record) => ({
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
-  images: linkTextFromValue(record.fields?.Images),
+  images: textFromValue(record.fields?.Images?.text || record.fields?.Images),
   sort: textFromValue(record.fields?.Sort),
   status: textFromValue(record.fields?.Status) || "Published",
 });
@@ -294,7 +329,7 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
   }
 
   if (resource === "faq" && hasField(nextFields, "Images")) {
-    nextFields.Images = textFieldFromValue(nextFields.Images);
+    nextFields.Images = multiLinkFieldFromValue(nextFields.Images);
   }
 
   const body = JSON.stringify({
