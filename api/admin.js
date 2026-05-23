@@ -112,22 +112,6 @@ const linkFieldFromValue = (value) => {
   };
 };
 
-const multiLinkFieldFromValue = (value) => {
-  if (!value) return null;
-
-  const links = String(value || "")
-    .split(/\r?\n|,/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  if (!links.length) return null;
-
-  return {
-    link: links[0],
-    text: links.join(","),
-  };
-};
-
 const sanitizeFileName = (fileName = "image") => {
   const cleaned = String(fileName)
     .trim()
@@ -295,10 +279,6 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
     if (hasField(nextFields, "Video URL")) {
       nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
-  }
-
-  if (resource === "faq" && hasField(nextFields, "Images")) {
-    nextFields.Images = multiLinkFieldFromValue(nextFields.Images);
   }
 
   const body = JSON.stringify({
