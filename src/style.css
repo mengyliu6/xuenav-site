@@ -659,6 +659,15 @@ a {
   background: #ffffff;
 }
 
+.faq-image-trigger {
+  width: 100%;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: #f1f5f9;
+  cursor: zoom-in;
+}
+
 .faq-image-grid figcaption {
   padding: 10px 12px;
   color: #475569;
@@ -747,8 +756,110 @@ a {
 }
 
 .faq-image-grid img {
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.faq-image-trigger img {
+  display: block;
+}
+
+.faq-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 76px;
+  color: #ffffff;
+  background: rgba(2, 6, 23, 0.94);
+}
+
+.lightbox-open {
+  overflow: hidden;
+}
+
+.faq-lightbox__figure {
+  position: relative;
+  max-width: min(1180px, 100%);
+  max-height: 100%;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.faq-lightbox__figure img {
+  width: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 130px);
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.faq-lightbox__figure figcaption {
+  color: #e2e8f0;
+}
+
+.faq-lightbox__count {
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.faq-lightbox__close,
+.faq-lightbox__nav {
+  position: absolute;
+  z-index: 1;
+  border: 0;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.13);
+  cursor: pointer;
+}
+
+.faq-lightbox__close {
+  top: 18px;
+  right: 18px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  font-size: 32px;
+}
+
+.faq-lightbox__nav {
+  top: 50%;
+  width: 52px;
+  height: 64px;
+  border-radius: 14px;
+  transform: translateY(-50%);
+  font-size: 44px;
+  line-height: 1;
+}
+
+.faq-lightbox__nav--previous {
+  left: 18px;
+}
+
+.faq-lightbox__nav--next {
+  right: 18px;
+}
+
+.faq-lightbox__download {
+  position: absolute;
+  right: 24px;
+  bottom: 20px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--main);
+  font-weight: 700;
+}
+
+.faq-lightbox__download:hover {
+  color: #ffffff;
+  background: #ea580c;
 }
 
 .detail-card {
@@ -1696,6 +1807,15 @@ a {
   background: #fff1f2;
 }
 
+.admin-import-actions {
+  align-items: center;
+  margin: 0 0 18px;
+}
+
+.admin-import-actions small {
+  color: #64748b;
+}
+
 .admin-upload-field img {
   max-width: 220px;
   aspect-ratio: 1 / 1;
@@ -2338,6 +2458,28 @@ a {
 
   .faq-image-grid {
     grid-template-columns: 1fr;
+  }
+
+  .faq-lightbox {
+    padding: 70px 14px 76px;
+  }
+
+  .faq-lightbox__nav {
+    width: 44px;
+    height: 54px;
+  }
+
+  .faq-lightbox__nav--previous {
+    left: 8px;
+  }
+
+  .faq-lightbox__nav--next {
+    right: 8px;
+  }
+
+  .faq-lightbox__download {
+    right: 50%;
+    transform: translateX(50%);
   }
 
   .admin-topbar {

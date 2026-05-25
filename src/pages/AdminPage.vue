@@ -354,7 +354,12 @@
               </div>
             </div>
 
-            <button type="button" class="admin-add-btn" @click="newFaq">
+            <button
+              type="button"
+              class="admin-add-btn"
+              :disabled="!savedProductForDraft"
+              @click="newFaq"
+            >
               新增商品 FAQ
             </button>
           </article>
@@ -382,24 +387,27 @@
               的商品详情页兜底内容。
             </p>
 
+            <div class="admin-actions admin-import-actions">
+              <button
+                type="button"
+                class="secondary-btn"
+                :disabled="loading || uploading"
+                @click="importBuiltInFaqs"
+              >
+                导入网站默认 FAQ
+              </button>
+              <small>按问题自动跳过已存在的默认 FAQ。</small>
+            </div>
+
             <div class="admin-faq-list">
               <div
                 v-for="(faq, index) in defaultFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
-                @dragover.prevent
-                @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <span
-                      class="admin-drag-handle"
-                      draggable="true"
-                      aria-label="拖拽调整 FAQ 顺序"
-                      @dragstart.stop="startFaqDrag(faq)"
-                      @dragend="endDrag"
-                    >↕</span>
-                    <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
+                    <small>FAQ {{ index + 1 }} · 内容编辑</small>
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
@@ -563,11 +571,22 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import { faqs as builtInFaqs } from "../data/faqs";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const PRODUCT_COVER_MAX_WIDTH = 900;
 const PRODUCT_COVER_QUALITY = 0.82;
+const IMAGE_MIME_TYPES = {
+  avif: "image/avif",
+  bmp: "image/bmp",
+  gif: "image/gif",
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  svg: "image/svg+xml",
+  webp: "image/webp",
+};
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
 const tokenInput = ref("");
@@ -599,6 +618,13 @@ const emptyProduct = () => ({
 });
 
 const productDraft = reactive(emptyProduct());
+const savedProductForDraft = computed(() =>
+  products.value.find(
+    (item) =>
+      item.recordId === productDraft.recordId &&
+      item.productId === productDraft.productId
+  )
+);
 
 const sortPosition = (item) => {
   const sort = Number(item?.sort);
@@ -701,6 +727,15 @@ const revokeLocalImages = (images) => {
 const setFaqUploadStatus = (faq, message = "", state = "info") => {
   faq.imageUploadMessage = message;
   faq.imageUploadState = state;
+};
+
+const imageMimeType = (file) => {
+  if (String(file?.type || "").startsWith("image/")) return file.type;
+
+  const extension = String(file?.name || "")
+    .toLowerCase()
+    .match(/\.([a-z0-9]+)$/)?.[1];
+  return IMAGE_MIME_TYPES[extension] || "";
 };
 
 const assignProductDraft = (item) => {
@@ -811,8 +846,13 @@ const validateProductDraft = () => {
 };
 
 const validateFaqDraft = (faq, requireProduct = true) => {
-  if (requireProduct && !productDraft.productId)
-    return "请先选择或保存一个商品。";
+  if (requireProduct) {
+    const savedProduct = savedProductForDraft.value;
+    if (!savedProduct)
+      return "请先保存当前商品，再新增或保存该商品的 FAQ。";
+    if (faq.productId !== savedProduct.productId)
+      return "FAQ 关联商品已变化，请刷新后重新编辑。";
+  }
   if (!faq.question?.trim()) return "请填写 FAQ 问题。";
   if (!faq.answer?.trim()) return "请填写 FAQ 回答。";
   return "";
@@ -820,7 +860,8 @@ const validateFaqDraft = (faq, requireProduct = true) => {
 
 const uploadImage = async (file) => {
   if (!file) return null;
-  if (!file.type.startsWith("image/")) {
+  const mimeType = imageMimeType(file);
+  if (!mimeType) {
     throw new Error("请选择 JPG、PNG、WebP 等图片文件。");
   }
 
@@ -832,7 +873,7 @@ const uploadImage = async (file) => {
   const data = await requestAdmin("POST", {
     resource: "upload",
     fileName: file.name,
-    mimeType: file.type || "application/octet-stream",
+    mimeType,
     size: file.size,
     content: base64,
   });
@@ -884,7 +925,7 @@ const handleProductCoverFile = async (file) => {
 };
 
 const uploadFaqImageFiles = async (files, faq) => {
-  const imageFiles = [...files].filter((file) => file?.type?.startsWith("image/"));
+  const imageFiles = [...files].filter((file) => imageMimeType(file));
   if (!imageFiles.length) {
     const message = "请选择 JPG、PNG、WebP 等图片文件。";
     setFaqUploadStatus(faq, message, "error");
@@ -923,7 +964,7 @@ const uploadFaqImageFiles = async (files, faq) => {
 };
 
 const uploadFaqImage = async (event, faq) => {
-  const files = event.target.files || [];
+  const files = [...(event.target.files || [])];
   event.target.value = "";
   await uploadFaqImageFiles(files, faq);
 };
@@ -1206,15 +1247,16 @@ const deleteProduct = async () => {
 };
 
 const newFaq = () => {
-  if (!productDraft.productId) {
-    notify("请先选择或保存一个商品，再新增 FAQ。", "error");
+  const savedProduct = savedProductForDraft.value;
+  if (!savedProduct) {
+    notify("请先保存当前商品，再新增商品 FAQ。", "error");
     return;
   }
 
   faqs.value.push({
     localId: `local-${Date.now()}`,
     recordId: "",
-    productId: productDraft.productId,
+    productId: savedProduct.productId,
     question: "",
     answer: "",
     images: "",
@@ -1236,6 +1278,48 @@ const newDefaultFaq = () => {
     status: "Published",
   });
   notify("已新增默认 FAQ 草稿，请填写后保存。", "info");
+};
+
+const importBuiltInFaqs = async () => {
+  const existingQuestions = new Set(
+    defaultFaqs.value.map((faq) => String(faq.question || "").trim().toLowerCase())
+  );
+  const pending = builtInFaqs.filter(
+    (faq) => !existingQuestions.has(faq.question.trim().toLowerCase())
+  );
+  if (!pending.length) {
+    notify("网站默认 FAQ 已全部存在，无需重复导入。", "info");
+    return;
+  }
+
+  loading.value = true;
+  error.value = "";
+  notify(`正在写入 ${pending.length} 条网站默认 FAQ...`, "info");
+
+  try {
+    const firstSort = nextSort(defaultFaqs.value);
+    await Promise.all(
+      pending.map((faq, index) =>
+        saveFaqRecord(
+          {
+            ...faq,
+            recordId: "",
+            images: "",
+            sort: firstSort + index,
+            status: "Published",
+          },
+          DEFAULT_FAQ_PRODUCT_ID
+        )
+      )
+    );
+    await loadAdminContent();
+    notify(`已写入 ${pending.length} 条网站默认 FAQ。`, "success");
+  } catch (err) {
+    error.value = err?.message || "导入网站默认 FAQ 失败。";
+    notify(error.value, "error");
+  } finally {
+    loading.value = false;
+  }
 };
 
 const removeFaqDraft = (faq) => {

@@ -62,6 +62,8 @@ docs/templates/feishu-faqs-template.csv
 | Sort | 数字 | 1 | 排序 |
 | Status | 单选/文本 | Published | 发布状态 |
 
+进入后台的“默认 FAQ”页签后，可点击“导入网站默认 FAQ”将代码内置 FAQ 一次性写入该表；已存在的相同问题会自动跳过。
+
 ## 5. 获取飞书参数
 
 需要准备 6 个后端环境变量和 1 个前端展示链接。
