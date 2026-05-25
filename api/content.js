@@ -12,7 +12,14 @@ const FIELD_ALIASES = {
   question: ["Question", "question", "\u95ee\u9898"],
   answer: ["Answer", "answer", "\u56de\u7b54", "\u7b54\u6848"],
   galleryImage: ["Image", "Images", "Gallery Image", "image", "\u56fe\u7247", "\u5546\u54c1\u56fe\u7247"],
-  faqImages: ["Images", "FAQ Images", "images", "\u56fe\u7247", "FAQ\u56fe\u7247"],
+  faqImages: [
+    "Image URLs",
+    "Images",
+    "FAQ Images",
+    "images",
+    "\u56fe\u7247",
+    "FAQ\u56fe\u7247",
+  ],
   caption: ["Caption", "caption", "\u8bf4\u660e", "\u56fe\u7247\u8bf4\u660e"],
 };
 
@@ -118,6 +125,19 @@ const imagesFromValue = (value) => {
       };
     })
     .filter((item) => item.url);
+};
+
+const faqImagesFromFields = (fields) => {
+  const imageUrls = imagesFromValue(fields["Image URLs"]);
+  if (imageUrls.length) return imageUrls;
+
+  const legacyValue =
+    fields.Images ??
+    fields["FAQ Images"] ??
+    fields.images ??
+    fields["\u56fe\u7247"] ??
+    fields["FAQ\u56fe\u7247"];
+  return imagesFromValue(legacyValue);
 };
 
 const isPublished = (fields) => {
@@ -255,7 +275,7 @@ const toContent = ({ products, faqs, gallery }) => {
     const item = {
       question,
       answer,
-      images: imagesFromValue(getField(fields, "faqImages")),
+      images: faqImagesFromFields(fields),
     };
 
     if (productId === DEFAULT_FAQ_PRODUCT_ID) {

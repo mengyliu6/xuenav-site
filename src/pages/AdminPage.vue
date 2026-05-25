@@ -245,15 +245,18 @@
                 v-for="(faq, index) in selectedFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
-                draggable="true"
-                @dragstart="startFaqDrag(faq)"
                 @dragover.prevent
                 @drop.prevent="dropFaq(index, productDraft.productId)"
-                @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                    <span
+                      class="admin-drag-handle"
+                      draggable="true"
+                      aria-label="拖拽调整 FAQ 顺序"
+                      @dragstart.stop="startFaqDrag(faq)"
+                      @dragend="endDrag"
+                    >↕</span>
                     <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
                   </div>
                 </div>
@@ -286,11 +289,20 @@
                       type="file"
                       accept="image/*"
                       multiple
-                      @change="(event) => uploadFaqImage(event, faq)"
+                      :disabled="uploading"
+                      @change="uploadFaqImage($event, faq)"
                     />
                     <strong>拖拽多张图片到这里，或点击上传</strong>
                     <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
                   </label>
+                  <p
+                    v-if="faq.imageUploadMessage"
+                    class="admin-upload-result"
+                    :class="`admin-upload-result--${faq.imageUploadState}`"
+                    role="status"
+                  >
+                    {{ faq.imageUploadMessage }}
+                  </p>
                   <div
                     v-if="faqImageList(faq).length"
                     class="admin-faq-image-preview"
@@ -375,15 +387,18 @@
                 v-for="(faq, index) in defaultFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
-                draggable="true"
-                @dragstart="startFaqDrag(faq)"
                 @dragover.prevent
                 @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
-                @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                    <span
+                      class="admin-drag-handle"
+                      draggable="true"
+                      aria-label="拖拽调整 FAQ 顺序"
+                      @dragstart.stop="startFaqDrag(faq)"
+                      @dragend="endDrag"
+                    >↕</span>
                     <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
                   </div>
                 </div>
@@ -416,11 +431,20 @@
                       type="file"
                       accept="image/*"
                       multiple
-                      @change="(event) => uploadFaqImage(event, faq)"
+                      :disabled="uploading"
+                      @change="uploadFaqImage($event, faq)"
                     />
                     <strong>拖拽多张图片到这里，或点击上传</strong>
                     <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
                   </label>
+                  <p
+                    v-if="faq.imageUploadMessage"
+                    class="admin-upload-result"
+                    :class="`admin-upload-result--${faq.imageUploadState}`"
+                    role="status"
+                  >
+                    {{ faq.imageUploadMessage }}
+                  </p>
                   <div
                     v-if="faqImageList(faq).length"
                     class="admin-faq-image-preview"
@@ -674,6 +698,11 @@ const revokeLocalImages = (images) => {
     .forEach((url) => URL.revokeObjectURL(url));
 };
 
+const setFaqUploadStatus = (faq, message = "", state = "info") => {
+  faq.imageUploadMessage = message;
+  faq.imageUploadState = state;
+};
+
 const assignProductDraft = (item) => {
   Object.assign(productDraft, emptyProduct(), {
     ...item,
@@ -855,8 +884,13 @@ const handleProductCoverFile = async (file) => {
 };
 
 const uploadFaqImageFiles = async (files, faq) => {
-  const imageFiles = [...files].filter(Boolean);
-  if (!imageFiles.length) return;
+  const imageFiles = [...files].filter((file) => file?.type?.startsWith("image/"));
+  if (!imageFiles.length) {
+    const message = "请选择 JPG、PNG、WebP 等图片文件。";
+    setFaqUploadStatus(faq, message, "error");
+    notify(message, "error");
+    return;
+  }
 
   const previousImages = faqImageList(faq);
   const localImages = imageFiles.map((file) => URL.createObjectURL(file));
@@ -864,17 +898,23 @@ const uploadFaqImageFiles = async (files, faq) => {
 
   uploading.value = true;
   error.value = "";
-  notify(`正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`, "info");
+  const uploadingMessage = `正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`;
+  setFaqUploadStatus(faq, uploadingMessage, "info");
+  notify(uploadingMessage, "info");
 
   try {
     const imageUrls = await Promise.all(
       imageFiles.map((file) => uploadImage(file))
     );
     setFaqImages(faq, [...previousImages, ...imageUrls]);
-    notify("FAQ 图片上传成功，请点击“保存 FAQ”完成提交。", "success");
+    faq.imagesDirty = true;
+    const message = `${imageFiles.length} 张 FAQ 图片上传成功，请点击“保存 FAQ”完成提交。`;
+    setFaqUploadStatus(faq, message, "success");
+    notify(message, "success");
   } catch (err) {
     setFaqImages(faq, previousImages);
     error.value = err?.message || "上传 FAQ 图片失败。";
+    setFaqUploadStatus(faq, error.value, "error");
     notify(error.value, "error");
   } finally {
     revokeLocalImages(localImages);
@@ -898,6 +938,7 @@ const removeFaqImage = (faq, image) => {
     faq,
     faqImageList(faq).filter((item) => item !== image)
   );
+  faq.imagesDirty = true;
   notify("已移除 FAQ 图片，保存 FAQ 后生效。", "info");
 };
 
@@ -1210,7 +1251,7 @@ const saveFaqRecord = async (faq, productId) => {
       "Product ID": productId,
       Question: faq.question.trim(),
       Answer: faq.answer.trim(),
-      Images: faq.images,
+      ...(faq.images || faq.imagesDirty ? { Images: faq.images } : {}),
       Sort: Number(faq.sort || 0),
       Status: faq.status || "Published",
     },

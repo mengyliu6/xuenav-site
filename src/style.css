@@ -1680,6 +1680,22 @@ a {
   line-height: 1.5;
 }
 
+.admin-upload-result {
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: #fff7ed;
+}
+
+.admin-upload-result.admin-upload-result--success {
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.admin-upload-result.admin-upload-result--error {
+  color: #991b1b;
+  background: #fff1f2;
+}
+
 .admin-upload-field img {
   max-width: 220px;
   aspect-ratio: 1 / 1;

@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob";
 
 const FEISHU_API = "https://open.feishu.cn/open-apis";
+const FAQ_IMAGE_URL_FIELD = "Image URLs";
 
 const PRODUCTS_FIELDS = [
   "Product ID",
@@ -17,6 +18,7 @@ const FAQ_FIELDS = [
   "Question",
   "Answer",
   "Images",
+  FAQ_IMAGE_URL_FIELD,
   "Sort",
   "Status",
 ];
@@ -254,6 +256,67 @@ const listRecords = async (token, appToken, tableId) => {
   return records;
 };
 
+const listFields = async (token, appToken, tableId) => {
+  const response = await fetch(
+    `${FEISHU_API}/bitable/v1/apps/${appToken}/tables/${tableId}/fields?page_size=100`,
+    {
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    },
+  );
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 0) {
+    throw new Error(data.msg || `Failed to list fields: ${tableId}`);
+  }
+
+  return data.data?.items || [];
+};
+
+const resolveFaqImageUrlsField = async (token, appToken, tableId) => {
+  const fields = await listFields(token, appToken, tableId);
+  const imageUrlsField = fields.find(
+    (field) => field.field_name === FAQ_IMAGE_URL_FIELD,
+  );
+
+  if (imageUrlsField) {
+    if (imageUrlsField.type !== 1) {
+      throw new Error(`FAQ 表字段 "${FAQ_IMAGE_URL_FIELD}" 必须设置为文本类型。`);
+    }
+    return FAQ_IMAGE_URL_FIELD;
+  }
+
+  const legacyImagesField = fields.find((field) => field.field_name === "Images");
+  if (legacyImagesField?.type === 1) {
+    return "Images";
+  }
+
+  const response = await fetch(
+    `${FEISHU_API}/bitable/v1/apps/${appToken}/tables/${tableId}/fields`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        field_name: FAQ_IMAGE_URL_FIELD,
+        type: 1,
+      }),
+    },
+  );
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 0) {
+    throw new Error(
+      `无法自动创建 FAQ 文本字段 "${FAQ_IMAGE_URL_FIELD}"，请在飞书 FAQ 表新增该文本字段后重试。`,
+    );
+  }
+
+  return FAQ_IMAGE_URL_FIELD;
+};
+
 const tableForResource = (resource) => {
   if (resource === "product") return getEnv("FEISHU_PRODUCTS_TABLE_ID");
   if (resource === "faq") return getEnv("FEISHU_FAQS_TABLE_ID");
@@ -282,7 +345,11 @@ const normalizeFaq = (record) => ({
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
-  images: urlsFromValue(record.fields?.Images) || linkTextFromValue(record.fields?.Images),
+  images:
+    urlsFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
+    linkTextFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
+    urlsFromValue(record.fields?.Images) ||
+    linkTextFromValue(record.fields?.Images),
   sort: textFromValue(record.fields?.Sort),
   status: textFromValue(record.fields?.Status) || "Published",
 });
@@ -330,6 +397,17 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
     if (hasField(nextFields, "Video URL")) {
       nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
+  }
+
+  if (
+    resource === "faq" &&
+    (hasField(nextFields, "Images") || hasField(nextFields, FAQ_IMAGE_URL_FIELD))
+  ) {
+    const imageUrls = nextFields[FAQ_IMAGE_URL_FIELD] ?? nextFields.Images;
+    const imageUrlsField = await resolveFaqImageUrlsField(token, appToken, tableId);
+    delete nextFields.Images;
+    delete nextFields[FAQ_IMAGE_URL_FIELD];
+    nextFields[imageUrlsField] = String(imageUrls || "").trim();
   }
 
   const body = JSON.stringify({

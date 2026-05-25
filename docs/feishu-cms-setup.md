@@ -57,7 +57,8 @@ docs/templates/feishu-faqs-template.csv
 | Product ID | 文本 | camaro-radio-10-15 | 对应商品 |
 | Question | 文本 | What should I check before installation? | FAQ 问题 |
 | Answer | 多行文本 | Please confirm wiring... | FAQ 回答 |
-| Images | 附件或文本 URL | https://...jpg | FAQ 图片，可留空，可多张 |
+| Image URLs | 多行文本 | https://...jpg | FAQ 公开图片 URL，可留空，每行一张；后台首次保存图片时可自动创建 |
+| Images | 附件或文本 URL | https://...jpg | 旧数据兼容读取字段；新上传图片请使用 `Image URLs` |
 | Sort | 数字 | 1 | 排序 |
 | Status | 单选/文本 | Published | 发布状态 |
 
@@ -70,8 +71,8 @@ docs/templates/feishu-faqs-template.csv
 1. 进入飞书开放平台。
 2. 创建企业自建应用。
 3. 在应用凭证里复制 `App ID` 和 `App Secret`。
-4. 给应用开通多维表格读取相关权限。
-5. 将这个应用添加为多维表格协作者，确保它有读取权限。
+4. 给应用开通多维表格记录读写及字段管理相关权限。
+5. 将这个应用添加为多维表格协作者，确保它有读写权限。
 
 ### FEISHU_BITABLE_APP_TOKEN
 
@@ -173,10 +174,11 @@ VITE_FEISHU_BITABLE_URL
 ## 8. 注意事项
 
 - `Product ID` 必须和代码里的商品 `id` 完全一致。
-- 图片字段可以用飞书附件，也可以直接填图片 URL。若附件图无法在官网显示，建议先改为公网图片 URL。
+- 商品封面/图库字段可以使用飞书附件或公网 URL。FAQ 上传图片使用公开 Blob URL，并写入 `Image URLs` 多行文本字段；飞书附件字段不能直接保存该 URL。
+- 若 FAQ 表已有文本类型的 `Images` 字段，后台会继续使用该字段；若 `Images` 为附件或链接类型，后台会自动创建并改用 `Image URLs` 文本字段。
 - `Status` 为空也会显示；如果要控制上下线，填 `Published` / `已发布` 表示显示，其他状态不显示。
 - 排序使用 `Sort` 数字，从小到大。
-- 飞书表格权限要给自建应用读取权限，否则 API 会返回权限错误。
+- 飞书表格要给自建应用记录读写和字段管理权限，否则上传图片保存或自动创建 `Image URLs` 字段时会返回权限错误。
 
 ## 官方参考
 
