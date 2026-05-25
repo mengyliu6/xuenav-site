@@ -19,9 +19,32 @@
           <a href="#support-products">View All Products →</a>
         </div>
 
+        <label class="support-search" aria-label="Search products">
+          <span>Search Products</span>
+          <div class="support-search__control">
+            <input
+              v-model.trim="searchTerm"
+              type="search"
+              placeholder="Search by product name or vehicle model"
+            />
+            <button
+              v-if="searchTerm"
+              type="button"
+              aria-label="Clear product search"
+              @click="searchTerm = ''"
+            >
+              Clear
+            </button>
+          </div>
+          <small v-if="searchTerm">
+            Showing {{ filteredProducts.length }} result{{ filteredProducts.length === 1 ? "" : "s" }}
+            for "{{ searchTerm }}"
+          </small>
+        </label>
+
         <div class="product-grid">
           <ProductCard
-            v-for="(item, index) in managedProducts"
+            v-for="(item, index) in filteredProducts"
             :key="item.id"
             :id="item.id"
             :title="item.name"
@@ -31,6 +54,11 @@
             :image-fetch-priority="index < 3 ? 'high' : 'auto'"
           />
         </div>
+
+        <section v-if="contentReady && !filteredProducts.length" class="support-empty-state">
+          <h3>No matching products found</h3>
+          <p>Try another model name, or contact us for product confirmation.</p>
+        </section>
       </div>
     </main>
 
@@ -55,7 +83,17 @@ import {
 const cachedContent = getCachedContent();
 const content = ref(cachedContent || { configured: false, products: {}, defaultFaqs: [] });
 const contentReady = ref(Boolean(cachedContent));
+const searchTerm = ref("");
 const managedProducts = computed(() => mergeProductsContent(products, content.value));
+const filteredProducts = computed(() => {
+  const keywords = searchTerm.value.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!keywords.length) return managedProducts.value;
+
+  return managedProducts.value.filter((item) => {
+    const searchable = `${item.name || ""} ${item.id || ""}`.toLowerCase();
+    return keywords.every((part) => searchable.includes(part));
+  });
+});
 
 onMounted(async () => {
   try {

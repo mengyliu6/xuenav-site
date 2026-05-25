@@ -31,9 +31,32 @@
           </a>
         </section>
 
-        <section v-if="videoProducts.length" class="installation-video-grid">
+        <label class="support-search installation-search" aria-label="Search installation videos">
+          <span>Search Videos</span>
+          <div class="support-search__control">
+            <input
+              v-model.trim="searchTerm"
+              type="search"
+              placeholder="Search by product name or vehicle model"
+            />
+            <button
+              v-if="searchTerm"
+              type="button"
+              aria-label="Clear installation video search"
+              @click="searchTerm = ''"
+            >
+              Clear
+            </button>
+          </div>
+          <small v-if="searchTerm">
+            Showing {{ filteredVideos.length }} video{{ filteredVideos.length === 1 ? "" : "s" }}
+            for "{{ searchTerm }}"
+          </small>
+        </label>
+
+        <section v-if="filteredVideos.length" class="installation-video-grid">
           <article
-            v-for="(item, index) in videoProducts"
+            v-for="(item, index) in filteredVideos"
             :key="item.id"
             class="installation-video-card"
           >
@@ -56,8 +79,14 @@
         </section>
 
         <section v-else-if="contentReady" class="not-found-box installation-empty">
-          <h2>Installation videos are being prepared</h2>
-          <p>Please contact our support team for a matching installation guide.</p>
+          <h2>{{ searchTerm ? "No matching installation videos" : "Installation videos are being prepared" }}</h2>
+          <p>
+            {{
+              searchTerm
+                ? "Try another product or vehicle model, or ask our support team for the matching video."
+                : "Please contact our support team for a matching installation guide."
+            }}
+          </p>
           <a
             class="primary-btn"
             :href="CONTACT.whatsappLink('Hello, I need an installation guide for my vehicle. My car model/year is: ')"
@@ -92,6 +121,7 @@ import {
 const cachedContent = getCachedContent();
 const content = ref(cachedContent || { configured: false, products: {}, defaultFaqs: [] });
 const contentReady = ref(Boolean(cachedContent));
+const searchTerm = ref("");
 const managedProducts = computed(() => mergeProductsContent(products, content.value));
 
 const hasYoutubeVideo = (value) => {
@@ -115,6 +145,15 @@ const hasYoutubeVideo = (value) => {
 const videoProducts = computed(() =>
   managedProducts.value.filter((product) => hasYoutubeVideo(product.videoUrl))
 );
+const filteredVideos = computed(() => {
+  const keywords = searchTerm.value.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!keywords.length) return videoProducts.value;
+
+  return videoProducts.value.filter((item) => {
+    const searchable = `${item.name || ""} ${item.id || ""}`.toLowerCase();
+    return keywords.every((part) => searchable.includes(part));
+  });
+});
 
 onMounted(async () => {
   try {
