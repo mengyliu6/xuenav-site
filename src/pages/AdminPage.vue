@@ -268,19 +268,10 @@
                 v-for="(faq, index) in selectedFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
-                @dragover.prevent
-                @drop.prevent="dropFaq(index, productDraft.productId)"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <span
-                      class="admin-drag-handle"
-                      draggable="true"
-                      aria-label="拖拽调整 FAQ 顺序"
-                      @dragstart.stop="startFaqDrag(faq)"
-                      @dragend="endDrag"
-                    >↕</span>
-                    <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
+                    <small>FAQ {{ index + 1 }} · 内容编辑</small>
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
@@ -1256,20 +1247,40 @@ const saveProduct = async () => {
 };
 
 const deleteProduct = async () => {
-  if (!productDraft.recordId || !window.confirm("确认删除这个商品吗？")) return;
+  if (!productDraft.recordId) return;
+
+  const storedProduct =
+    products.value.find((product) => product.recordId === productDraft.recordId) ||
+    productDraft;
+  const linkedFaqCount = faqs.value.filter(
+    (faq) => faq.recordId && faq.productId === storedProduct.productId
+  ).length;
+  const productName = storedProduct.name || storedProduct.productId;
+  const linkedFaqMessage = linkedFaqCount
+    ? `关联的 ${linkedFaqCount} 条 FAQ`
+    : "关联的 FAQ（如有）";
+  const confirmation = `确认删除商品“${productName}”吗？\n\n飞书表格中${linkedFaqMessage}也会被永久删除，此操作不可恢复。`;
+
+  if (!window.confirm(confirmation)) return;
 
   loading.value = true;
   error.value = "";
-  notify("正在删除商品...", "info");
+  notify("正在删除商品及关联 FAQ...", "info");
 
   try {
-    await requestAdmin("DELETE", {
+    const result = await requestAdmin("DELETE", {
       resource: "product",
       recordId: productDraft.recordId,
     });
     assignProductDraft(emptyProduct());
     await loadAdminContent();
-    notify("商品已删除。", "success");
+    const deletedFaqCount = Number(result.deletedFaqCount || 0);
+    notify(
+      deletedFaqCount
+        ? `商品已删除，同时已从飞书删除 ${deletedFaqCount} 条关联 FAQ。`
+        : "商品已删除。",
+      "success"
+    );
   } catch (err) {
     error.value = err?.message || "删除商品失败。";
     notify(error.value, "error");

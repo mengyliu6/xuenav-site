@@ -7,7 +7,14 @@
   >
     <article ref="cardRef" class="product-card">
       <div class="card-image-wrap" :class="{ 'is-loading': loading || !imageLoaded }">
-        <span v-if="loading || !imageLoaded" class="card-image-skeleton" aria-hidden="true"></span>
+        <div v-if="loading || !imageLoaded" class="card-image-loader" aria-hidden="true">
+          <img :src="productLoadingDoodle" alt="" />
+          <span class="card-image-loading-dots">
+            <i></i>
+            <i></i>
+            <i></i>
+          </span>
+        </div>
         <img
           v-if="!loading && image"
           :key="image"
@@ -42,6 +49,7 @@
 <script setup>
 import { ref, watch } from "vue";
 import { RouterLink } from "vue-router";
+import productLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 
 const props = defineProps({
   id: {

@@ -190,7 +190,72 @@ const verifyPublicImagePayload = async () => {
   assert.equal(faqs[1].images[0].url, "https://cdn.example/legacy.jpg");
 };
 
+const verifyProductDeleteRemovesRelatedFaqs = async () => {
+  process.env.ADMIN_API_TOKEN = "token";
+  process.env.FEISHU_APP_ID = "id";
+  process.env.FEISHU_APP_SECRET = "secret";
+  process.env.FEISHU_BITABLE_APP_TOKEN = "app";
+  process.env.FEISHU_PRODUCTS_TABLE_ID = "products";
+  process.env.FEISHU_FAQS_TABLE_ID = "faqs";
+
+  const deletedUrls = [];
+  global.fetch = async (url, options = {}) => {
+    if (url.includes("tenant_access_token")) {
+      return response({ code: 0, tenant_access_token: "tenant" });
+    }
+    if (url.includes("/tables/products/records?")) {
+      return response({
+        code: 0,
+        data: {
+          items: [
+            { record_id: "product-record", fields: { "Product ID": "p1" } },
+          ],
+        },
+      });
+    }
+    if (url.includes("/tables/faqs/records?")) {
+      return response({
+        code: 0,
+        data: {
+          items: [
+            { record_id: "faq-product", fields: { "Product ID": "p1" } },
+            { record_id: "faq-other", fields: { "Product ID": "p2" } },
+            { record_id: "faq-default", fields: { "Product ID": "__default__" } },
+          ],
+        },
+      });
+    }
+    if (options.method === "DELETE") {
+      deletedUrls.push(url);
+      return response({ code: 0 });
+    }
+    throw new Error(`Unexpected delete fetch: ${options.method || "GET"} ${url}`);
+  };
+
+  const { captured, res } = resCapture();
+  await adminHandler(
+    {
+      method: "DELETE",
+      headers: { "x-admin-token": "token" },
+      body: {
+        resource: "product",
+        recordId: "product-record",
+        productId: "stale-unsaved-id",
+      },
+    },
+    res,
+  );
+
+  assert.equal(captured.status, 200);
+  assert.equal(captured.body.deletedFaqCount, 1);
+  assert.equal(deletedUrls.some((url) => url.includes("faq-product")), true);
+  assert.equal(deletedUrls.some((url) => url.includes("faq-other")), false);
+  assert.equal(deletedUrls.some((url) => url.includes("faq-default")), false);
+  assert.equal(deletedUrls.some((url) => url.includes("product-record")), true);
+};
+
 await verifyAdminStorageRouting();
 await verifyTextOnlyFaqDoesNotChangeSchema();
 await verifyPublicImagePayload();
-console.log("FAQ multi-image storage and rendering verified.");
+await verifyProductDeleteRemovesRelatedFaqs();
+console.log("FAQ image storage, rendering and product cascade deletion verified.");

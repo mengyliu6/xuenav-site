@@ -51,9 +51,17 @@
                   Get Support Now
                 </a>
 
-                <a class="secondary-btn" :href="emailUrl">
-                  Email Support
-                </a>
+                <button class="secondary-btn" type="button" @click="copySupportEmail">
+                  {{ emailCopied ? "Email Copied" : "Copy Support Email" }}
+                </button>
+              </div>
+
+              <div class="product-email-channel">
+                <span>Email support</span>
+                <strong>{{ CONTACT.email }}</strong>
+                <small role="status">
+                  {{ emailCopyStatus || "Copy this address and send from any email provider." }}
+                </small>
               </div>
 
               <div class="trust-row">
@@ -162,7 +170,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
@@ -182,6 +190,9 @@ const route = useRoute();
 const cachedContent = getCachedContent();
 const content = ref(cachedContent || { configured: false, products: {} });
 const contentLoaded = ref(Boolean(cachedContent));
+const emailCopyStatus = ref("");
+const emailCopied = ref(false);
+let emailCopyTimer = null;
 
 const productContent = computed(() =>
   resolveProductContent(route.params.id, products, faqs.slice(0, 4), content.value)
@@ -197,13 +208,37 @@ const whatsappUrl = computed(() => {
   );
 });
 
-const emailUrl = computed(() => {
-  const subject = productContent.value?.name
-    ? `After-sales support - ${productContent.value.name}`
-    : "Xuenav After-sales Support";
+const copySupportEmail = async () => {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(CONTACT.email);
+    } else {
+      const input = document.createElement("textarea");
+      input.value = CONTACT.email;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      const copied = document.execCommand("copy");
+      document.body.removeChild(input);
+      if (!copied) throw new Error("Copy is unavailable.");
+    }
 
-  return CONTACT.emailLink(subject);
-});
+    emailCopied.value = true;
+    emailCopyStatus.value = "Address copied. Paste it into your email to contact us.";
+  } catch {
+    emailCopied.value = false;
+    emailCopyStatus.value = `Please email us at ${CONTACT.email}.`;
+  }
+
+  if (emailCopyTimer) window.clearTimeout(emailCopyTimer);
+  emailCopyTimer = window.setTimeout(() => {
+    emailCopied.value = false;
+    emailCopyStatus.value = "";
+    emailCopyTimer = null;
+  }, 4200);
+};
 
 const featureList = computed(() => [
   {
@@ -254,5 +289,9 @@ const specRows = computed(() => {
 onMounted(async () => {
   content.value = await loadRemoteContent(content.value);
   contentLoaded.value = true;
+});
+
+onBeforeUnmount(() => {
+  if (emailCopyTimer) window.clearTimeout(emailCopyTimer);
 });
 </script>

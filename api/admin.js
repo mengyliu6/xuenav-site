@@ -457,6 +457,38 @@ const deleteRecord = async ({ token, resource, recordId }) => {
   return true;
 };
 
+const deleteProductWithFaqs = async ({ token, recordId }) => {
+  const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
+  const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
+  const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
+
+  if (!appToken || !productsTable || !faqsTable || !recordId) {
+    throw new Error("Invalid product delete configuration or record id");
+  }
+
+  const productRecords = await listRecords(token, appToken, productsTable);
+  const productRecord = productRecords.find((record) => record.record_id === recordId);
+  const targetProductId = productRecord ? normalizeProduct(productRecord).productId : "";
+
+  if (!targetProductId) {
+    throw new Error("Cannot resolve product ID before deleting related FAQs");
+  }
+
+  const faqRecords = await listRecords(token, appToken, faqsTable);
+  const relatedFaqRecords = faqRecords.filter(
+    (record) => normalizeFaq(record).productId === targetProductId,
+  );
+
+  await Promise.all(
+    relatedFaqRecords.map((record) =>
+      deleteRecord({ token, resource: "faq", recordId: record.record_id }),
+    ),
+  );
+  await deleteRecord({ token, resource: "product", recordId });
+
+  return relatedFaqRecords.length;
+};
+
 export default async function handler(req, res) {
   const authError = requireAdmin(req);
   if (authError) {
@@ -501,6 +533,15 @@ export default async function handler(req, res) {
 
     if (req.method === "DELETE") {
       const { resource, recordId } = req.body || {};
+      if (resource === "product") {
+        const deletedFaqCount = await deleteProductWithFaqs({
+          token,
+          recordId,
+        });
+        res.status(200).json({ ok: true, deletedFaqCount });
+        return;
+      }
+
       await deleteRecord({ token, resource, recordId });
       res.status(200).json({ ok: true });
       return;
