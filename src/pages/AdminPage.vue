@@ -66,6 +66,29 @@
       </form>
     </main>
 
+    <main
+      v-else-if="showingInitialLoader"
+      class="admin-loading-stage"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <section class="admin-loading-card">
+        <div class="admin-loading-illustration">
+          <span class="admin-loading-orbit admin-loading-orbit--one" aria-hidden="true"></span>
+          <span class="admin-loading-orbit admin-loading-orbit--two" aria-hidden="true"></span>
+          <img :src="adminLoadingDoodle" alt="" />
+        </div>
+        <span class="admin-loading-eyebrow">XUENAV Admin</span>
+        <h2>正在同步后台数据</h2>
+        <p>正在读取商品、FAQ 与图片内容，请稍等片刻。</p>
+        <div class="admin-loading-dots" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </section>
+    </main>
+
     <main v-else class="admin-workspace">
       <section class="admin-management-layout">
         <aside class="admin-left-rail">
@@ -571,6 +594,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { faqs as builtInFaqs } from "../data/faqs";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
@@ -591,6 +615,7 @@ const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
 const tokenInput = ref("");
 const loading = ref(false);
+const dataReady = ref(!token.value);
 const uploading = ref(false);
 const error = ref("");
 const products = ref([]);
@@ -654,6 +679,8 @@ const defaultFaqs = computed(() =>
   sortItems(faqs.value.filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID))
 );
 
+const showingInitialLoader = computed(() => Boolean(token.value && !dataReady.value));
+
 const previewFaqItems = computed(() => {
   if (!previewFaqProductId.value) return [];
 
@@ -668,6 +695,7 @@ const previewFaqItems = computed(() => {
 });
 
 const statusTitle = computed(() => {
+  if (showingInitialLoader.value) return "正在初始化后台";
   if (uploading.value) return "正在上传图片";
   if (loading.value) return "正在同步数据";
   if (error.value) return "同步失败";
@@ -675,6 +703,7 @@ const statusTitle = computed(() => {
 });
 
 const statusText = computed(() => {
+  if (showingInitialLoader.value) return "正在读取商品、FAQ 与图片内容，请稍等片刻。";
   if (uploading.value) return "图片上传成功后，请继续点击保存按钮。";
   if (loading.value) return "正在读取或写入后台数据，请稍等。";
   if (error.value) return error.value;
@@ -1018,6 +1047,7 @@ const loadAdminContent = async () => {
     error.value = err?.message || "读取后台数据失败。";
     notify(error.value, "error");
   } finally {
+    dataReady.value = true;
     loading.value = false;
   }
 };
@@ -1029,6 +1059,7 @@ const saveToken = () => {
     return;
   }
 
+  dataReady.value = false;
   token.value = nextToken;
   window.sessionStorage.setItem("xuenav_admin_token", token.value);
   notify("正在进入后台...", "info");
@@ -1037,6 +1068,7 @@ const saveToken = () => {
 
 const clearToken = () => {
   token.value = "";
+  dataReady.value = true;
   tokenInput.value = "";
   products.value = [];
   faqs.value = [];
