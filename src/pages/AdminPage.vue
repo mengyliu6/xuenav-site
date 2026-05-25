@@ -122,15 +122,23 @@
               新增商品
             </button>
 
+            <p class="admin-sort-tip">按住排序图标拖动，松开后自动保存展示顺序。</p>
+
             <div class="admin-product-list">
               <button
                 v-for="(item, index) in sortedProducts"
                 :key="item.recordId || item.productId"
                 type="button"
-                draggable="true"
-                :class="{ active: item.productId === productDraft.productId }"
+                :draggable="!loading && !uploading"
+                :aria-grabbed="draggingProductId === itemKey(item)"
+                :class="{
+                  active: item.productId === productDraft.productId,
+                  'is-dragging': draggingProductId === itemKey(item),
+                  'is-drop-target': dragOverProductId === itemKey(item),
+                }"
                 @dragstart="startProductDrag(item)"
-                @dragover.prevent
+                @dragenter.prevent="setProductDropTarget(item)"
+                @dragover.prevent="setProductDropTarget(item)"
                 @drop.prevent="dropProduct(index)"
                 @dragend="endDrag"
                 @click="selectProduct(item)"
@@ -171,7 +179,13 @@
               </label>
               <div
                 class="admin-upload-field admin-product-image-field"
-                @dragover.prevent.stop
+                :class="{
+                  'is-drag-over': activeUploadDropzone === PRODUCT_IMAGE_DROPZONE,
+                  'is-uploading': productImageUpload.state === 'uploading',
+                }"
+                @dragenter.prevent.stop="enterImageDropzone($event, PRODUCT_IMAGE_DROPZONE)"
+                @dragover.prevent.stop="enterImageDropzone($event, PRODUCT_IMAGE_DROPZONE)"
+                @dragleave.prevent.stop="leaveImageDropzone($event, PRODUCT_IMAGE_DROPZONE)"
                 @drop.prevent.stop="dropProductCover"
               >
                 <span>商品图片</span>
@@ -179,6 +193,7 @@
                   <input
                     type="file"
                     accept="image/*"
+                    :disabled="uploading"
                     @change="uploadProductCover"
                   />
                   <img
@@ -187,9 +202,26 @@
                     alt="商品图片预览"
                   />
                   <span v-else class="admin-upload-copy">
-                    <strong>拖拽图片到这里</strong>
-                    <small>或点击上传</small>
+                    <strong>
+                      {{
+                        activeUploadDropzone === PRODUCT_IMAGE_DROPZONE
+                          ? "释放即可上传"
+                          : "拖拽图片到这里"
+                      }}
+                    </strong>
+                    <small>{{ uploading ? "图片处理中..." : "或点击选择图片" }}</small>
                   </span>
+                  <span
+                    v-if="productDraft.imagePreview && activeUploadDropzone === PRODUCT_IMAGE_DROPZONE"
+                    class="admin-image-drop-overlay"
+                  >
+                    释放替换当前图片
+                  </span>
+                  <span
+                    v-if="productImageUpload.state === 'uploading'"
+                    class="admin-upload-spinner"
+                    aria-hidden="true"
+                  ></span>
                 </label>
                 <button
                   type="button"
@@ -199,9 +231,17 @@
                 >
                   清空图片
                 </button>
+                <p
+                  v-if="productImageUpload.message"
+                  class="admin-upload-result"
+                  :class="`admin-upload-result--${productImageUpload.state}`"
+                  role="status"
+                >
+                  {{ productImageUpload.message }}
+                </p>
                 <p>
                   上传 JPG/PNG/WebP 后会自动压缩为首页商品图
-                  WebP；预览无误后点击“保存商品”。
+                  WebP；单张不超过 3 MB，预览无误后点击“保存商品”。
                 </p>
               </div>
               <label>
@@ -294,10 +334,21 @@
                 </div>
                 <div
                   class="admin-upload-field compact admin-dropzone"
-                  @dragover.prevent.stop
+                  :class="{
+                    'is-drag-over': activeUploadDropzone === faqDropzoneId(faq),
+                    'is-uploading': faq.imageUploadState === 'uploading',
+                  }"
+                  @dragenter.prevent.stop="enterImageDropzone($event, faqDropzoneId(faq))"
+                  @dragover.prevent.stop="enterImageDropzone($event, faqDropzoneId(faq))"
+                  @dragleave.prevent.stop="leaveImageDropzone($event, faqDropzoneId(faq))"
                   @drop.prevent.stop="dropFaqImage($event, faq)"
                 >
-                  <span>FAQ 图片</span>
+                  <div class="admin-upload-title">
+                    <span>FAQ 图片</span>
+                    <small v-if="faqImageList(faq).length">
+                      已有 {{ faqImageList(faq).length }} 张
+                    </small>
+                  </div>
                   <label class="admin-file-drop">
                     <input
                       type="file"
@@ -306,8 +357,21 @@
                       :disabled="uploading"
                       @change="uploadFaqImage($event, faq)"
                     />
-                    <strong>拖拽多张图片到这里，或点击上传</strong>
-                    <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
+                    <strong>
+                      {{
+                        activeUploadDropzone === faqDropzoneId(faq)
+                          ? "释放即可添加这些图片"
+                          : faq.imageUploadState === "uploading"
+                            ? "正在上传图片..."
+                            : "拖拽多张图片到这里，或点击上传"
+                      }}
+                    </strong>
+                    <small>支持一次选择多张图片，单张不超过 3 MB；保存 FAQ 后写入后台。</small>
+                    <span
+                      v-if="faq.imageUploadState === 'uploading'"
+                      class="admin-upload-spinner"
+                      aria-hidden="true"
+                    ></span>
                   </label>
                   <p
                     v-if="faq.imageUploadMessage"
@@ -326,6 +390,7 @@
                       <button
                         type="button"
                         class="admin-image-remove"
+                        :disabled="uploading"
                         @click="removeFaqImage(faq, image)"
                       >
                         删除
@@ -444,10 +509,21 @@
                 </div>
                 <div
                   class="admin-upload-field compact admin-dropzone"
-                  @dragover.prevent.stop
+                  :class="{
+                    'is-drag-over': activeUploadDropzone === faqDropzoneId(faq),
+                    'is-uploading': faq.imageUploadState === 'uploading',
+                  }"
+                  @dragenter.prevent.stop="enterImageDropzone($event, faqDropzoneId(faq))"
+                  @dragover.prevent.stop="enterImageDropzone($event, faqDropzoneId(faq))"
+                  @dragleave.prevent.stop="leaveImageDropzone($event, faqDropzoneId(faq))"
                   @drop.prevent.stop="dropFaqImage($event, faq)"
                 >
-                  <span>FAQ 图片</span>
+                  <div class="admin-upload-title">
+                    <span>FAQ 图片</span>
+                    <small v-if="faqImageList(faq).length">
+                      已有 {{ faqImageList(faq).length }} 张
+                    </small>
+                  </div>
                   <label class="admin-file-drop">
                     <input
                       type="file"
@@ -456,8 +532,21 @@
                       :disabled="uploading"
                       @change="uploadFaqImage($event, faq)"
                     />
-                    <strong>拖拽多张图片到这里，或点击上传</strong>
-                    <small>支持一次选择多张图片，保存 FAQ 后写入后台。</small>
+                    <strong>
+                      {{
+                        activeUploadDropzone === faqDropzoneId(faq)
+                          ? "释放即可添加这些图片"
+                          : faq.imageUploadState === "uploading"
+                            ? "正在上传图片..."
+                            : "拖拽多张图片到这里，或点击上传"
+                      }}
+                    </strong>
+                    <small>支持一次选择多张图片，单张不超过 3 MB；保存 FAQ 后写入后台。</small>
+                    <span
+                      v-if="faq.imageUploadState === 'uploading'"
+                      class="admin-upload-spinner"
+                      aria-hidden="true"
+                    ></span>
                   </label>
                   <p
                     v-if="faq.imageUploadMessage"
@@ -476,6 +565,7 @@
                       <button
                         type="button"
                         class="admin-image-remove"
+                        :disabled="uploading"
                         @click="removeFaqImage(faq, image)"
                       >
                         删除
@@ -536,6 +626,7 @@
           <div>
             <span class="section-eyebrow">FAQ Preview</span>
             <h2>前台展示预览</h2>
+            <p class="admin-sort-tip">拖拽问题卡片即可调整顺序，松开后自动保存。</p>
           </div>
           <button
             type="button"
@@ -550,10 +641,16 @@
             v-for="(item, index) in previewFaqItems"
             :key="item.recordId || item.localId || item.question"
             class="faq-item admin-preview-faq-item"
+            :class="{
+              'is-dragging': draggingFaqId === itemKey(item),
+              'is-drop-target': dragOverFaqId === itemKey(item),
+            }"
             :open="index === 0"
-            draggable="true"
+            :draggable="!loading && !uploading"
+            :aria-grabbed="draggingFaqId === itemKey(item)"
             @dragstart="startFaqDrag(item)"
-            @dragover.prevent
+            @dragenter.prevent="setFaqDropTarget(item)"
+            @dragover.prevent="setFaqDropTarget(item)"
             @drop.prevent="dropFaq(index, previewFaqProductId)"
             @dragend="endDrag"
           >
@@ -589,6 +686,7 @@ import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { faqs as builtInFaqs } from "../data/faqs";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
+const PRODUCT_IMAGE_DROPZONE = "product-cover";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const PRODUCT_COVER_MAX_WIDTH = 900;
 const PRODUCT_COVER_QUALITY = 0.82;
@@ -614,11 +712,18 @@ const faqs = ref([]);
 const activeTab = ref("products");
 const draggingProductId = ref("");
 const draggingFaqId = ref("");
+const dragOverProductId = ref("");
+const dragOverFaqId = ref("");
+const activeUploadDropzone = ref("");
 const previewFaqProductId = ref("");
 const toast = reactive({
   message: "",
   type: "info",
   timer: null,
+});
+const productImageUpload = reactive({
+  message: "",
+  state: "",
 });
 
 const emptyProduct = () => ({
@@ -724,6 +829,8 @@ const imageCanPreview = (value = "") => {
 const itemKey = (item) =>
   item?.recordId || item?.localId || item?.productId || "";
 
+const faqDropzoneId = (faq) => `faq-images-${itemKey(faq)}`;
+
 const faqImageList = (faq) =>
   (
     String(faq?.images || "").match(/(?:https?:\/\/|data:|blob:)[^\s,，]+/g) ||
@@ -749,6 +856,11 @@ const setFaqUploadStatus = (faq, message = "", state = "info") => {
   faq.imageUploadState = state;
 };
 
+const setProductUploadStatus = (message = "", state = "") => {
+  productImageUpload.message = message;
+  productImageUpload.state = state;
+};
+
 const imageMimeType = (file) => {
   if (String(file?.type || "").startsWith("image/")) return file.type;
 
@@ -758,7 +870,30 @@ const imageMimeType = (file) => {
   return IMAGE_MIME_TYPES[extension] || "";
 };
 
+const hasDraggedFiles = (event) =>
+  Array.from(event.dataTransfer?.types || []).includes("Files");
+
+const enterImageDropzone = (event, dropzoneId) => {
+  if (hasDraggedFiles(event) && !uploading.value) {
+    activeUploadDropzone.value = dropzoneId;
+  }
+};
+
+const leaveImageDropzone = (event, dropzoneId) => {
+  const bounds = event.currentTarget.getBoundingClientRect();
+  const outside =
+    event.clientX <= bounds.left ||
+    event.clientX >= bounds.right ||
+    event.clientY <= bounds.top ||
+    event.clientY >= bounds.bottom;
+
+  if (outside && activeUploadDropzone.value === dropzoneId) {
+    activeUploadDropzone.value = "";
+  }
+};
+
 const assignProductDraft = (item) => {
+  setProductUploadStatus();
   Object.assign(productDraft, emptyProduct(), {
     ...item,
     imagePreview: imageCanPreview(item?.image) ? item.image : "",
@@ -912,10 +1047,12 @@ const uploadProductCover = async (event) => {
   event.target.value = "";
   if (!file) return;
 
+  activeUploadDropzone.value = "";
   await handleProductCoverFile(file);
 };
 
 const dropProductCover = async (event) => {
+  activeUploadDropzone.value = "";
   const file = event.dataTransfer?.files?.[0];
   if (!file) return;
 
@@ -925,6 +1062,7 @@ const dropProductCover = async (event) => {
 const handleProductCoverFile = async (file) => {
   uploading.value = true;
   error.value = "";
+  setProductUploadStatus("正在压缩并上传商品图片，请稍等...", "uploading");
   notify("正在压缩并上传商品图片，请稍等...", "info");
 
   try {
@@ -932,12 +1070,17 @@ const handleProductCoverFile = async (file) => {
     const imageUrl = await uploadImage(optimizedFile);
     productDraft.image = imageUrl;
     productDraft.imagePreview = URL.createObjectURL(optimizedFile);
+    setProductUploadStatus(
+      "商品图片已上传，请点击“保存商品”完成提交。",
+      "success"
+    );
     notify(
       "商品图片已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。",
       "success"
     );
   } catch (err) {
     error.value = err?.message || "上传商品图片失败。";
+    setProductUploadStatus(error.value, "error");
     notify(error.value, "error");
   } finally {
     uploading.value = false;
@@ -960,7 +1103,7 @@ const uploadFaqImageFiles = async (files, faq) => {
   uploading.value = true;
   error.value = "";
   const uploadingMessage = `正在上传 ${imageFiles.length} 张 FAQ 图片，请稍等...`;
-  setFaqUploadStatus(faq, uploadingMessage, "info");
+  setFaqUploadStatus(faq, uploadingMessage, "uploading");
   notify(uploadingMessage, "info");
 
   try {
@@ -986,10 +1129,12 @@ const uploadFaqImageFiles = async (files, faq) => {
 const uploadFaqImage = async (event, faq) => {
   const files = [...(event.target.files || [])];
   event.target.value = "";
+  activeUploadDropzone.value = "";
   await uploadFaqImageFiles(files, faq);
 };
 
 const dropFaqImage = async (event, faq) => {
+  activeUploadDropzone.value = "";
   const files = event.dataTransfer?.files || [];
   await uploadFaqImageFiles(files, faq);
 };
@@ -1014,6 +1159,7 @@ const closeFaqPreview = () => {
 const clearProductImage = () => {
   productDraft.image = "";
   productDraft.imagePreview = "";
+  setProductUploadStatus("已清空封面图，保存商品后生效。", "info");
   notify("已清空封面图，保存商品后生效。", "info");
 };
 
@@ -1076,6 +1222,8 @@ const selectProduct = (item) => {
 const endDrag = () => {
   draggingProductId.value = "";
   draggingFaqId.value = "";
+  dragOverProductId.value = "";
+  dragOverFaqId.value = "";
 };
 
 const moveItem = (items, fromIndex, toIndex) => {
@@ -1087,6 +1235,14 @@ const moveItem = (items, fromIndex, toIndex) => {
 
 const startProductDrag = (item) => {
   draggingProductId.value = itemKey(item);
+  dragOverProductId.value = "";
+};
+
+const setProductDropTarget = (item) => {
+  dragOverProductId.value =
+    draggingProductId.value && itemKey(item) !== draggingProductId.value
+      ? itemKey(item)
+      : "";
 };
 
 const saveProductOrder = async (orderedProducts) => {
@@ -1119,6 +1275,7 @@ const saveProductOrder = async (orderedProducts) => {
 };
 
 const dropProduct = async (targetIndex) => {
+  dragOverProductId.value = "";
   const fromIndex = sortedProducts.value.findIndex(
     (item) => itemKey(item) === draggingProductId.value
   );
@@ -1143,6 +1300,14 @@ const dropProduct = async (targetIndex) => {
 
 const startFaqDrag = (faq) => {
   draggingFaqId.value = itemKey(faq);
+  dragOverFaqId.value = "";
+};
+
+const setFaqDropTarget = (faq) => {
+  dragOverFaqId.value =
+    draggingFaqId.value && itemKey(faq) !== draggingFaqId.value
+      ? itemKey(faq)
+      : "";
 };
 
 const saveFaqOrder = async (orderedFaqs) => {
@@ -1175,6 +1340,7 @@ const saveFaqOrder = async (orderedFaqs) => {
 };
 
 const dropFaq = async (targetIndex, productId) => {
+  dragOverFaqId.value = "";
   const currentFaqs = sortItems(
     faqs.value.filter((item) => item.productId === productId)
   );

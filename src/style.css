@@ -1843,6 +1843,10 @@ a {
   border: 1px dashed #d7dee7;
   border-radius: 14px;
   background: #fbfcfe;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .admin-upload-field.compact {
@@ -1859,7 +1863,21 @@ a {
   background: linear-gradient(180deg, #ffffff, #fbfcfe);
 }
 
+.admin-upload-field.is-drag-over {
+  border-color: var(--main);
+  background: #fff7ed;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 106, 0, 0.18),
+    0 12px 30px rgba(255, 106, 0, 0.12);
+}
+
+.admin-upload-field.is-uploading {
+  border-color: #fed7aa;
+  background: #fffaf5;
+}
+
 .admin-product-image-drop {
+  position: relative;
   width: min(260px, 100%);
   aspect-ratio: 1 / 1;
   display: grid;
@@ -1878,7 +1896,8 @@ a {
 }
 
 .admin-product-image-field:hover .admin-product-image-drop,
-.admin-product-image-drop:hover {
+.admin-product-image-drop:hover,
+.admin-product-image-field.is-drag-over .admin-product-image-drop {
   border-color: #ffb37c;
   background: #fff8f2;
   box-shadow: inset 0 0 0 1px rgba(255, 106, 0, 0.08);
@@ -1915,6 +1934,19 @@ a {
   object-fit: cover;
 }
 
+.admin-image-drop-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: #ffffff;
+  background: rgba(124, 45, 18, 0.72);
+  font-size: 14px;
+  font-weight: 900;
+  text-align: center;
+}
+
 .admin-dropzone {
   transition:
     border-color 0.2s ease,
@@ -1928,7 +1960,32 @@ a {
   box-shadow: inset 0 0 0 1px rgba(255, 106, 0, 0.06);
 }
 
+.admin-upload-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-upload-title > span {
+  color: var(--main);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-upload-title small {
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: #7c2d12;
+  background: #fff7ed;
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .admin-file-drop {
+  position: relative;
   min-height: 78px;
   display: grid;
   place-items: center;
@@ -1940,6 +1997,22 @@ a {
   background: #ffffff;
   text-align: center;
   cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-dropzone.is-drag-over .admin-file-drop {
+  border-color: var(--main);
+  background: #fff7ed;
+  transform: scale(1.01);
+}
+
+.admin-dropzone.is-uploading .admin-file-drop {
+  color: #7c2d12;
+  border-color: #fed7aa;
+  background: #fffaf5;
 }
 
 .admin-file-drop input {
@@ -1969,6 +2042,11 @@ a {
   background: #fff7ed;
 }
 
+.admin-upload-result.admin-upload-result--uploading {
+  color: #9a3412;
+  background: #fff7ed;
+}
+
 .admin-upload-result.admin-upload-result--success {
   color: #166534;
   background: #f0fdf4;
@@ -1977,6 +2055,22 @@ a {
 .admin-upload-result.admin-upload-result--error {
   color: #991b1b;
   background: #fff1f2;
+}
+
+.admin-upload-spinner {
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 2px solid #fed7aa;
+  border-top-color: var(--main);
+  border-radius: 50%;
+  animation: admin-upload-spin 0.72s linear infinite;
+}
+
+@keyframes admin-upload-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .admin-import-actions {
@@ -2128,6 +2222,13 @@ a {
   overscroll-behavior: contain;
 }
 
+.admin-sort-tip {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .admin-product-list::-webkit-scrollbar {
   width: 8px;
 }
@@ -2147,6 +2248,11 @@ a {
   text-align: left;
   background: #fbfcfe;
   cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .admin-product-list button strong,
@@ -2178,6 +2284,19 @@ a {
   border-color: #fed7aa;
   background: #fff7ed;
   box-shadow: inset 3px 0 0 var(--main);
+}
+
+.admin-product-list button.is-dragging {
+  opacity: 0.48;
+  border-style: dashed;
+}
+
+.admin-product-list button.is-drop-target {
+  border-color: var(--main);
+  background: #fff7ed;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 106, 0, 0.12),
+    0 10px 22px rgba(255, 106, 0, 0.1);
 }
 
 .admin-product-list strong {
@@ -2251,6 +2370,11 @@ a {
   cursor: pointer;
 }
 
+.admin-image-remove:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .admin-preview-btn:disabled {
   opacity: 0.58;
   cursor: not-allowed;
@@ -2303,6 +2427,10 @@ a {
   font-size: 24px;
 }
 
+.admin-preview-head .admin-sort-tip {
+  margin: 7px 0 0;
+}
+
 .admin-preview-sort-list {
   display: grid;
   gap: 12px;
@@ -2310,10 +2438,25 @@ a {
 
 .admin-preview-faq-item {
   cursor: grab;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .admin-preview-faq-item:active {
   cursor: grabbing;
+}
+
+.admin-preview-faq-item.is-dragging {
+  opacity: 0.5;
+}
+
+.admin-preview-faq-item.is-drop-target {
+  border-color: var(--main);
+  background: #fff7ed;
+  box-shadow: 0 10px 24px rgba(255, 106, 0, 0.1);
 }
 
 .admin-preview-faq-item summary {
@@ -2986,6 +3129,7 @@ a {
   .admin-loading-illustration img,
   .admin-loading-orbit,
   .admin-loading-dots span,
+  .admin-upload-spinner,
   .card-image-loader img,
   .card-image-loading-dots i {
     animation: none !important;
