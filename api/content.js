@@ -101,10 +101,12 @@ const imagesFromValue = (value) => {
 
   return items
     .flatMap((item) => {
-      if (typeof item === "string") return { url: item, caption: "" };
+      if (typeof item === "string") {
+        return urlsFromText(item).map((url) => ({ url, caption: "" }));
+      }
       const textUrls = urlsFromText(item?.text);
 
-      if (textUrls.length > 1) {
+      if (textUrls.length) {
         return textUrls.map((url) => ({ url, caption: "" }));
       }
 
@@ -138,8 +140,11 @@ const isPublished = (fields) => {
 };
 
 const sortRecords = (a, b) => {
-  const left = Number(textFromValue(getField(a.fields, "sort")) || 0);
-  const right = Number(textFromValue(getField(b.fields, "sort")) || 0);
+  const leftValue = Number(textFromValue(getField(a.fields, "sort")));
+  const rightValue = Number(textFromValue(getField(b.fields, "sort")));
+  const left = Number.isFinite(leftValue) && leftValue > 0 ? leftValue : Number.MAX_SAFE_INTEGER;
+  const right =
+    Number.isFinite(rightValue) && rightValue > 0 ? rightValue : Number.MAX_SAFE_INTEGER;
   return left - right;
 };
 

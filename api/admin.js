@@ -117,6 +117,26 @@ const linkTextFromValue = (value) => {
   ).trim();
 };
 
+const urlsFromValue = (value) => {
+  const values = Array.isArray(value) ? value : [value];
+  const urls = values.flatMap((item) => {
+    if (typeof item === "string" || typeof item === "number") {
+      return String(item).match(/https?:\/\/[^\s,，]+/gi) || [];
+    }
+
+    return [
+      item?.url,
+      item?.tmp_url,
+      item?.link,
+      item?.href,
+      item?.text,
+      item?.name,
+    ].flatMap((part) => String(part || "").match(/https?:\/\/[^\s,，]+/gi) || []);
+  });
+
+  return [...new Set(urls)].join("\n");
+};
+
 const cleanFields = (fields, allowed) => {
   const next = {};
 
@@ -262,7 +282,7 @@ const normalizeFaq = (record) => ({
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
-  images: linkTextFromValue(record.fields?.Images),
+  images: urlsFromValue(record.fields?.Images) || linkTextFromValue(record.fields?.Images),
   sort: textFromValue(record.fields?.Sort),
   status: textFromValue(record.fields?.Status) || "Published",
 });

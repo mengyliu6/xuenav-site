@@ -242,13 +242,19 @@
 
             <div class="admin-faq-list">
               <div
-                v-for="faq in selectedFaqs"
+                v-for="(faq, index) in selectedFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
+                draggable="true"
+                @dragstart="startFaqDrag(faq)"
+                @dragover.prevent
+                @drop.prevent="dropFaq(index, productDraft.productId)"
+                @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <small>FAQ 内容编辑</small>
+                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                    <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
@@ -366,13 +372,19 @@
 
             <div class="admin-faq-list">
               <div
-                v-for="faq in defaultFaqs"
+                v-for="(faq, index) in defaultFaqs"
                 :key="faq.recordId || faq.localId"
                 class="admin-faq-card"
+                draggable="true"
+                @dragstart="startFaqDrag(faq)"
+                @dragover.prevent
+                @drop.prevent="dropFaq(index, DEFAULT_FAQ_PRODUCT_ID)"
+                @dragend="endDrag"
               >
                 <div class="admin-card-toolbar">
                   <div class="admin-card-toolbar__meta">
-                    <small>FAQ 内容编辑</small>
+                    <span class="admin-drag-handle" aria-hidden="true">↕</span>
+                    <small>FAQ {{ index + 1 }} · 拖拽调整顺序</small>
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
@@ -564,38 +576,38 @@ const emptyProduct = () => ({
 
 const productDraft = reactive(emptyProduct());
 
+const sortPosition = (item) => {
+  const sort = Number(item?.sort);
+  return Number.isFinite(sort) && sort > 0 ? sort : Number.MAX_SAFE_INTEGER;
+};
+
+const sortItems = (items) =>
+  [...items].sort((a, b) => {
+    const orderDifference = sortPosition(a) - sortPosition(b);
+    if (orderDifference) return orderDifference;
+
+    return String(itemKey(a)).localeCompare(String(itemKey(b)), "zh-CN");
+  });
+
+const nextSort = (items) =>
+  items.reduce((highest, item) => Math.max(highest, Number(item?.sort) || 0), 0) + 1;
+
 const sortedProducts = computed(() =>
-  [...products.value].sort((a, b) => {
-    const sortA = Number(a.sort || 0);
-    const sortB = Number(b.sort || 0);
-
-    if (sortA !== sortB) return sortA - sortB;
-
-    return String(a.name || a.productId).localeCompare(
-      String(b.name || b.productId),
-      "zh-CN"
-    );
-  })
+  sortItems(products.value)
 );
 
 const selectedFaqs = computed(() =>
-  faqs.value
-    .filter((item) => item.productId === productDraft.productId)
-    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+  sortItems(faqs.value.filter((item) => item.productId === productDraft.productId))
 );
 
 const defaultFaqs = computed(() =>
-  faqs.value
-    .filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID)
-    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+  sortItems(faqs.value.filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID))
 );
 
 const previewFaqItems = computed(() => {
   if (!previewFaqProductId.value) return [];
 
-  return faqs.value
-    .filter((item) => item.productId === previewFaqProductId.value)
-    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0))
+  return sortItems(faqs.value.filter((item) => item.productId === previewFaqProductId.value))
     .map((faq) => ({
       ...faq,
       images: faqImageList(faq).map((url) => ({
@@ -1058,9 +1070,9 @@ const saveFaqOrder = async (orderedFaqs) => {
 };
 
 const dropFaq = async (targetIndex, productId) => {
-  const currentFaqs = faqs.value
-    .filter((item) => item.productId === productId)
-    .sort((a, b) => Number(a.sort || 0) - Number(b.sort || 0));
+  const currentFaqs = sortItems(
+    faqs.value.filter((item) => item.productId === productId)
+  );
   const fromIndex = currentFaqs.findIndex(
     (item) => itemKey(item) === draggingFaqId.value
   );
@@ -1084,7 +1096,10 @@ const dropFaq = async (targetIndex, productId) => {
 };
 
 const newProduct = () => {
-  assignProductDraft(emptyProduct());
+  assignProductDraft({
+    ...emptyProduct(),
+    sort: nextSort(products.value),
+  });
   notify("已新建商品草稿，请填写信息后保存。", "info");
 };
 
@@ -1162,7 +1177,7 @@ const newFaq = () => {
     question: "",
     answer: "",
     images: "",
-    sort: selectedFaqs.value.length + 1,
+    sort: nextSort(selectedFaqs.value),
     status: "Published",
   });
   notify("已新增商品 FAQ 草稿，请填写后保存。", "info");
@@ -1176,7 +1191,7 @@ const newDefaultFaq = () => {
     question: "",
     answer: "",
     images: "",
-    sort: defaultFaqs.value.length + 1,
+    sort: nextSort(defaultFaqs.value),
     status: "Published",
   });
   notify("已新增默认 FAQ 草稿，请填写后保存。", "info");

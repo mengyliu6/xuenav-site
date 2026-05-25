@@ -141,8 +141,12 @@ const productFromRemote = ([id, item]) =>
   );
 
 const bySortThenName = (a, b) => {
-  const sortA = Number(a.sort || 0);
-  const sortB = Number(b.sort || 0);
+  const orderFor = (item) => {
+    const sort = Number(item?.sort);
+    return Number.isFinite(sort) && sort > 0 ? sort : Number.MAX_SAFE_INTEGER;
+  };
+  const sortA = orderFor(a);
+  const sortB = orderFor(b);
 
   if (sortA !== sortB) return sortA - sortB;
 
