@@ -33,9 +33,9 @@ docs/templates/feishu-faqs-template.csv
 | 字段名 | 类型 | 示例 | 说明 |
 | --- | --- | --- | --- |
 | Product ID | 文本 | camaro-radio-10-15 | 必须和 `src/data/products.js` 里的 `id` 一致 |
-| Name | 文本 | Car Radio for Chevrolet Camaro 2010-2015 | 商品名称 |
+| Name | 文本 | Car Radio for Chevrolet Camaro 2010-2015 | 商品名称，也作为 Installation 页面视频标题 |
 | Cover Image | 附件或文本 URL | https://...jpg | 商品封面图 |
-| Video URL | 文本 | https://www.youtube.com/watch?v=... | 商品视频链接，可留空 |
+| Video URL | 文本 | https://www.youtube.com/watch?v=... | YouTube 安装视频链接；填写后商品会显示在 `/installation`，可留空 |
 | Start | 数字 | 0 | 视频开始秒数，可留空 |
 | Sort | 数字 | 1 | 排序 |
 | Status | 单选/文本 | Published | 填 `Published` 或 `已发布` 才会显示 |

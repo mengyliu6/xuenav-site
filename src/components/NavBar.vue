@@ -3,7 +3,7 @@
     <div class="container nav-inner">
       <RouterLink to="/">HOME</RouterLink>
       <RouterLink to="/#support-products">PRODUCTS</RouterLink>
-      <a href="#installation">INSTALLATION</a>
+      <RouterLink to="/installation">INSTALLATION</RouterLink>
       <RouterLink to="/faq">FAQ</RouterLink>
       <a href="#contact">CONTACT US</a>
     </div>

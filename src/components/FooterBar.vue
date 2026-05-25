@@ -22,6 +22,11 @@
           for automotive multimedia systems, CarPlay,
           Android Auto and OEM integration solutions.
         </p>
+
+        <p class="footer-request">
+          If you need any CarPlay decoder, car radio or digital cluster,
+          please contact us.
+        </p>
   
       </div>
   
@@ -32,7 +37,7 @@
   
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/#support-products">Products</RouterLink>
-        <a href="#">Installation</a>
+        <RouterLink to="/installation">Installation</RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <a href="#">Downloads</a>
   
@@ -52,6 +57,7 @@
             class="footer-btn"
             :href="CONTACT.whatsappLink()"
             target="_blank"
+            rel="noopener noreferrer"
           >
             Chat on WhatsApp
           </a>

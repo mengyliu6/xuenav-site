@@ -170,12 +170,15 @@
                 />
               </label>
               <label>
-                <span>商品名称</span>
+                <span>商品名称 / 视频标题</span>
                 <input
                   v-model.trim="productDraft.name"
                   type="text"
-                  placeholder="官网显示的商品标题"
+                  placeholder="官网及 Installation 页面显示的商品标题"
                 />
+                <small class="admin-field-note">
+                  保存后同步显示在商品卡片与 Installation 视频下方。
+                </small>
               </label>
               <div
                 class="admin-upload-field admin-product-image-field"
@@ -245,12 +248,15 @@
                 </p>
               </div>
               <label>
-                <span>视频链接</span>
+                <span>Installation 视频链接</span>
                 <input
                   v-model.trim="productDraft.videoUrl"
                   type="url"
                   placeholder="https://www.youtube.com/..."
                 />
+                <small class="admin-field-note">
+                  填写 YouTube 视频链接后，该商品会出现在 Installation 页面。
+                </small>
               </label>
               <label>
                 <span>排序</span>
@@ -870,6 +876,24 @@ const imageMimeType = (file) => {
   return IMAGE_MIME_TYPES[extension] || "";
 };
 
+const isYoutubeVideoLink = (value) => {
+  try {
+    const url = new URL(String(value || "").trim());
+    const host = url.hostname.replace(/^(www|m)\./, "");
+    const paths = url.pathname.split("/").filter(Boolean);
+
+    if (host === "youtu.be") return Boolean(paths[0]);
+    if (host !== "youtube.com") return false;
+
+    return (
+      (url.pathname === "/watch" && Boolean(url.searchParams.get("v"))) ||
+      (["embed", "shorts", "live"].includes(paths[0]) && Boolean(paths[1]))
+    );
+  } catch {
+    return false;
+  }
+};
+
 const hasDraggedFiles = (event) =>
   Array.from(event.dataTransfer?.types || []).includes("Files");
 
@@ -987,8 +1011,8 @@ const validateProductDraft = () => {
     return "商品 ID 只能使用英文、数字、短横线或下划线，不能包含空格。";
   }
   if (!productDraft.name.trim()) return "请填写商品名称。";
-  if (productDraft.videoUrl && !/^https?:\/\//i.test(productDraft.videoUrl)) {
-    return "视频链接需要以 http:// 或 https:// 开头。";
+  if (productDraft.videoUrl && !isYoutubeVideoLink(productDraft.videoUrl)) {
+    return "Installation 视频链接请输入有效的 YouTube 视频地址。";
   }
 
   const duplicate = products.value.find(

@@ -9,8 +9,8 @@
         v-if="coverUrl"
         :src="coverUrl"
         :alt="hasVideo ? 'Product support video cover' : 'Product support image'"
-        loading="eager"
-        fetchpriority="high"
+        :loading="imageLoading"
+        :fetchpriority="imageFetchPriority"
         decoding="async"
       />
 
@@ -65,6 +65,14 @@ const props = defineProps({
   start: {
     type: Number,
     default: 0,
+  },
+  imageLoading: {
+    type: String,
+    default: "eager",
+  },
+  imageFetchPriority: {
+    type: String,
+    default: "high",
   },
 });
 
