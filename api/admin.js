@@ -2,8 +2,11 @@ import { put } from "@vercel/blob";
 
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 const FAQ_IMAGE_URL_FIELD = "Image URLs";
+const DEFAULT_SITE_KEY = "xuenav";
+const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav"]);
 
 const PRODUCTS_FIELDS = [
+  "Site Key",
   "Product ID",
   "Name",
   "Cover Image",
@@ -14,6 +17,7 @@ const PRODUCTS_FIELDS = [
 ];
 
 const FAQ_FIELDS = [
+  "Site Key",
   "Product ID",
   "Question",
   "Answer",
@@ -24,6 +28,14 @@ const FAQ_FIELDS = [
 ];
 
 const getEnv = (name) => process.env[name] || "";
+const siteKeyFromValue = (value) => {
+  const key = String(value || "").trim().toLowerCase();
+  return SITE_KEYS.has(key) ? key : DEFAULT_SITE_KEY;
+};
+const siteKeyFromFields = (fields = {}) =>
+  siteKeyFromValue(fields["Site Key"] || fields.siteKey || fields.site_key || fields["站点"]);
+const requestedSiteKey = (req) =>
+  siteKeyFromValue(req.query?.siteKey || req.body?.siteKey || DEFAULT_SITE_KEY);
 
 const firstLineFromValue = (value) =>
   String(value || "")
@@ -175,7 +187,7 @@ const sanitizeFileName = (fileName = "image") => {
   return cleaned || "image";
 };
 
-const uploadBlobImage = async ({ fileName, mimeType, content }) => {
+const uploadBlobImage = async ({ siteKey, fileName, mimeType, content }) => {
   if (!getEnv("BLOB_READ_WRITE_TOKEN")) {
     throw new Error("Missing BLOB_READ_WRITE_TOKEN");
   }
@@ -189,7 +201,7 @@ const uploadBlobImage = async ({ fileName, mimeType, content }) => {
   }
 
   const bytes = Buffer.from(content, "base64");
-  const pathname = `xuenav/products/${Date.now()}-${sanitizeFileName(fileName)}`;
+  const pathname = `${siteKey}/products/${Date.now()}-${sanitizeFileName(fileName)}`;
   const blob = await put(pathname, bytes, {
     access: "public",
     contentType: mimeType || "application/octet-stream",
@@ -331,6 +343,7 @@ const allowedFieldsForResource = (resource) => {
 
 const normalizeProduct = (record) => ({
   recordId: record.record_id,
+  siteKey: siteKeyFromFields(record.fields),
   productId: textFromValue(record.fields?.["Product ID"]),
   name: textFromValue(record.fields?.Name),
   image: textFromValue(record.fields?.["Cover Image"]),
@@ -342,6 +355,7 @@ const normalizeProduct = (record) => ({
 
 const normalizeFaq = (record) => ({
   recordId: record.record_id,
+  siteKey: siteKeyFromFields(record.fields),
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
@@ -354,7 +368,7 @@ const normalizeFaq = (record) => ({
   status: textFromValue(record.fields?.Status) || "Published",
 });
 
-const respondWithAdminContent = async (res, token) => {
+const respondWithAdminContent = async (res, token, siteKey) => {
   const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
   const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
   const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
@@ -373,12 +387,13 @@ const respondWithAdminContent = async (res, token) => {
   ]);
 
   res.status(200).json({
-    products: products.map(normalizeProduct),
-    faqs: faqs.map(normalizeFaq),
+    siteKey,
+    products: products.map(normalizeProduct).filter((record) => record.siteKey === siteKey),
+    faqs: faqs.map(normalizeFaq).filter((record) => record.siteKey === siteKey),
   });
 };
 
-const saveRecord = async ({ token, resource, recordId, fields }) => {
+const saveRecord = async ({ token, resource, recordId, fields, siteKey }) => {
   const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
   const tableId = tableForResource(resource);
   const allowedFields = allowedFieldsForResource(resource);
@@ -388,6 +403,7 @@ const saveRecord = async ({ token, resource, recordId, fields }) => {
   }
 
   const nextFields = cleanFields(fields, allowedFields);
+  nextFields["Site Key"] = siteKey;
 
   if (resource === "product") {
     if (hasField(nextFields, "Cover Image")) {
@@ -457,7 +473,7 @@ const deleteRecord = async ({ token, resource, recordId }) => {
   return true;
 };
 
-const deleteProductWithFaqs = async ({ token, recordId }) => {
+const deleteProductWithFaqs = async ({ token, recordId, siteKey }) => {
   const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
   const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
   const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
@@ -467,7 +483,10 @@ const deleteProductWithFaqs = async ({ token, recordId }) => {
   }
 
   const productRecords = await listRecords(token, appToken, productsTable);
-  const productRecord = productRecords.find((record) => record.record_id === recordId);
+  const productRecord = productRecords.find(
+    (record) =>
+      record.record_id === recordId && normalizeProduct(record).siteKey === siteKey,
+  );
   const targetProductId = productRecord ? normalizeProduct(productRecord).productId : "";
 
   if (!targetProductId) {
@@ -476,7 +495,9 @@ const deleteProductWithFaqs = async ({ token, recordId }) => {
 
   const faqRecords = await listRecords(token, appToken, faqsTable);
   const relatedFaqRecords = faqRecords.filter(
-    (record) => normalizeFaq(record).productId === targetProductId,
+    (record) =>
+      normalizeFaq(record).siteKey === siteKey &&
+      normalizeFaq(record).productId === targetProductId,
   );
 
   await Promise.all(
@@ -489,6 +510,25 @@ const deleteProductWithFaqs = async ({ token, recordId }) => {
   return relatedFaqRecords.length;
 };
 
+const deleteSiteRecord = async ({ token, resource, recordId, siteKey }) => {
+  const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
+  const tableId = tableForResource(resource);
+  if (!appToken || !tableId || !recordId) {
+    throw new Error("Invalid resource, table configuration or record id");
+  }
+
+  const records = await listRecords(token, appToken, tableId);
+  const normalize = resource === "faq" ? normalizeFaq : normalizeProduct;
+  const matchesSite = records.some(
+    (record) => record.record_id === recordId && normalize(record).siteKey === siteKey,
+  );
+  if (!matchesSite) {
+    throw new Error("Record does not belong to the selected site");
+  }
+
+  await deleteRecord({ token, resource, recordId });
+};
+
 export default async function handler(req, res) {
   const authError = requireAdmin(req);
   if (authError) {
@@ -499,12 +539,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    const siteKey = requestedSiteKey(req);
     if (req.method === "POST") {
       const { resource, recordId, fields, fileName, mimeType, content } =
         req.body || {};
 
       if (resource === "upload") {
         const url = await uploadBlobImage({
+          siteKey,
           fileName,
           mimeType,
           content,
@@ -519,6 +561,7 @@ export default async function handler(req, res) {
         resource,
         recordId,
         fields: fields || {},
+        siteKey,
       });
       res.status(200).json({ record });
       return;
@@ -527,7 +570,7 @@ export default async function handler(req, res) {
     const token = await getTenantAccessToken();
 
     if (req.method === "GET") {
-      await respondWithAdminContent(res, token);
+      await respondWithAdminContent(res, token, siteKey);
       return;
     }
 
@@ -537,12 +580,13 @@ export default async function handler(req, res) {
         const deletedFaqCount = await deleteProductWithFaqs({
           token,
           recordId,
+          siteKey,
         });
         res.status(200).json({ ok: true, deletedFaqCount });
         return;
       }
 
-      await deleteRecord({ token, resource, recordId });
+      await deleteSiteRecord({ token, resource, recordId, siteKey });
       res.status(200).json({ ok: true });
       return;
     }

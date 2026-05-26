@@ -1,5 +1,6 @@
 <template>
   <a
+    v-if="CONTACT.whatsappNumber"
     class="whatsapp-float"
     :href="CONTACT.whatsappLink()"
     target="_blank"

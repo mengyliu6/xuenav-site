@@ -78,6 +78,7 @@ const verifyAdminStorageRouting = async () => {
   assert.equal(attachmentCalls[0].create.field_name, "Image URLs");
   assert.match(attachmentCalls[1].fields["Image URLs"], /b\.jpg/);
   assert.equal(attachmentCalls[1].fields.Images, undefined);
+  assert.equal(attachmentCalls[1].fields["Site Key"], "xuenav");
 
   const textCalls = await verifyAdminWriteTarget(1);
   assert.equal(textCalls.length, 1);
@@ -143,6 +144,14 @@ const verifyPublicImagePayload = async () => {
                 Status: "Published",
               },
             },
+            {
+              fields: {
+                "Site Key": "viknan",
+                "Product ID": "viknan-only",
+                Name: "Viknan Product",
+                Status: "Published",
+              },
+            },
           ],
         },
       });
@@ -188,6 +197,7 @@ const verifyPublicImagePayload = async () => {
 
   assert.equal(faqs[0].images.length, 2);
   assert.equal(faqs[1].images[0].url, "https://cdn.example/legacy.jpg");
+  assert.equal(captured.body.products["viknan-only"], undefined);
 };
 
 const verifyProductDeleteRemovesRelatedFaqs = async () => {
@@ -219,6 +229,10 @@ const verifyProductDeleteRemovesRelatedFaqs = async () => {
         data: {
           items: [
             { record_id: "faq-product", fields: { "Product ID": "p1" } },
+            {
+              record_id: "faq-viknan-same-id",
+              fields: { "Site Key": "viknan", "Product ID": "p1" },
+            },
             { record_id: "faq-other", fields: { "Product ID": "p2" } },
             { record_id: "faq-default", fields: { "Product ID": "__default__" } },
           ],
@@ -251,6 +265,7 @@ const verifyProductDeleteRemovesRelatedFaqs = async () => {
   assert.equal(deletedUrls.some((url) => url.includes("faq-product")), true);
   assert.equal(deletedUrls.some((url) => url.includes("faq-other")), false);
   assert.equal(deletedUrls.some((url) => url.includes("faq-default")), false);
+  assert.equal(deletedUrls.some((url) => url.includes("faq-viknan-same-id")), false);
   assert.equal(deletedUrls.some((url) => url.includes("product-record")), true);
 };
 

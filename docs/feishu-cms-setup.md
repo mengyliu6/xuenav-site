@@ -1,13 +1,24 @@
-# XUENAV 飞书多维表格后台配置说明
+# 三品牌售后网站飞书后台配置说明
 
-这套方案适合公司内部 1-2 人维护官网内容：编辑人员在飞书多维表格里改商品、图片、FAQ，官网通过 Vercel API 自动读取。
+这套方案用于 `xuenav`、`viknan`、`boxnav` 三个售后网站共用一个后台：编辑人员在飞书多维表格里按站点维护商品、图片、FAQ，官网通过 Vercel API 自动读取。
+
+## 0. 三站点配置清单
+
+代码已经支持按域名自动识别品牌，并在 `xuenav/admin` 后台切换管理站点。你需要完成这些配置：
+
+1. 在 [src/config/brands.js](../src/config/brands.js) 填写 `viknan`、`boxnav` 的正式域名、联系人、WhatsApp、邮箱和主题色。
+2. 将新品牌 Logo、白色 Logo、WhatsApp 二维码图片放入 `src/assets/images/`，在 `brands.js` 中导入并填入 `logo`、`logoWhite`、`qr`。
+3. 在 Vercel 同一个项目绑定三个正式域名；预览部署或本地测试其他品牌时设置 `VITE_DEFAULT_SITE_KEY=viknan` 或 `boxnav`。
+4. 在 Products、Gallery、FAQs 三张飞书表新增文本字段 `Site Key`。有效值严格使用 `xuenav`、`viknan`、`boxnav`。
+
+历史数据没有 `Site Key` 时会自动视为 `xuenav`。后台保存的 Products 和 FAQs 会自动写入当前选择的站点；Gallery 暂未在后台编辑，手动新增图库记录时必须填写 `Site Key`。
 
 ## 1. 创建飞书多维表格
 
 在飞书中新建一个多维表格，建议命名为：
 
 ```txt
-XUENAV 售后官网 CMS
+售后官网 CMS
 ```
 
 创建 3 张数据表：
@@ -32,6 +43,7 @@ docs/templates/feishu-faqs-template.csv
 
 | 字段名 | 类型 | 示例 | 说明 |
 | --- | --- | --- | --- |
+| Site Key | 文本 | xuenav | 所属网站，填写 `xuenav` / `viknan` / `boxnav` |
 | Product ID | 文本 | camaro-radio-10-15 | 必须和 `src/data/products.js` 里的 `id` 一致 |
 | Name | 文本 | Car Radio for Chevrolet Camaro 2010-2015 | 商品名称，也作为 Installation 页面视频标题 |
 | Cover Image | 附件或文本 URL | https://...jpg | 商品封面图 |
@@ -44,6 +56,7 @@ docs/templates/feishu-faqs-template.csv
 
 | 字段名 | 类型 | 示例 | 说明 |
 | --- | --- | --- | --- |
+| Site Key | 文本 | xuenav | 所属网站，必须填写 |
 | Product ID | 文本 | camaro-radio-10-15 | 对应商品 |
 | Image | 附件或文本 URL | https://...jpg | 商品详情页图库图片 |
 | Caption | 文本 | Dashboard installation preview | 图片说明 |
@@ -54,6 +67,7 @@ docs/templates/feishu-faqs-template.csv
 
 | 字段名 | 类型 | 示例 | 说明 |
 | --- | --- | --- | --- |
+| Site Key | 文本 | xuenav | 所属网站；后台保存时自动写入 |
 | Product ID | 文本 | camaro-radio-10-15 | 对应商品 |
 | Question | 文本 | What should I check before installation? | FAQ 问题 |
 | Answer | 多行文本 | Please confirm wiring... | FAQ 回答 |
@@ -142,7 +156,7 @@ VITE_FEISHU_BITABLE_URL
 配置完成后访问：
 
 ```txt
-/api/content
+/api/content?siteKey=xuenav
 ```
 
 正常时应返回：
@@ -150,6 +164,7 @@ VITE_FEISHU_BITABLE_URL
 ```json
 {
   "configured": true,
+  "siteKey": "xuenav",
   "products": {
     "camaro-radio-10-15": {
       "name": "...",
@@ -176,6 +191,7 @@ VITE_FEISHU_BITABLE_URL
 ## 8. 注意事项
 
 - `Product ID` 必须和代码里的商品 `id` 完全一致。
+- `Site Key` 用于隔离三个网站的数据；商品 ID 即使相同，也只会关联和删除同站点 FAQ。
 - 商品封面/图库字段可以使用飞书附件或公网 URL。FAQ 上传图片使用公开 Blob URL，并写入 `Image URLs` 多行文本字段；飞书附件字段不能直接保存该 URL。
 - 若 FAQ 表已有文本类型的 `Images` 字段，后台会继续使用该字段；若 `Images` 为附件或链接类型，后台会自动创建并改用 `Image URLs` 文本字段。
 - `Status` 为空也会显示；如果要控制上下线，填 `Published` / `已发布` 表示显示，其他状态不显示。

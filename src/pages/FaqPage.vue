@@ -12,7 +12,7 @@
         </nav>
 
         <section class="faq-hero">
-          <span class="product-eyebrow">Xuenav Support Center</span>
+          <span class="product-eyebrow">{{ BRAND.name }} Support Center</span>
           <h1>Frequently Asked Questions</h1>
           <p>
             Quick answers for model confirmation, installation troubleshooting,
@@ -42,8 +42,9 @@
             </p>
 
             <a
+              v-if="CONTACT.whatsappNumber"
               class="primary-btn"
-              :href="CONTACT.whatsappLink('Hello, I need Xuenav after-sales support. My question is: ')"
+              :href="CONTACT.whatsappLink(`Hello, I need ${BRAND.name} after-sales support. My question is: `)"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -66,15 +67,18 @@ import NavBar from "../components/NavBar.vue";
 import FooterBar from "../components/FooterBar.vue";
 import FaqList from "../components/FaqList.vue";
 import { faqs } from "../data/faqs";
-import { CONTACT } from "../config/contact";
+import { BRAND, CONTACT } from "../config/contact";
 import { getCachedContent, loadRemoteContent } from "../utils/contentManager";
 
-const content = ref(getCachedContent() || { configured: false, products: {}, defaultFaqs: [] });
+const fallbackFaqs = BRAND.siteKey === "xuenav" ? faqs : [];
+const content = ref(
+  getCachedContent(BRAND.siteKey) || { configured: false, products: {}, defaultFaqs: [] }
+);
 const managedFaqs = computed(() =>
-  content.value.defaultFaqs?.length ? content.value.defaultFaqs : faqs
+  content.value.defaultFaqs?.length ? content.value.defaultFaqs : fallbackFaqs
 );
 
 onMounted(async () => {
-  content.value = await loadRemoteContent(content.value);
+  content.value = await loadRemoteContent(content.value, BRAND.siteKey);
 });
 </script>

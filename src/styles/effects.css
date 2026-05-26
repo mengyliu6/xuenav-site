@@ -141,7 +141,7 @@
 .admin-card:hover,
 .admin-status-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(255, 106, 0, 0.22);
+  border-color: rgba(var(--main-rgb), 0.22);
   box-shadow: var(--glass-shadow);
 }
 
@@ -159,7 +159,7 @@
 .section-eyebrow,
 .category-badge,
 .admin-tabs button.active {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(255, 106, 0, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 10px 28px rgba(var(--main-rgb), 0.12);
 }
 
 .card-btn,

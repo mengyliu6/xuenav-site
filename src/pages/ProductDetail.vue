@@ -26,13 +26,13 @@
             </div>
 
             <div class="product-hero__content">
-              <span class="product-eyebrow">Xuenav After-Sales Support</span>
+              <span class="product-eyebrow">{{ BRAND.name }} After-Sales Support</span>
 
               <h1>{{ productContent.name }}</h1>
 
               <p class="product-summary">
                 Get installation guidance, troubleshooting support and product
-                confirmation for your Xuenav multimedia upgrade system.
+                confirmation for your {{ BRAND.name }} multimedia upgrade system.
               </p>
 
               <div class="product-badges">
@@ -43,6 +43,7 @@
 
               <div class="product-actions">
                 <a
+                  v-if="CONTACT.whatsappNumber"
                   class="primary-btn"
                   :href="whatsappUrl"
                   target="_blank"
@@ -51,12 +52,12 @@
                   Get Support Now
                 </a>
 
-                <button class="secondary-btn" type="button" @click="copySupportEmail">
+                <button v-if="CONTACT.email" class="secondary-btn" type="button" @click="copySupportEmail">
                   {{ emailCopied ? "Email Copied" : "Copy Support Email" }}
                 </button>
               </div>
 
-              <div class="product-email-channel">
+              <div v-if="CONTACT.email" class="product-email-channel">
                 <span>Email support</span>
                 <strong>{{ CONTACT.email }}</strong>
                 <small role="status">
@@ -145,6 +146,7 @@
             </div>
 
             <a
+              v-if="CONTACT.whatsappNumber"
               class="primary-btn white-btn"
               :href="whatsappUrl"
               target="_blank"
@@ -179,7 +181,7 @@ import FaqList from "../components/FaqList.vue";
 import VideoModal from "../components/VideoModal.vue";
 import { products } from "../data/products";
 import { faqs } from "../data/faqs";
-import { CONTACT } from "../config/contact";
+import { BRAND, CONTACT } from "../config/contact";
 import {
   getCachedContent,
   loadRemoteContent,
@@ -187,7 +189,9 @@ import {
 } from "../utils/contentManager";
 
 const route = useRoute();
-const cachedContent = getCachedContent();
+const fallbackProducts = BRAND.siteKey === "xuenav" ? products : [];
+const fallbackFaqs = BRAND.siteKey === "xuenav" ? faqs.slice(0, 4) : [];
+const cachedContent = getCachedContent(BRAND.siteKey);
 const content = ref(cachedContent || { configured: false, products: {} });
 const contentLoaded = ref(Boolean(cachedContent));
 const emailCopyStatus = ref("");
@@ -195,13 +199,13 @@ const emailCopied = ref(false);
 let emailCopyTimer = null;
 
 const productContent = computed(() =>
-  resolveProductContent(route.params.id, products, faqs.slice(0, 4), content.value)
+  resolveProductContent(route.params.id, fallbackProducts, fallbackFaqs, content.value)
 );
 
-const productFaqs = computed(() => productContent.value?.faqs || faqs.slice(0, 4));
+const productFaqs = computed(() => productContent.value?.faqs || fallbackFaqs);
 
 const whatsappUrl = computed(() => {
-  const productName = productContent.value?.name || "Xuenav product";
+  const productName = productContent.value?.name || `${BRAND.name} product`;
 
   return CONTACT.whatsappLink(
     `Hello, I need after-sales support for ${productName}. My car model/year is: . My issue is: .`
@@ -281,13 +285,13 @@ const specRows = computed(() => {
     },
     {
       label: "Contact",
-      value: `${CONTACT.whatsappDisplay} / ${CONTACT.email}`,
+      value: [CONTACT.whatsappDisplay, CONTACT.email].filter(Boolean).join(" / ") || "Contact pending",
     }
   ];
 });
 
 onMounted(async () => {
-  content.value = await loadRemoteContent(content.value);
+  content.value = await loadRemoteContent(content.value, BRAND.siteKey);
   contentLoaded.value = true;
 });
 

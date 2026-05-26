@@ -6,8 +6,9 @@
       <!-- Logo -->
       <div class="logo-side">
         <img
-          src="../assets/images/logo.png"
-          alt="XUENAV"
+          v-if="BRAND.logo"
+          :src="BRAND.logo"
+          :alt="BRAND.name"
           class="logo-img"
           width="240"
           height="72"
@@ -15,40 +16,45 @@
           fetchpriority="high"
           decoding="async"
         />
+        <span v-else class="brand-wordmark">{{ BRAND.name }}</span>
       </div>
   
       <!-- Wendy -->
       <div class="name-side">
-        <h3>{{ CONTACT.name }}</h3>
-        <p>WhatsApp Business Account</p>
+        <h3>{{ CONTACT.name || `${BRAND.name} Support` }}</h3>
+        <p>{{ CONTACT.whatsappNumber ? "WhatsApp Business Account" : "Contact details pending" }}</p>
       </div>
   
       <!-- QR -->
       <div class="qr-side">
         <img
-          src="../assets/images/qr.png"
-          alt="QR"
+          v-if="BRAND.qr && CONTACT.whatsappNumber"
+          :src="BRAND.qr"
+          :alt="`${BRAND.name} WhatsApp QR`"
           class="qr-img"
           width="112"
           height="112"
           loading="lazy"
           decoding="async"
         />
+        <span v-else>Contact</span>
       </div>
   
       <!-- Right -->
       <div class="action-side">
   
         <a
+          v-if="CONTACT.whatsappNumber"
           class="wa-btn"
           :href="CONTACT.whatsappLink()"
           target="_blank"
+          rel="noopener noreferrer"
         >
           Chat on WhatsApp
         </a>
 
-        <span>Email: {{ CONTACT.email }}</span>
-        <span>Website: {{ CONTACT.website }}</span>
+        <span v-if="CONTACT.email">Email: {{ CONTACT.email }}</span>
+        <span v-if="CONTACT.website">Website: {{ CONTACT.website }}</span>
   
       </div>
   
@@ -57,5 +63,5 @@
   </template>
   
   <script setup>
-  import { CONTACT } from "../config/contact";
+  import { BRAND, CONTACT } from "../config/contact";
   </script>

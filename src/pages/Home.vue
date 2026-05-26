@@ -8,7 +8,7 @@
       <div class="container">
         <div class="section-head support-section-head">
           <div>
-            <span class="section-eyebrow">Xuenav Support Center</span>
+            <span class="section-eyebrow">{{ BRAND.name }} Support Center</span>
             <h2>PRODUCT SUPPORT</h2>
             <p>
               Select your product model to view installation videos,
@@ -73,6 +73,7 @@ import NavBar from "../components/NavBar.vue";
 import HeroBanner from "../components/HeroBanner.vue";
 import ProductCard from "../components/ProductCard.vue";
 import FooterBar from "../components/FooterBar.vue";
+import { BRAND } from "../config/contact";
 import { products } from "../data/products";
 import {
   getCachedContent,
@@ -80,11 +81,12 @@ import {
   mergeProductsContent,
 } from "../utils/contentManager";
 
-const cachedContent = getCachedContent();
+const fallbackProducts = BRAND.siteKey === "xuenav" ? products : [];
+const cachedContent = getCachedContent(BRAND.siteKey);
 const content = ref(cachedContent || { configured: false, products: {}, defaultFaqs: [] });
 const contentReady = ref(Boolean(cachedContent));
 const searchTerm = ref("");
-const managedProducts = computed(() => mergeProductsContent(products, content.value));
+const managedProducts = computed(() => mergeProductsContent(fallbackProducts, content.value));
 const filteredProducts = computed(() => {
   const keywords = searchTerm.value.toLowerCase().split(/\s+/).filter(Boolean);
   if (!keywords.length) return managedProducts.value;
@@ -97,7 +99,7 @@ const filteredProducts = computed(() => {
 
 onMounted(async () => {
   try {
-    content.value = await loadRemoteContent(content.value);
+    content.value = await loadRemoteContent(content.value, BRAND.siteKey);
   } finally {
     contentReady.value = true;
   }

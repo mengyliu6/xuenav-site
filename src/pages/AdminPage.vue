@@ -10,8 +10,8 @@
 
     <header class="admin-topbar">
       <div class="admin-topbar__brand">
-        <span>XUENAV Admin</span>
-        <h1>XUENAV 后台管理</h1>
+        <span>Multi-site Admin</span>
+        <h1>售后网站后台管理</h1>
       </div>
 
       <section v-if="token" class="admin-status-card admin-status-card--topbar">
@@ -21,6 +21,14 @@
         </div>
 
         <div class="admin-status-actions">
+          <label class="admin-site-switch">
+            <span>管理站点</span>
+            <select v-model="adminSiteKey" :disabled="loading || uploading" @change="switchAdminSite">
+              <option v-for="site in adminSites" :key="site.siteKey" :value="site.siteKey">
+                {{ site.name }}
+              </option>
+            </select>
+          </label>
           <button
             type="button"
             class="secondary-btn"
@@ -78,7 +86,7 @@
           <span class="admin-loading-orbit admin-loading-orbit--two" aria-hidden="true"></span>
           <img :src="adminLoadingDoodle" alt="" />
         </div>
-        <span class="admin-loading-eyebrow">XUENAV Admin</span>
+        <span class="admin-loading-eyebrow">{{ activeSiteName }} Admin</span>
         <h2>正在同步后台数据</h2>
         <p>正在读取商品、FAQ 与图片内容，请稍等片刻。</p>
         <div class="admin-loading-dots" aria-hidden="true">
@@ -689,6 +697,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
+import { BRAND_OPTIONS, DEFAULT_SITE_KEY } from "../config/brands";
 import { faqs as builtInFaqs } from "../data/faqs";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
@@ -707,6 +716,11 @@ const IMAGE_MIME_TYPES = {
   webp: "image/webp",
 };
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
+const adminSites = BRAND_OPTIONS;
+const storedSiteKey = window.sessionStorage.getItem("cms_admin_site_key") || DEFAULT_SITE_KEY;
+const adminSiteKey = ref(
+  adminSites.some((site) => site.siteKey === storedSiteKey) ? storedSiteKey : DEFAULT_SITE_KEY
+);
 const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
 const tokenInput = ref("");
 const loading = ref(false);
@@ -731,6 +745,16 @@ const productImageUpload = reactive({
   message: "",
   state: "",
 });
+const activeSiteName = computed(
+  () => adminSites.find((site) => site.siteKey === adminSiteKey.value)?.name || "XUENAV"
+);
+const siteBuiltInFaqs = computed(() =>
+  builtInFaqs.map((faq) => ({
+    ...faq,
+    question: faq.question.replaceAll("XUENAV", activeSiteName.value),
+    answer: faq.answer.replaceAll("XUENAV", activeSiteName.value),
+  }))
+);
 
 const emptyProduct = () => ({
   recordId: "",
@@ -809,7 +833,7 @@ const statusText = computed(() => {
   if (uploading.value) return "图片上传成功后，请继续点击保存按钮。";
   if (loading.value) return "正在读取或写入后台数据，请稍等。";
   if (error.value) return error.value;
-  return `当前已读取 ${products.value.length} 个商品，${defaultFaqs.value.length} 条默认 FAQ，${faqs.value.length} 条全部 FAQ。`;
+  return `${activeSiteName.value}：当前已读取 ${products.value.length} 个商品，${defaultFaqs.value.length} 条默认 FAQ，${faqs.value.length} 条全部 FAQ。`;
 });
 
 const notify = (message, type = "info") => {
@@ -985,7 +1009,7 @@ const compressProductCover = async (file) => {
 };
 
 const requestAdmin = async (method = "GET", body) => {
-  const response = await fetch("/api/admin", {
+  const response = await fetch(`/api/admin?siteKey=${encodeURIComponent(adminSiteKey.value)}`, {
     method,
     headers: {
       accept: "application/json",
@@ -1211,6 +1235,18 @@ const loadAdminContent = async () => {
     dataReady.value = true;
     loading.value = false;
   }
+};
+
+const switchAdminSite = async () => {
+  window.sessionStorage.setItem("cms_admin_site_key", adminSiteKey.value);
+  products.value = [];
+  faqs.value = [];
+  activeTab.value = "products";
+  previewFaqProductId.value = "";
+  assignProductDraft(emptyProduct());
+  dataReady.value = false;
+  notify(`正在切换到 ${activeSiteName.value} 数据...`, "info");
+  await loadAdminContent();
 };
 
 const saveToken = () => {
@@ -1517,7 +1553,7 @@ const importBuiltInFaqs = async () => {
   const existingQuestions = new Set(
     defaultFaqs.value.map((faq) => String(faq.question || "").trim().toLowerCase())
   );
-  const pending = builtInFaqs.filter(
+  const pending = siteBuiltInFaqs.value.filter(
     (faq) => !existingQuestions.has(faq.question.trim().toLowerCase())
   );
   if (!pending.length) {

@@ -16,7 +16,7 @@
 
       <div v-else class="video-card__text">
         <span>Support Details</span>
-        <strong>{{ title || "Xuenav Product Support" }}</strong>
+        <strong>{{ title || `${BRAND.name} Product Support` }}</strong>
         <p>Contact us for model confirmation, installation help and troubleshooting.</p>
       </div>
 
@@ -44,6 +44,7 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { BRAND } from "../config/contact";
 
 const props = defineProps({
   videoUrl: {

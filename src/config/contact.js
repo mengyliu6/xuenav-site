@@ -1,17 +1,18 @@
-export const CONTACT = {
-  name: "Wendy",
-  whatsappDisplay: "+86 134 3447 3048",
-  whatsappNumber: "8613434473048",
-  email: "xuenav666@163.com",
-  website: "www.xuenav.com",
+import { CURRENT_BRAND } from "./brands";
 
-  whatsappLink(message = "Hello, I need Xuenav after-sales support.") {
+export const BRAND = CURRENT_BRAND;
+export const CONTACT = {
+  ...CURRENT_BRAND.contact,
+
+  whatsappLink(message = `Hello, I need ${CURRENT_BRAND.name} after-sales support.`) {
+    if (!this.whatsappNumber) return "";
     return `https://wa.me/${this.whatsappNumber}?text=${encodeURIComponent(
       message
     )}`;
   },
 
-  emailLink(subject = "Xuenav After-sales Support") {
+  emailLink(subject = `${CURRENT_BRAND.name} After-sales Support`) {
+    if (!this.email) return "";
     return `mailto:${this.email}?subject=${encodeURIComponent(subject)}`;
   },
 };

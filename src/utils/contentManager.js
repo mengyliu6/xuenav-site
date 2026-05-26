@@ -1,5 +1,5 @@
 const isBrowser = () => typeof window !== "undefined";
-const CONTENT_CACHE_KEY = "xuenav_remote_content_v1";
+const CONTENT_CACHE_KEY = "remote_content_v2";
 const CONTENT_CACHE_TTL = 5 * 60 * 1000;
 
 const emptyContent = () => ({
@@ -25,6 +25,7 @@ const normalizeFaqs = (items = []) =>
     .filter((item) => item.question && item.answer);
 
 const normalizeContent = (data, fallback = emptyContent()) => ({
+  siteKey: String(data?.siteKey || fallback.siteKey || ""),
   products: data?.products && typeof data.products === "object"
     ? data.products
     : fallback.products || {},
@@ -35,11 +36,13 @@ const normalizeContent = (data, fallback = emptyContent()) => ({
   error: data?.error || "",
 });
 
-export const getCachedContent = () => {
+const cacheKeyForSite = (siteKey) => `${CONTENT_CACHE_KEY}:${siteKey}`;
+
+export const getCachedContent = (siteKey = "xuenav") => {
   if (!isBrowser()) return null;
 
   try {
-    const cached = JSON.parse(window.sessionStorage.getItem(CONTENT_CACHE_KEY) || "null");
+    const cached = JSON.parse(window.sessionStorage.getItem(cacheKeyForSite(siteKey)) || "null");
     if (!cached?.savedAt || Date.now() - cached.savedAt > CONTENT_CACHE_TTL) return null;
     return normalizeContent(cached.content);
   } catch {
@@ -47,12 +50,12 @@ export const getCachedContent = () => {
   }
 };
 
-const cacheContent = (content) => {
+const cacheContent = (content, siteKey) => {
   if (!isBrowser() || !content?.configured) return;
 
   try {
     window.sessionStorage.setItem(
-      CONTENT_CACHE_KEY,
+      cacheKeyForSite(siteKey),
       JSON.stringify({
         savedAt: Date.now(),
         content,
@@ -63,11 +66,11 @@ const cacheContent = (content) => {
   }
 };
 
-export const loadRemoteContent = async (fallback = emptyContent()) => {
+export const loadRemoteContent = async (fallback = emptyContent(), siteKey = "xuenav") => {
   if (!isBrowser()) return fallback;
 
   try {
-    const response = await fetch("/api/content", {
+    const response = await fetch(`/api/content?siteKey=${encodeURIComponent(siteKey)}`, {
       headers: { accept: "application/json" },
     });
 
@@ -75,10 +78,10 @@ export const loadRemoteContent = async (fallback = emptyContent()) => {
 
     const data = await response.json();
     const content = normalizeContent(data, fallback);
-    cacheContent(content);
+    cacheContent(content, siteKey);
     return content;
   } catch {
-    return getCachedContent() || fallback;
+    return getCachedContent(siteKey) || fallback;
   }
 };
 

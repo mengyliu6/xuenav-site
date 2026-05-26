@@ -8,17 +8,19 @@
       <div class="footer-brand">
   
         <img
-          src="../assets/images/logo-white.png"
-          alt="XUENAV"
+          v-if="BRAND.logoWhite"
+          :src="BRAND.logoWhite"
+          :alt="BRAND.name"
           class="footer-logo"
           width="240"
           height="72"
           loading="lazy"
           decoding="async"
         />
+        <span v-else class="footer-wordmark">{{ BRAND.name }}</span>
   
         <p class="footer-desc">
-          XUENAV provides professional after-sales support
+          {{ BRAND.name }} provides professional after-sales support
           for automotive multimedia systems, CarPlay,
           Android Auto and OEM integration solutions.
         </p>
@@ -48,12 +50,13 @@
   
         <h4>CONTACT US</h4>
   
-        <p>WhatsApp: {{ CONTACT.name }}</p>
-          <p>{{ CONTACT.whatsappDisplay }}</p>
-          <p>Email: {{ CONTACT.email }}</p>
-          <p>Website: {{ CONTACT.website }}</p>
+        <p v-if="CONTACT.name">WhatsApp: {{ CONTACT.name }}</p>
+          <p v-if="CONTACT.whatsappDisplay">{{ CONTACT.whatsappDisplay }}</p>
+          <p v-if="CONTACT.email">Email: {{ CONTACT.email }}</p>
+          <p v-if="CONTACT.website">Website: {{ CONTACT.website }}</p>
 
           <a
+            v-if="CONTACT.whatsappNumber"
             class="footer-btn"
             :href="CONTACT.whatsappLink()"
             target="_blank"
@@ -63,8 +66,9 @@
           </a>
   
         <img
-          src="../assets/images/qr.png"
-          alt="QR Code"
+          v-if="BRAND.qr && CONTACT.whatsappNumber"
+          :src="BRAND.qr"
+          :alt="`${BRAND.name} WhatsApp QR Code`"
           class="footer-qr"
           width="130"
           height="130"
@@ -77,7 +81,7 @@
     </div>
   
     <div class="copy">
-      © 2026 XUENAV. All Rights Reserved.
+      &copy; 2026 {{ BRAND.name }}. All Rights Reserved.
     </div>
   
   </footer>
@@ -85,5 +89,5 @@
   
   <script setup>
   import { RouterLink } from "vue-router";
-  import { CONTACT } from "../config/contact";
+  import { BRAND, CONTACT } from "../config/contact";
   </script>

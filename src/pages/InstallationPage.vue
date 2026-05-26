@@ -13,15 +13,16 @@
 
         <section class="installation-hero">
           <div>
-            <span class="product-eyebrow">Xuenav Video Center</span>
+            <span class="product-eyebrow">{{ BRAND.name }} Video Center</span>
             <h1>Installation Videos</h1>
             <p>
-              Watch installation and product demonstration videos for Xuenav
+              Watch installation and product demonstration videos for {{ BRAND.name }}
               CarPlay, car radio and digital cluster solutions.
             </p>
           </div>
 
           <a
+            v-if="CONTACT.whatsappNumber"
             class="primary-btn"
             :href="CONTACT.whatsappLink('Hello, I need help finding an installation video for my vehicle. My car model/year is: ')"
             target="_blank"
@@ -88,6 +89,7 @@
             }}
           </p>
           <a
+            v-if="CONTACT.whatsappNumber"
             class="primary-btn"
             :href="CONTACT.whatsappLink('Hello, I need an installation guide for my vehicle. My car model/year is: ')"
             target="_blank"
@@ -110,7 +112,7 @@ import FooterBar from "../components/FooterBar.vue";
 import HeaderBar from "../components/HeaderBar.vue";
 import NavBar from "../components/NavBar.vue";
 import VideoModal from "../components/VideoModal.vue";
-import { CONTACT } from "../config/contact";
+import { BRAND, CONTACT } from "../config/contact";
 import { products } from "../data/products";
 import {
   getCachedContent,
@@ -118,11 +120,12 @@ import {
   mergeProductsContent,
 } from "../utils/contentManager";
 
-const cachedContent = getCachedContent();
+const fallbackProducts = BRAND.siteKey === "xuenav" ? products : [];
+const cachedContent = getCachedContent(BRAND.siteKey);
 const content = ref(cachedContent || { configured: false, products: {}, defaultFaqs: [] });
 const contentReady = ref(Boolean(cachedContent));
 const searchTerm = ref("");
-const managedProducts = computed(() => mergeProductsContent(products, content.value));
+const managedProducts = computed(() => mergeProductsContent(fallbackProducts, content.value));
 
 const hasYoutubeVideo = (value) => {
   try {
@@ -157,7 +160,7 @@ const filteredVideos = computed(() => {
 
 onMounted(async () => {
   try {
-    content.value = await loadRemoteContent(content.value);
+    content.value = await loadRemoteContent(content.value, BRAND.siteKey);
   } finally {
     contentReady.value = true;
   }

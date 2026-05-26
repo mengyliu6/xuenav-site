@@ -1,7 +1,10 @@
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
+const DEFAULT_SITE_KEY = "xuenav";
+const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav"]);
 
 const FIELD_ALIASES = {
+  siteKey: ["Site Key", "siteKey", "site_key", "\u7ad9\u70b9"],
   productId: ["Product ID", "productId", "product_id", "\u5546\u54c1ID", "\u5546\u54c1 ID"],
   name: ["Name", "Product Name", "name", "\u5546\u54c1\u540d\u79f0", "\u4ea7\u54c1\u540d\u79f0"],
   image: ["Cover Image", "Cover", "Image", "image", "\u5c01\u9762\u56fe", "\u5c01\u9762\u56fe\u7247"],
@@ -126,6 +129,17 @@ const imagesFromValue = (value) => {
     })
     .filter((item) => item.url);
 };
+
+const siteKeyFromValue = (value) => {
+  const key = textFromValue(value).toLowerCase();
+  return SITE_KEYS.has(key) ? key : DEFAULT_SITE_KEY;
+};
+
+const requestedSiteKey = (req) =>
+  siteKeyFromValue(req.query?.siteKey || req.query?.site || DEFAULT_SITE_KEY);
+
+const belongsToSite = (record, siteKey) =>
+  siteKeyFromValue(getField(record.fields || {}, "siteKey")) === siteKey;
 
 const faqImagesFromFields = (fields) => {
   const imageUrls = imagesFromValue(fields["Image URLs"]);
@@ -299,6 +313,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const siteKey = requestedSiteKey(req);
     const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
     const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
     const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
@@ -307,6 +322,7 @@ export default async function handler(req, res) {
     if (!appToken || !productsTable) {
       res.status(200).json({
         configured: false,
+        siteKey,
         products: {},
       });
       return;
@@ -322,11 +338,17 @@ export default async function handler(req, res) {
     res.setHeader("cache-control", "s-maxage=60, stale-while-revalidate=300");
     res.status(200).json({
       configured: true,
-      ...toContent({ products, faqs, gallery }),
+      siteKey,
+      ...toContent({
+        products: products.filter((record) => belongsToSite(record, siteKey)),
+        faqs: faqs.filter((record) => belongsToSite(record, siteKey)),
+        gallery: gallery.filter((record) => belongsToSite(record, siteKey)),
+      }),
     });
   } catch (error) {
     res.status(500).json({
       configured: false,
+      siteKey: requestedSiteKey(req),
       products: {},
       error: error.message || "Failed to load content",
     });

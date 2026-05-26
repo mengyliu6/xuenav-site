@@ -2,7 +2,7 @@
   <section class="hero-banner">
     <div class="hero-mask">
       <div class="container hero-content">
-        <h1>XUENAV</h1>
+        <h1>{{ BRAND.name }}</h1>
 
         <h2>
           AFTER-SALES SUPPORT<br />
@@ -16,3 +16,7 @@
     </div>
   </section>
 </template>
+
+<script setup>
+import { BRAND } from "../config/contact";
+</script>
