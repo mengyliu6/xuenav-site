@@ -639,19 +639,21 @@
 
             <label class="admin-banner-picker">
               <input type="file" accept="image/*" :disabled="uploading" @change="uploadBannerImage" />
-              <span>{{ siteSettings.bannerImage ? "选择新 Banner 图片" : "上传 Banner 图片" }}</span>
+              <span>{{ siteSettings.bannerImage ? "选择新 Banner 图片" : "上传自定义 Banner 图片" }}</span>
             </label>
 
             <div
               class="admin-banner-preview"
-              :style="siteSettings.bannerImage ? { backgroundImage: `linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.18)), url('${siteSettings.bannerImage}')` } : {}"
+              :style="bannerPreviewStyle"
             >
               <div class="admin-banner-preview__copy">
                 <strong>{{ activeSiteName }}</strong>
                 <h3>AFTER-SALES SUPPORT CENTER</h3>
                 <p>Homepage desktop preview</p>
               </div>
-              <span v-if="!siteSettings.bannerImage">上传图片后在这里预览首页展示效果</span>
+              <span v-if="!siteSettings.bannerImage">
+                {{ bannerPreviewImage ? "当前显示品牌默认 Banner" : "上传图片后在这里预览首页展示效果" }}
+              </span>
             </div>
 
             <p
@@ -804,6 +806,19 @@ const bannerUpload = reactive({
 });
 const activeSiteName = computed(
   () => adminSites.find((site) => site.siteKey === adminSiteKey.value)?.name || "当前站点"
+);
+const activeAdminSite = computed(() =>
+  adminSites.find((site) => site.siteKey === adminSiteKey.value)
+);
+const bannerPreviewImage = computed(
+  () => siteSettings.bannerImage || activeAdminSite.value?.defaultBanner || ""
+);
+const bannerPreviewStyle = computed(() =>
+  bannerPreviewImage.value
+    ? {
+        backgroundImage: `linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.18)), url('${bannerPreviewImage.value}')`,
+      }
+    : {}
 );
 const siteBuiltInFaqs = computed(() =>
   builtInFaqs.map((faq) => ({
@@ -1221,7 +1236,7 @@ const uploadBannerImage = async (event) => {
 const clearBanner = () => {
   siteSettings.bannerImage = "";
   bannerUpload.state = "info";
-  bannerUpload.message = "图片已清空，请点击“保存 Banner”使首页恢复默认背景图。";
+  bannerUpload.message = "图片已清空，请点击“保存 Banner”使首页恢复该品牌默认 Banner。";
 };
 
 const saveBanner = async () => {

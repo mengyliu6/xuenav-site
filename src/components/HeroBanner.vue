@@ -29,8 +29,9 @@ const props = defineProps({
 });
 
 const bannerStyle = computed(() => {
-  const image = String(props.bannerImage || "").trim();
-  if (!/^https?:\/\//i.test(image)) return {};
+  const customImage = String(props.bannerImage || "").trim();
+  const image = /^https?:\/\//i.test(customImage) ? customImage : BRAND.defaultBanner;
+  if (!image) return {};
   return { "--hero-image": `url("${image.replaceAll('"', "%22")}")` };
 });
 </script>

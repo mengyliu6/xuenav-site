@@ -4,6 +4,9 @@ import xuenavQr from "../assets/images/qrWendy.png";
 import qrAbby from "../assets/images/qrAbby.png";
 import qrHai from "../assets/images/qrHai.png";
 import beautytreesLogo from "../assets/images/logoHai.png";
+import viknanBanner from "../assets/images/product/range-rover-l405-climate-control.jpg";
+import boxnavBanner from "../assets/images/product/image (8).jpeg";
+import beautytreesBanner from "../assets/images/product/image (19).jpeg";
 
 export const DEFAULT_SITE_KEY = "xuenav";
 
@@ -44,6 +47,7 @@ export const BRANDS = {
     logo: "",
     logoWhite: "",
     qr: qrAbby,
+    defaultBanner: viknanBanner,
     contact: {
       name: "Abby",
       whatsappDisplay: "+86 135 4428 3617",
@@ -73,6 +77,7 @@ export const BRANDS = {
     logo: "",
     logoWhite: "",
     qr: qrAbby,
+    defaultBanner: boxnavBanner,
     contact: {
       name: "Abby",
       whatsappDisplay: "+86 135 4428 3617",
@@ -102,6 +107,7 @@ export const BRANDS = {
     logo: beautytreesLogo,
     logoWhite: beautytreesLogo,
     qr: qrHai,
+    defaultBanner: beautytreesBanner,
     contact: {
       name: "Hai",
       whatsappDisplay: "",
@@ -126,9 +132,10 @@ export const BRANDS = {
   },
 };
 
-export const BRAND_OPTIONS = Object.values(BRANDS).map(({ siteKey, name }) => ({
+export const BRAND_OPTIONS = Object.values(BRANDS).map(({ siteKey, name, defaultBanner }) => ({
   siteKey,
   name,
+  defaultBanner: defaultBanner || "",
 }));
 
 const normalizeSiteKey = (value) => {

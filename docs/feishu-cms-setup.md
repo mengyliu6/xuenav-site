@@ -52,6 +52,8 @@ docs/templates/feishu-faqs-template.csv
 
 后台保存首页 Banner 时会自动在 Products 表写入一条 `Product ID` 为 `__site_settings__` 的记录。该记录由程序过滤，不会显示成商品。
 
+`VIKNAN`、`BOXNAV` 与 `BEAUTYTREES` 在未保存 Banner 配置时会显示代码内置的品牌默认图；通过后台上传并保存后，自定义图片会优先展示。`XUENAV` 保持原首页默认图不变。
+
 ## 3. FAQs 商品 FAQ 表字段
 
 | 字段名 | 类型 | 示例 | 说明 |
