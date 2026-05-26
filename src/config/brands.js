@@ -110,9 +110,9 @@ export const BRANDS = {
     defaultBanner: beautytreesBanner,
     contact: {
       name: "Hai",
-      whatsappDisplay: "",
-      whatsappNumber: "",
-      email: "",
+      whatsappDisplay: "+86 134 2383 3705",
+      whatsappNumber: "8613423833705",
+      email: "autostereo@163.com",
       website: "www.beautytrees.com",
     },
     theme: {
@@ -132,11 +132,13 @@ export const BRANDS = {
   },
 };
 
-export const BRAND_OPTIONS = Object.values(BRANDS).map(({ siteKey, name, defaultBanner }) => ({
-  siteKey,
-  name,
-  defaultBanner: defaultBanner || "",
-}));
+export const BRAND_OPTIONS = Object.values(BRANDS).map(
+  ({ siteKey, name, defaultBanner }) => ({
+    siteKey,
+    name,
+    defaultBanner: defaultBanner || "",
+  }),
+);
 
 const normalizeSiteKey = (value) => {
   const key = String(value || "")

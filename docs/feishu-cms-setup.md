@@ -48,7 +48,7 @@ docs/templates/feishu-faqs-template.csv
 | Video URL | 文本 | https://www.youtube.com/watch?v=... | 安装视频链接，可留空 |
 | Start | 数字 | 0 | 视频开始秒数，可留空 |
 | Sort | 数字 | 1 | 排序，从小到大 |
-| Status | 单选/文本 | Published | `Published` 或 `已发布` 才显示 |
+| Status | 单选/文本 | Published | 留空、`Published` 或 `已发布` 时显示 |
 
 后台保存首页 Banner 时会自动在 Products 表写入一条 `Product ID` 为 `__site_settings__` 的记录。该记录由程序过滤，不会显示成商品。
 
@@ -65,7 +65,7 @@ docs/templates/feishu-faqs-template.csv
 | Image URLs | 多行文本 | https://...jpg | FAQ 图片公开 URL，每行一张 |
 | Images | 附件或文本 URL | https://...jpg | 旧数据兼容字段 |
 | Sort | 数字 | 1 | 排序 |
-| Status | 单选/文本 | Published | 发布状态 |
+| Status | 单选/文本 | Published | 留空、`Published` 或 `已发布` 时显示 |
 
 后台“默认 FAQ”页签可将网站内置 FAQ 写入飞书表，已存在的相同问题会跳过。
 
