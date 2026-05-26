@@ -1,6 +1,8 @@
 import xuenavLogo from "../assets/images/logo.png";
 import xuenavLogoWhite from "../assets/images/logo-white.png";
-import xuenavQr from "../assets/images/qr.png";
+import xuenavQr from "../assets/images/qrWendy.png";
+import qrAbby from "../assets/images/qrAbby.png";
+import qrHai from "../assets/images/qrHai.png";
 
 export const DEFAULT_SITE_KEY = "xuenav";
 
@@ -34,12 +36,12 @@ export const BRANDS = {
     hosts: ["viknan.com", "www.viknan.com"],
     logo: "",
     logoWhite: "",
-    qr: "",
+    qr: qrAbby,
     contact: {
-      name: "",
-      whatsappDisplay: "",
-      whatsappNumber: "",
-      email: "",
+      name: "Abby",
+      whatsappDisplay: "+86 135 4428 3617",
+      whatsappNumber: "8613544283617",
+      email: "abby@viknav.com",
       website: "www.viknan.com",
     },
     theme: {
@@ -57,12 +59,12 @@ export const BRANDS = {
     hosts: ["boxnav.com", "www.boxnav.com"],
     logo: "",
     logoWhite: "",
-    qr: "",
+    qr: qrAbby,
     contact: {
-      name: "",
-      whatsappDisplay: "",
-      whatsappNumber: "",
-      email: "",
+      name: "Abby",
+      whatsappDisplay: "+86 135 4428 3617",
+      whatsappNumber: "8613544283617",
+      email: "abby@viknav.com",
       website: "www.boxnav.com",
     },
     theme: {
@@ -82,7 +84,9 @@ export const BRAND_OPTIONS = Object.values(BRANDS).map(({ siteKey, name }) => ({
 }));
 
 const normalizeSiteKey = (value) => {
-  const key = String(value || "").trim().toLowerCase();
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
   return BRANDS[key] ? key : "";
 };
 
@@ -90,12 +94,14 @@ export const resolveSiteKey = () => {
   const hostname =
     typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
   const matchedBrand = Object.values(BRANDS).find((brand) =>
-    brand.hosts.includes(hostname)
+    brand.hosts.includes(hostname),
   );
 
   if (matchedBrand) return matchedBrand.siteKey;
 
-  const configuredFallback = normalizeSiteKey(import.meta.env.VITE_DEFAULT_SITE_KEY);
+  const configuredFallback = normalizeSiteKey(
+    import.meta.env.VITE_DEFAULT_SITE_KEY,
+  );
   return configuredFallback || DEFAULT_SITE_KEY;
 };
 
@@ -106,7 +112,10 @@ export const applyBrandTheme = (brand = CURRENT_BRAND) => {
 
   const root = document.documentElement;
   Object.entries(brand.theme).forEach(([key, value]) => {
-    const variableName = key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    const variableName = key.replace(
+      /[A-Z]/g,
+      (letter) => `-${letter.toLowerCase()}`,
+    );
     root.style.setProperty(`--${variableName}`, value);
   });
   document.title = `${brand.name} After-Sales Support`;
