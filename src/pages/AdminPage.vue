@@ -14,21 +14,13 @@
         <h1>售后网站后台管理</h1>
       </div>
 
-      <section v-if="token" class="admin-status-card admin-status-card--topbar">
+      <section v-if="isAuthenticated" class="admin-status-card admin-status-card--topbar">
         <div>
           <h2>{{ statusTitle }}</h2>
           <p>{{ statusText }}</p>
         </div>
 
         <div class="admin-status-actions">
-          <label class="admin-site-switch">
-            <span>管理站点</span>
-            <select v-model="adminSiteKey" :disabled="loading || uploading" @change="switchAdminSite">
-              <option v-for="site in adminSites" :key="site.siteKey" :value="site.siteKey">
-                {{ site.name }}
-              </option>
-            </select>
-          </label>
           <button
             type="button"
             class="secondary-btn"
@@ -37,7 +29,7 @@
           >
             刷新数据
           </button>
-          <button type="button" class="secondary-btn" @click="clearToken">
+          <button type="button" class="secondary-btn" @click="clearSession">
             退出登录
           </button>
         </div>
@@ -56,19 +48,25 @@
       </div>
     </header>
 
-    <main v-if="!token" class="admin-auth">
-      <form @submit.prevent="saveToken">
+    <main v-if="!isAuthenticated" class="admin-auth">
+      <form @submit.prevent="signIn">
         <span>运营后台登录</span>
-        <h2>请输入后台管理令牌</h2>
+        <h2>登录你负责的网站后台</h2>
         <p>
-          登录后可以维护官网商品、封面图片、商品 FAQ 和全站默认
-          FAQ。令牌由技术同事在 Vercel 环境变量
-          <code>ADMIN_API_TOKEN</code> 中配置。
+          每个品牌使用独立账号，登录后仅可维护对应网站的商品、首页
+          Banner 与 FAQ 内容。
         </p>
         <input
-          v-model="tokenInput"
+          v-model.trim="loginUsername"
+          type="text"
+          autocomplete="username"
+          placeholder="请输入账号"
+        />
+        <input
+          v-model="loginPassword"
           type="password"
-          placeholder="请输入 Admin Token"
+          autocomplete="current-password"
+          placeholder="请输入密码"
         />
         <button type="submit" class="primary-btn">进入后台</button>
       </form>
@@ -115,6 +113,13 @@
             >
               默认 FAQ
             </button>
+            <button
+              type="button"
+              :class="{ active: activeTab === 'banner' }"
+              @click="activeTab = 'banner'"
+            >
+              首页 Banner
+            </button>
           </nav>
 
           <aside
@@ -134,24 +139,14 @@
 
             <div class="admin-product-list">
               <button
-                v-for="(item, index) in sortedProducts"
+                v-for="item in sortedProducts"
                 :key="item.recordId || item.productId"
                 type="button"
-                :draggable="!loading && !uploading"
-                :aria-grabbed="draggingProductId === itemKey(item)"
                 :class="{
                   active: item.productId === productDraft.productId,
-                  'is-dragging': draggingProductId === itemKey(item),
-                  'is-drop-target': dragOverProductId === itemKey(item),
                 }"
-                @dragstart="startProductDrag(item)"
-                @dragenter.prevent="setProductDropTarget(item)"
-                @dragover.prevent="setProductDropTarget(item)"
-                @drop.prevent="dropProduct(index)"
-                @dragend="endDrag"
                 @click="selectProduct(item)"
               >
-                <span class="admin-drag-handle" aria-hidden="true">↕</span>
                 <strong>{{ item.name || "未命名商品" }}</strong>
                 <small>{{ item.productId || "未填写商品 ID" }}</small>
               </button>
@@ -458,7 +453,7 @@
           </article>
         </section>
 
-        <section v-else class="admin-editor-main">
+        <section v-else-if="activeTab === 'defaultFaq'" class="admin-editor-main">
           <article class="admin-card">
             <div class="admin-card-head">
               <div class="admin-section-title">
@@ -627,6 +622,62 @@
             </button>
           </article>
         </section>
+
+        <section v-else class="admin-editor-main">
+          <article class="admin-card admin-banner-editor">
+            <div class="admin-card-head">
+              <div class="admin-section-title">
+                <span>Homepage Banner</span>
+                <h2>{{ activeSiteName }} 首页主视觉</h2>
+              </div>
+            </div>
+
+            <p class="admin-help-text">
+              推荐图片尺寸 <strong>1920 x 560 px</strong> 或同等宽屏比例，JPG / PNG /
+              WebP，单张不超过 3 MB。重要内容建议放在图片中间区域，移动端裁切时更安全。
+            </p>
+
+            <label class="admin-banner-picker">
+              <input type="file" accept="image/*" :disabled="uploading" @change="uploadBannerImage" />
+              <span>{{ siteSettings.bannerImage ? "选择新 Banner 图片" : "上传 Banner 图片" }}</span>
+            </label>
+
+            <div
+              class="admin-banner-preview"
+              :style="siteSettings.bannerImage ? { backgroundImage: `linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.18)), url('${siteSettings.bannerImage}')` } : {}"
+            >
+              <div class="admin-banner-preview__copy">
+                <strong>{{ activeSiteName }}</strong>
+                <h3>AFTER-SALES SUPPORT CENTER</h3>
+                <p>Homepage desktop preview</p>
+              </div>
+              <span v-if="!siteSettings.bannerImage">上传图片后在这里预览首页展示效果</span>
+            </div>
+
+            <p
+              v-if="bannerUpload.message"
+              class="admin-upload-result"
+              :class="`admin-upload-result--${bannerUpload.state}`"
+              role="status"
+            >
+              {{ bannerUpload.message }}
+            </p>
+
+            <div class="admin-actions">
+              <button type="button" class="primary-btn" :disabled="loading || uploading" @click="saveBanner">
+                保存 Banner
+              </button>
+              <button
+                type="button"
+                class="secondary-btn"
+                :disabled="loading || uploading || !siteSettings.bannerImage"
+                @click="clearBanner"
+              >
+                清空图片
+              </button>
+            </div>
+          </article>
+        </section>
       </section>
     </main>
 
@@ -697,7 +748,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
-import { BRAND_OPTIONS, DEFAULT_SITE_KEY } from "../config/brands";
+import { BRAND_OPTIONS } from "../config/brands";
 import { faqs as builtInFaqs } from "../data/faqs";
 
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
@@ -717,22 +768,20 @@ const IMAGE_MIME_TYPES = {
 };
 const bitableUrl = import.meta.env.VITE_FEISHU_BITABLE_URL || "";
 const adminSites = BRAND_OPTIONS;
-const storedSiteKey = window.sessionStorage.getItem("cms_admin_site_key") || DEFAULT_SITE_KEY;
-const adminSiteKey = ref(
-  adminSites.some((site) => site.siteKey === storedSiteKey) ? storedSiteKey : DEFAULT_SITE_KEY
-);
-const token = ref(window.sessionStorage.getItem("xuenav_admin_token") || "");
-const tokenInput = ref("");
+const username = ref("");
+const password = ref("");
+const loginUsername = ref("");
+const loginPassword = ref("");
+const isAuthenticated = ref(false);
+const adminSiteKey = ref("");
 const loading = ref(false);
-const dataReady = ref(!token.value);
+const dataReady = ref(true);
 const uploading = ref(false);
 const error = ref("");
 const products = ref([]);
 const faqs = ref([]);
 const activeTab = ref("products");
-const draggingProductId = ref("");
 const draggingFaqId = ref("");
-const dragOverProductId = ref("");
 const dragOverFaqId = ref("");
 const activeUploadDropzone = ref("");
 const previewFaqProductId = ref("");
@@ -745,8 +794,16 @@ const productImageUpload = reactive({
   message: "",
   state: "",
 });
+const siteSettings = reactive({
+  recordId: "",
+  bannerImage: "",
+});
+const bannerUpload = reactive({
+  message: "",
+  state: "",
+});
 const activeSiteName = computed(
-  () => adminSites.find((site) => site.siteKey === adminSiteKey.value)?.name || "XUENAV"
+  () => adminSites.find((site) => site.siteKey === adminSiteKey.value)?.name || "当前站点"
 );
 const siteBuiltInFaqs = computed(() =>
   builtInFaqs.map((faq) => ({
@@ -805,7 +862,7 @@ const defaultFaqs = computed(() =>
   sortItems(faqs.value.filter((item) => item.productId === DEFAULT_FAQ_PRODUCT_ID))
 );
 
-const showingInitialLoader = computed(() => Boolean(token.value && !dataReady.value));
+const showingInitialLoader = computed(() => Boolean(isAuthenticated.value && !dataReady.value));
 
 const previewFaqItems = computed(() => {
   if (!previewFaqProductId.value) return [];
@@ -1009,12 +1066,13 @@ const compressProductCover = async (file) => {
 };
 
 const requestAdmin = async (method = "GET", body) => {
-  const response = await fetch(`/api/admin?siteKey=${encodeURIComponent(adminSiteKey.value)}`, {
+  const response = await fetch("/api/admin", {
     method,
     headers: {
       accept: "application/json",
       "content-type": "application/json",
-      "x-admin-token": token.value,
+      "x-admin-username": username.value,
+      "x-admin-password": password.value,
     },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -1135,6 +1193,64 @@ const handleProductCoverFile = async (file) => {
   }
 };
 
+const uploadBannerImage = async (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) return;
+
+  uploading.value = true;
+  error.value = "";
+  bannerUpload.state = "uploading";
+  bannerUpload.message = "正在上传首页 Banner 图片...";
+
+  try {
+    siteSettings.bannerImage = await uploadImage(file);
+    bannerUpload.state = "success";
+    bannerUpload.message = "图片已上传并可预览，请点击“保存 Banner”写入当前网站。";
+    notify(bannerUpload.message, "success");
+  } catch (err) {
+    error.value = err?.message || "上传 Banner 图片失败。";
+    bannerUpload.state = "error";
+    bannerUpload.message = error.value;
+    notify(error.value, "error");
+  } finally {
+    uploading.value = false;
+  }
+};
+
+const clearBanner = () => {
+  siteSettings.bannerImage = "";
+  bannerUpload.state = "info";
+  bannerUpload.message = "图片已清空，请点击“保存 Banner”使首页恢复默认背景图。";
+};
+
+const saveBanner = async () => {
+  loading.value = true;
+  error.value = "";
+  notify("正在保存首页 Banner...", "info");
+
+  try {
+    await requestAdmin("POST", {
+      resource: "settings",
+      recordId: siteSettings.recordId,
+      fields: {
+        "Cover Image": siteSettings.bannerImage,
+      },
+    });
+    await loadAdminContent();
+    bannerUpload.state = "success";
+    bannerUpload.message = "首页 Banner 已保存，官网缓存刷新后显示最新图片。";
+    notify(bannerUpload.message, "success");
+  } catch (err) {
+    error.value = err?.message || "保存 Banner 失败。";
+    bannerUpload.state = "error";
+    bannerUpload.message = error.value;
+    notify(error.value, "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
 const uploadFaqImageFiles = async (files, faq) => {
   const imageFiles = [...files].filter((file) => imageMimeType(file));
   if (!imageFiles.length) {
@@ -1212,15 +1328,18 @@ const clearProductImage = () => {
 };
 
 const loadAdminContent = async () => {
-  if (!token.value) return;
+  if (!isAuthenticated.value) return false;
 
   loading.value = true;
   error.value = "";
 
   try {
     const data = await requestAdmin();
+    adminSiteKey.value = data.siteKey || "";
     products.value = data.products || [];
     faqs.value = data.faqs || [];
+    siteSettings.recordId = data.settings?.recordId || "";
+    siteSettings.bannerImage = data.settings?.bannerImage || "";
 
     const current =
       products.value.find(
@@ -1228,47 +1347,52 @@ const loadAdminContent = async () => {
       ) || products.value[0];
     if (current) assignProductDraft(current);
     notify("后台数据已刷新。", "success");
+    return true;
   } catch (err) {
     error.value = err?.message || "读取后台数据失败。";
     notify(error.value, "error");
+    return false;
   } finally {
     dataReady.value = true;
     loading.value = false;
   }
 };
 
-const switchAdminSite = async () => {
-  window.sessionStorage.setItem("cms_admin_site_key", adminSiteKey.value);
-  products.value = [];
-  faqs.value = [];
-  activeTab.value = "products";
-  previewFaqProductId.value = "";
-  assignProductDraft(emptyProduct());
-  dataReady.value = false;
-  notify(`正在切换到 ${activeSiteName.value} 数据...`, "info");
-  await loadAdminContent();
-};
-
-const saveToken = () => {
-  const nextToken = tokenInput.value.trim();
-  if (!nextToken) {
-    notify("请先输入后台管理令牌。", "error");
+const signIn = async () => {
+  if (!loginUsername.value || !loginPassword.value) {
+    notify("请输入账号和密码。", "error");
     return;
   }
 
   dataReady.value = false;
-  token.value = nextToken;
-  window.sessionStorage.setItem("xuenav_admin_token", token.value);
+  username.value = loginUsername.value;
+  password.value = loginPassword.value;
+  isAuthenticated.value = true;
   notify("正在进入后台...", "info");
-  loadAdminContent();
+  const success = await loadAdminContent();
+  if (success) {
+    loginPassword.value = "";
+    return;
+  }
+
+  isAuthenticated.value = false;
+  dataReady.value = true;
+  username.value = "";
+  password.value = "";
 };
 
-const clearToken = () => {
-  token.value = "";
+const clearSession = () => {
+  isAuthenticated.value = false;
   dataReady.value = true;
-  tokenInput.value = "";
+  username.value = "";
+  password.value = "";
+  loginUsername.value = "";
+  loginPassword.value = "";
+  adminSiteKey.value = "";
   products.value = [];
   faqs.value = [];
+  siteSettings.recordId = "";
+  siteSettings.bannerImage = "";
   assignProductDraft(emptyProduct());
   window.sessionStorage.removeItem("xuenav_admin_token");
   notify("已退出后台。", "success");
@@ -1280,9 +1404,7 @@ const selectProduct = (item) => {
 };
 
 const endDrag = () => {
-  draggingProductId.value = "";
   draggingFaqId.value = "";
-  dragOverProductId.value = "";
   dragOverFaqId.value = "";
 };
 
@@ -1291,71 +1413,6 @@ const moveItem = (items, fromIndex, toIndex) => {
   const [moved] = next.splice(fromIndex, 1);
   next.splice(toIndex, 0, moved);
   return next;
-};
-
-const startProductDrag = (item) => {
-  draggingProductId.value = itemKey(item);
-  dragOverProductId.value = "";
-};
-
-const setProductDropTarget = (item) => {
-  dragOverProductId.value =
-    draggingProductId.value && itemKey(item) !== draggingProductId.value
-      ? itemKey(item)
-      : "";
-};
-
-const saveProductOrder = async (orderedProducts) => {
-  loading.value = true;
-  error.value = "";
-  notify("正在保存商品排序...", "info");
-
-  try {
-    await Promise.all(
-      orderedProducts
-        .filter((item) => item.recordId)
-        .map((item, index) =>
-          requestAdmin("POST", {
-            resource: "product",
-            recordId: item.recordId,
-            fields: {
-              Sort: index + 1,
-            },
-          })
-        )
-    );
-    notify("商品排序已保存，首页会按左侧从上到下显示。", "success");
-  } catch (err) {
-    error.value = err?.message || "保存商品排序失败。";
-    notify(error.value, "error");
-    await loadAdminContent();
-  } finally {
-    loading.value = false;
-  }
-};
-
-const dropProduct = async (targetIndex) => {
-  dragOverProductId.value = "";
-  const fromIndex = sortedProducts.value.findIndex(
-    (item) => itemKey(item) === draggingProductId.value
-  );
-  if (fromIndex < 0 || fromIndex === targetIndex) return;
-
-  const orderedProducts = moveItem(
-    sortedProducts.value,
-    fromIndex,
-    targetIndex
-  ).map((item, index) => ({
-    ...item,
-    sort: index + 1,
-  }));
-
-  products.value = orderedProducts;
-  const current = orderedProducts.find(
-    (item) => item.productId === productDraft.productId
-  );
-  if (current) productDraft.sort = current.sort;
-  await saveProductOrder(orderedProducts);
 };
 
 const startFaqDrag = (faq) => {
@@ -1679,5 +1736,7 @@ const deleteFaq = async (faq) => {
   }
 };
 
-onMounted(loadAdminContent);
+onMounted(() => {
+  window.sessionStorage.removeItem("cms_admin_session");
+});
 </script>

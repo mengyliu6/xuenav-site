@@ -2,8 +2,9 @@ import { put } from "@vercel/blob";
 
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 const FAQ_IMAGE_URL_FIELD = "Image URLs";
+const SETTINGS_PRODUCT_ID = "__site_settings__";
 const DEFAULT_SITE_KEY = "xuenav";
-const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav"]);
+const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav", "beautytrees"]);
 
 const PRODUCTS_FIELDS = [
   "Site Key",
@@ -34,8 +35,6 @@ const siteKeyFromValue = (value) => {
 };
 const siteKeyFromFields = (fields = {}) =>
   siteKeyFromValue(fields["Site Key"] || fields.siteKey || fields.site_key || fields["站点"]);
-const requestedSiteKey = (req) =>
-  siteKeyFromValue(req.query?.siteKey || req.body?.siteKey || DEFAULT_SITE_KEY);
 
 const firstLineFromValue = (value) =>
   String(value || "")
@@ -43,19 +42,31 @@ const firstLineFromValue = (value) =>
     .map((item) => item.trim())
     .filter(Boolean)[0] || "";
 
-const requireAdmin = (req) => {
-  const expected = getEnv("ADMIN_API_TOKEN");
-  const received = req.headers["x-admin-token"];
+const ADMIN_SITES = [
+  { siteKey: "xuenav", envKey: "XUENAV" },
+  { siteKey: "viknan", envKey: "VIKNAN" },
+  { siteKey: "boxnav", envKey: "BOXNAV" },
+  { siteKey: "beautytrees", envKey: "BEAUTYTREES" },
+];
 
-  if (!expected) {
-    return "Missing ADMIN_API_TOKEN";
+const authenticateAdmin = (req) => {
+  const username = String(req.headers["x-admin-username"] || "").trim();
+  const password = String(req.headers["x-admin-password"] || "");
+  const configuredSites = ADMIN_SITES.map((site) => ({
+    siteKey: site.siteKey,
+    username: getEnv(`ADMIN_${site.envKey}_USERNAME`),
+    password: getEnv(`ADMIN_${site.envKey}_PASSWORD`),
+  })).filter((site) => site.username && site.password);
+
+  if (!configuredSites.length) {
+    return { error: "Missing admin account environment variables" };
   }
 
-  if (!received || received !== expected) {
-    return "Invalid admin token";
-  }
+  const matchedSite = configuredSites.find(
+    (site) => site.username === username && site.password === password,
+  );
 
-  return "";
+  return matchedSite || { error: "Invalid administrator username or password" };
 };
 
 const textFromValue = (value) => {
@@ -330,13 +341,13 @@ const resolveFaqImageUrlsField = async (token, appToken, tableId) => {
 };
 
 const tableForResource = (resource) => {
-  if (resource === "product") return getEnv("FEISHU_PRODUCTS_TABLE_ID");
+  if (resource === "product" || resource === "settings") return getEnv("FEISHU_PRODUCTS_TABLE_ID");
   if (resource === "faq") return getEnv("FEISHU_FAQS_TABLE_ID");
   return "";
 };
 
 const allowedFieldsForResource = (resource) => {
-  if (resource === "product") return PRODUCTS_FIELDS;
+  if (resource === "product" || resource === "settings") return PRODUCTS_FIELDS;
   if (resource === "faq") return FAQ_FIELDS;
   return [];
 };
@@ -385,10 +396,16 @@ const respondWithAdminContent = async (res, token, siteKey) => {
     listRecords(token, appToken, productsTable),
     listRecords(token, appToken, faqsTable),
   ]);
+  const siteProducts = products.map(normalizeProduct).filter((record) => record.siteKey === siteKey);
+  const settingsRecord = siteProducts.find((record) => record.productId === SETTINGS_PRODUCT_ID);
 
   res.status(200).json({
     siteKey,
-    products: products.map(normalizeProduct).filter((record) => record.siteKey === siteKey),
+    settings: {
+      recordId: settingsRecord?.recordId || "",
+      bannerImage: settingsRecord?.image || "",
+    },
+    products: siteProducts.filter((record) => record.productId !== SETTINGS_PRODUCT_ID),
     faqs: faqs.map(normalizeFaq).filter((record) => record.siteKey === siteKey),
   });
 };
@@ -402,10 +419,36 @@ const saveRecord = async ({ token, resource, recordId, fields, siteKey }) => {
     throw new Error("Invalid resource or missing table configuration");
   }
 
+  if (recordId) {
+    const records = await listRecords(token, appToken, tableId);
+    const normalize = resource === "faq" ? normalizeFaq : normalizeProduct;
+    const existing = records.find((record) => record.record_id === recordId);
+    const normalized = existing ? normalize(existing) : null;
+
+    if (!normalized || normalized.siteKey !== siteKey) {
+      throw new Error("Record does not belong to the signed-in site");
+    }
+
+    if (resource === "settings" && normalized.productId !== SETTINGS_PRODUCT_ID) {
+      throw new Error("Invalid homepage settings record");
+    }
+
+    if (resource === "product" && normalized.productId === SETTINGS_PRODUCT_ID) {
+      throw new Error("Homepage settings cannot be edited as a product");
+    }
+  }
+
   const nextFields = cleanFields(fields, allowedFields);
   nextFields["Site Key"] = siteKey;
 
-  if (resource === "product") {
+  if (resource === "settings") {
+    nextFields["Product ID"] = SETTINGS_PRODUCT_ID;
+    nextFields.Name = "Homepage Banner";
+    nextFields.Status = "Published";
+    nextFields.Sort = 0;
+  }
+
+  if (resource === "product" || resource === "settings") {
     if (hasField(nextFields, "Cover Image")) {
       nextFields["Cover Image"] = linkFieldFromValue(nextFields["Cover Image"]);
     }
@@ -493,6 +536,10 @@ const deleteProductWithFaqs = async ({ token, recordId, siteKey }) => {
     throw new Error("Cannot resolve product ID before deleting related FAQs");
   }
 
+  if (targetProductId === SETTINGS_PRODUCT_ID) {
+    throw new Error("Homepage settings cannot be deleted as a product");
+  }
+
   const faqRecords = await listRecords(token, appToken, faqsTable);
   const relatedFaqRecords = faqRecords.filter(
     (record) =>
@@ -530,16 +577,16 @@ const deleteSiteRecord = async ({ token, resource, recordId, siteKey }) => {
 };
 
 export default async function handler(req, res) {
-  const authError = requireAdmin(req);
-  if (authError) {
+  const admin = authenticateAdmin(req);
+  if (admin.error) {
     res
-      .status(authError.startsWith("Missing") ? 500 : 401)
-      .json({ error: authError });
+      .status(admin.error.startsWith("Missing") ? 500 : 401)
+      .json({ error: admin.error });
     return;
   }
 
   try {
-    const siteKey = requestedSiteKey(req);
+    const siteKey = admin.siteKey;
     if (req.method === "POST") {
       const { resource, recordId, fields, fileName, mimeType, content } =
         req.body || {};

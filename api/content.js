@@ -1,7 +1,8 @@
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
+const SETTINGS_PRODUCT_ID = "__site_settings__";
 const DEFAULT_SITE_KEY = "xuenav";
-const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav"]);
+const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav", "beautytrees"]);
 
 const FIELD_ALIASES = {
   siteKey: ["Site Key", "siteKey", "site_key", "\u7ad9\u70b9"],
@@ -14,7 +15,6 @@ const FIELD_ALIASES = {
   sort: ["Sort", "sort", "\u6392\u5e8f"],
   question: ["Question", "question", "\u95ee\u9898"],
   answer: ["Answer", "answer", "\u56de\u7b54", "\u7b54\u6848"],
-  galleryImage: ["Image", "Images", "Gallery Image", "image", "\u56fe\u7247", "\u5546\u54c1\u56fe\u7247"],
   faqImages: [
     "Image URLs",
     "Images",
@@ -23,7 +23,6 @@ const FIELD_ALIASES = {
     "\u56fe\u7247",
     "FAQ\u56fe\u7247",
   ],
-  caption: ["Caption", "caption", "\u8bf4\u660e", "\u56fe\u7247\u8bf4\u660e"],
 };
 
 const getEnv = (name) => process.env[name] || "";
@@ -238,8 +237,8 @@ const listRecords = async (token, appToken, tableId) => {
   return records.filter((record) => isPublished(record.fields || {})).sort(sortRecords);
 };
 
-const toContent = ({ products, faqs, gallery }) => {
-  const content = { products: {}, defaultFaqs: [] };
+const toContent = ({ products, faqs }) => {
+  const content = { products: {}, defaultFaqs: [], settings: { bannerImage: "" } };
 
   products.forEach((record) => {
     const fields = record.fields || {};
@@ -250,31 +249,19 @@ const toContent = ({ products, faqs, gallery }) => {
       imagesFromValue(getField(fields, "image"))[0]?.url ||
       textFromValue(getField(fields, "image"));
 
+    if (productId === SETTINGS_PRODUCT_ID) {
+      content.settings.bannerImage = cover;
+      return;
+    }
+
     content.products[productId] = {
       name: textFromValue(getField(fields, "name")),
       image: cover,
       videoUrl: textFromValue(getField(fields, "videoUrl")),
       start: Number(textFromValue(getField(fields, "start")) || 0),
       sort: Number(textFromValue(getField(fields, "sort")) || 0),
-      gallery: [],
       faqs: [],
     };
-  });
-
-  gallery.forEach((record) => {
-    const fields = record.fields || {};
-    const productId = textFromValue(getField(fields, "productId"));
-    if (!productId) return;
-
-    const product = content.products[productId];
-    if (!product) return;
-
-    imagesFromValue(getField(fields, "galleryImage")).forEach((image) => {
-      product.gallery.push({
-        url: image.url,
-        caption: textFromValue(getField(fields, "caption")) || image.caption,
-      });
-    });
   });
 
   faqs.forEach((record) => {
@@ -317,9 +304,8 @@ export default async function handler(req, res) {
     const appToken = getEnv("FEISHU_BITABLE_APP_TOKEN");
     const productsTable = getEnv("FEISHU_PRODUCTS_TABLE_ID");
     const faqsTable = getEnv("FEISHU_FAQS_TABLE_ID");
-    const galleryTable = getEnv("FEISHU_GALLERY_TABLE_ID");
 
-    if (!appToken || !productsTable) {
+    if (!appToken || !productsTable || !faqsTable) {
       res.status(200).json({
         configured: false,
         siteKey,
@@ -329,10 +315,9 @@ export default async function handler(req, res) {
     }
 
     const token = await getTenantAccessToken();
-    const [products, faqs, gallery] = await Promise.all([
+    const [products, faqs] = await Promise.all([
       listRecords(token, appToken, productsTable),
       listRecords(token, appToken, faqsTable),
-      listRecords(token, appToken, galleryTable),
     ]);
 
     res.setHeader("cache-control", "s-maxage=60, stale-while-revalidate=300");
@@ -342,7 +327,6 @@ export default async function handler(req, res) {
       ...toContent({
         products: products.filter((record) => belongsToSite(record, siteKey)),
         faqs: faqs.filter((record) => belongsToSite(record, siteKey)),
-        gallery: gallery.filter((record) => belongsToSite(record, siteKey)),
       }),
     });
   } catch (error) {

@@ -2,7 +2,7 @@
   <div class="site-wrap">
     <HeaderBar />
     <NavBar />
-    <HeroBanner />
+    <HeroBanner :banner-image="content.settings?.bannerImage" />
 
     <main id="support-products" class="section-area support-section">
       <div class="container">

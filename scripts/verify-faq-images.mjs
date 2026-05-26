@@ -7,6 +7,11 @@ const response = (data) => ({
   json: async () => data,
 });
 
+const xuenavHeaders = {
+  "x-admin-username": "xuenav-admin",
+  "x-admin-password": "xuenav-secret",
+};
+
 const resCapture = () => {
   const captured = {};
   return {
@@ -30,6 +35,12 @@ const verifyAdminWriteTarget = async (imagesType) => {
     if (url.includes("tenant_access_token")) {
       return response({ code: 0, tenant_access_token: "tenant" });
     }
+    if (url.includes("/tables/faqs/records?")) {
+      return response({
+        code: 0,
+        data: { items: [{ record_id: "rec", fields: { "Product ID": "p1" } }] },
+      });
+    }
     if (url.includes("/fields") && !options.method) {
       return response({
         code: 0,
@@ -39,6 +50,12 @@ const verifyAdminWriteTarget = async (imagesType) => {
     if (url.endsWith("/fields") && options.method === "POST") {
       calls.push({ create: JSON.parse(options.body) });
       return response({ code: 0 });
+    }
+    if (url.includes("/records?") && !options.method) {
+      return response({
+        code: 0,
+        data: { items: [{ record_id: "rec", fields: { "Product ID": "p1" } }] },
+      });
     }
     if (url.includes("/records/rec") && options.method === "PUT") {
       calls.push({ fields: JSON.parse(options.body).fields });
@@ -51,7 +68,7 @@ const verifyAdminWriteTarget = async (imagesType) => {
   await adminHandler(
     {
       method: "POST",
-      headers: { "x-admin-token": "token" },
+      headers: xuenavHeaders,
       body: {
         resource: "faq",
         recordId: "rec",
@@ -68,7 +85,8 @@ const verifyAdminWriteTarget = async (imagesType) => {
 };
 
 const verifyAdminStorageRouting = async () => {
-  process.env.ADMIN_API_TOKEN = "token";
+  process.env.ADMIN_XUENAV_USERNAME = xuenavHeaders["x-admin-username"];
+  process.env.ADMIN_XUENAV_PASSWORD = xuenavHeaders["x-admin-password"];
   process.env.FEISHU_APP_ID = "id";
   process.env.FEISHU_APP_SECRET = "secret";
   process.env.FEISHU_BITABLE_APP_TOKEN = "app";
@@ -91,8 +109,20 @@ const verifyTextOnlyFaqDoesNotChangeSchema = async () => {
     if (url.includes("tenant_access_token")) {
       return response({ code: 0, tenant_access_token: "tenant" });
     }
+    if (url.includes("/tables/faqs/records?")) {
+      return response({
+        code: 0,
+        data: { items: [{ record_id: "rec", fields: { "Product ID": "p1" } }] },
+      });
+    }
     if (url.includes("/fields")) {
       throw new Error("Text-only FAQ should not inspect image fields.");
+    }
+    if (url.includes("/records?") && !options.method) {
+      return response({
+        code: 0,
+        data: { items: [{ record_id: "rec", fields: { "Product ID": "p1" } }] },
+      });
     }
     if (url.includes("/records/rec") && options.method === "PUT") {
       const fields = JSON.parse(options.body).fields;
@@ -106,7 +136,7 @@ const verifyTextOnlyFaqDoesNotChangeSchema = async () => {
   await adminHandler(
     {
       method: "POST",
-      headers: { "x-admin-token": "token" },
+      headers: xuenavHeaders,
       body: {
         resource: "faq",
         recordId: "rec",
@@ -125,7 +155,6 @@ const verifyPublicImagePayload = async () => {
   process.env.FEISHU_BITABLE_APP_TOKEN = "app";
   process.env.FEISHU_PRODUCTS_TABLE_ID = "products";
   process.env.FEISHU_FAQS_TABLE_ID = "faqs";
-  process.env.FEISHU_GALLERY_TABLE_ID = "gallery";
 
   global.fetch = async (url) => {
     if (url.includes("tenant_access_token")) {
@@ -136,6 +165,13 @@ const verifyPublicImagePayload = async () => {
         code: 0,
         data: {
           items: [
+            {
+              fields: {
+                "Product ID": "__site_settings__",
+                "Cover Image": "https://cdn.example/banner.jpg",
+                Status: "Published",
+              },
+            },
             {
               fields: {
                 "Product ID": "p1",
@@ -185,9 +221,6 @@ const verifyPublicImagePayload = async () => {
         },
       });
     }
-    if (url.includes("/gallery/")) {
-      return response({ code: 0, data: { items: [] } });
-    }
     throw new Error(`Unexpected content fetch: ${url}`);
   };
 
@@ -198,10 +231,13 @@ const verifyPublicImagePayload = async () => {
   assert.equal(faqs[0].images.length, 2);
   assert.equal(faqs[1].images[0].url, "https://cdn.example/legacy.jpg");
   assert.equal(captured.body.products["viknan-only"], undefined);
+  assert.equal(captured.body.products.__site_settings__, undefined);
+  assert.equal(captured.body.settings.bannerImage, "https://cdn.example/banner.jpg");
 };
 
 const verifyProductDeleteRemovesRelatedFaqs = async () => {
-  process.env.ADMIN_API_TOKEN = "token";
+  process.env.ADMIN_XUENAV_USERNAME = xuenavHeaders["x-admin-username"];
+  process.env.ADMIN_XUENAV_PASSWORD = xuenavHeaders["x-admin-password"];
   process.env.FEISHU_APP_ID = "id";
   process.env.FEISHU_APP_SECRET = "secret";
   process.env.FEISHU_BITABLE_APP_TOKEN = "app";
@@ -250,7 +286,7 @@ const verifyProductDeleteRemovesRelatedFaqs = async () => {
   await adminHandler(
     {
       method: "DELETE",
-      headers: { "x-admin-token": "token" },
+      headers: xuenavHeaders,
       body: {
         resource: "product",
         recordId: "product-record",
@@ -269,8 +305,120 @@ const verifyProductDeleteRemovesRelatedFaqs = async () => {
   assert.equal(deletedUrls.some((url) => url.includes("product-record")), true);
 };
 
+const verifyAdminAccountCannotSwitchSite = async () => {
+  process.env.ADMIN_VIKNAN_USERNAME = "viknan-admin";
+  process.env.ADMIN_VIKNAN_PASSWORD = "viknan-secret";
+  process.env.FEISHU_APP_ID = "id";
+  process.env.FEISHU_APP_SECRET = "secret";
+  process.env.FEISHU_BITABLE_APP_TOKEN = "app";
+  process.env.FEISHU_PRODUCTS_TABLE_ID = "products";
+  process.env.FEISHU_FAQS_TABLE_ID = "faqs";
+
+  global.fetch = async (url) => {
+    if (url.includes("tenant_access_token")) {
+      return response({ code: 0, tenant_access_token: "tenant" });
+    }
+    if (url.includes("/tables/products/records?")) {
+      return response({
+        code: 0,
+        data: {
+          items: [
+            { record_id: "x-product", fields: { "Product ID": "x", Name: "Xuenav" } },
+            {
+              record_id: "v-product",
+              fields: { "Site Key": "viknan", "Product ID": "v", Name: "Viknan" },
+            },
+          ],
+        },
+      });
+    }
+    if (url.includes("/tables/faqs/records?")) {
+      return response({ code: 0, data: { items: [] } });
+    }
+    throw new Error(`Unexpected site isolation fetch: ${url}`);
+  };
+
+  const { captured, res } = resCapture();
+  await adminHandler(
+    {
+      method: "GET",
+      query: { siteKey: "xuenav" },
+      headers: {
+        "x-admin-username": "viknan-admin",
+        "x-admin-password": "viknan-secret",
+      },
+    },
+    res,
+  );
+
+  assert.equal(captured.status, 200);
+  assert.equal(captured.body.siteKey, "viknan");
+  assert.deepEqual(captured.body.products.map((product) => product.productId), ["v"]);
+
+  const blocked = resCapture();
+  const originalConsoleError = console.error;
+  console.error = () => {};
+  try {
+    await adminHandler(
+      {
+        method: "POST",
+        headers: {
+          "x-admin-username": "viknan-admin",
+          "x-admin-password": "viknan-secret",
+        },
+        body: {
+          resource: "product",
+          recordId: "x-product",
+          fields: { Name: "Should not overwrite Xuenav" },
+        },
+      },
+      blocked.res,
+    );
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  assert.equal(blocked.captured.status, 500);
+  assert.match(blocked.captured.body.error, /signed-in site/);
+};
+
+const verifyBannerSavesAsHiddenSettingsProduct = async () => {
+  let savedFields;
+  global.fetch = async (url, options = {}) => {
+    if (url.includes("tenant_access_token")) {
+      return response({ code: 0, tenant_access_token: "tenant" });
+    }
+    if (url.includes("/tables/products/records") && options.method === "POST") {
+      savedFields = JSON.parse(options.body).fields;
+      return response({ code: 0, data: { record: {} } });
+    }
+    throw new Error(`Unexpected banner fetch: ${options.method || "GET"} ${url}`);
+  };
+
+  const { captured, res } = resCapture();
+  await adminHandler(
+    {
+      method: "POST",
+      headers: xuenavHeaders,
+      body: {
+        resource: "settings",
+        fields: { "Cover Image": "https://cdn.example/banner-1920x560.jpg" },
+      },
+    },
+    res,
+  );
+
+  assert.equal(captured.status, 200);
+  assert.equal(savedFields["Product ID"], "__site_settings__");
+  assert.equal(savedFields["Site Key"], "xuenav");
+  assert.equal(savedFields.Name, "Homepage Banner");
+  assert.equal(savedFields["Cover Image"].link, "https://cdn.example/banner-1920x560.jpg");
+};
+
 await verifyAdminStorageRouting();
 await verifyTextOnlyFaqDoesNotChangeSchema();
 await verifyPublicImagePayload();
 await verifyProductDeleteRemovesRelatedFaqs();
-console.log("FAQ image storage, rendering and product cascade deletion verified.");
+await verifyAdminAccountCannotSwitchSite();
+await verifyBannerSavesAsHiddenSettingsProduct();
+console.log("FAQ images, banner settings, cascading deletion and account site isolation verified.");

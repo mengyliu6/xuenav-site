@@ -5,6 +5,7 @@ const CONTENT_CACHE_TTL = 5 * 60 * 1000;
 const emptyContent = () => ({
   products: {},
   defaultFaqs: [],
+  settings: { bannerImage: "" },
 });
 
 const normalizeImages = (images = []) =>
@@ -32,6 +33,9 @@ const normalizeContent = (data, fallback = emptyContent()) => ({
   defaultFaqs: Array.isArray(data?.defaultFaqs)
     ? normalizeFaqs(data.defaultFaqs)
     : normalizeFaqs(fallback.defaultFaqs),
+  settings: {
+    bannerImage: String(data?.settings?.bannerImage || fallback.settings?.bannerImage || "").trim(),
+  },
   configured: Boolean(data?.configured),
   error: data?.error || "",
 });
@@ -96,13 +100,6 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
   const videoUrl =
     typeof override.videoUrl === "string" ? override.videoUrl : product.videoUrl || "";
   const defaultFaqs = normalizeFaqs(content?.defaultFaqs);
-  const gallery = normalizeImages(override.gallery).length
-    ? normalizeImages(override.gallery)
-    : normalizeImages(product.gallery).length
-      ? normalizeImages(product.gallery)
-      : image
-        ? [{ url: image, caption: name || "Product image" }]
-        : [];
   const productFaqs = normalizeFaqs(override.faqs).length
     ? normalizeFaqs(override.faqs)
     : normalizeFaqs(product.faqs).length
@@ -118,9 +115,7 @@ export const mergeProductContent = (product, fallbackFaqs = [], content) => {
     videoUrl,
     start: Number(override.start ?? product.start ?? 0),
     sort: Number(override.sort ?? product.sort ?? 0),
-    gallery,
     faqs: productFaqs,
-    hasCustomGallery: normalizeImages(override.gallery).length > 0,
     hasCustomFaqs: normalizeFaqs(override.faqs).length > 0,
   };
 };

@@ -1,5 +1,5 @@
 <template>
-  <section class="hero-banner">
+  <section class="hero-banner" :style="bannerStyle">
     <div class="hero-mask">
       <div class="container hero-content">
         <h1>{{ BRAND.name }}</h1>
@@ -18,5 +18,19 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { BRAND } from "../config/contact";
+
+const props = defineProps({
+  bannerImage: {
+    type: String,
+    default: "",
+  },
+});
+
+const bannerStyle = computed(() => {
+  const image = String(props.bannerImage || "").trim();
+  if (!/^https?:\/\//i.test(image)) return {};
+  return { "--hero-image": `url("${image.replaceAll('"', "%22")}")` };
+});
 </script>

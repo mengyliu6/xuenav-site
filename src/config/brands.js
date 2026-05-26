@@ -3,6 +3,7 @@ import xuenavLogoWhite from "../assets/images/logo-white.png";
 import xuenavQr from "../assets/images/qrWendy.png";
 import qrAbby from "../assets/images/qrAbby.png";
 import qrHai from "../assets/images/qrHai.png";
+import beautytreesLogo from "../assets/images/logoHai.png";
 
 export const DEFAULT_SITE_KEY = "xuenav";
 
@@ -24,8 +25,14 @@ export const BRANDS = {
     theme: {
       main: "#ff6a00",
       mainRgb: "255, 106, 0",
+      accent: "#ff9345",
+      accentRgb: "255, 147, 69",
       mainDark: "#e85d00",
       mainLight: "#ffedd5",
+      surfaceTint: "#fff7ed",
+      navStart: "#17120f",
+      navEnd: "#2b211a",
+      navText: "#fff7ed",
       dark: "#07111c",
       dark2: "#0e1a27",
     },
@@ -47,8 +54,14 @@ export const BRANDS = {
     theme: {
       main: "#2563eb",
       mainRgb: "37, 99, 235",
+      accent: "#38bdf8",
+      accentRgb: "56, 189, 248",
       mainDark: "#1d4ed8",
       mainLight: "#dbeafe",
+      surfaceTint: "#eff6ff",
+      navStart: "#101b34",
+      navEnd: "#1e293b",
+      navText: "#eff6ff",
       dark: "#07111c",
       dark2: "#0e1a27",
     },
@@ -70,10 +83,45 @@ export const BRANDS = {
     theme: {
       main: "#0f766e",
       mainRgb: "15, 118, 110",
+      accent: "#2dd4bf",
+      accentRgb: "45, 212, 191",
       mainDark: "#115e59",
       mainLight: "#ccfbf1",
+      surfaceTint: "#f0fdfa",
+      navStart: "#092d2b",
+      navEnd: "#112f31",
+      navText: "#f0fdfa",
       dark: "#07111c",
       dark2: "#0e1a27",
+    },
+  },
+  beautytrees: {
+    siteKey: "beautytrees",
+    name: "BEAUTYTREES",
+    hosts: ["beautytrees.com", "www.beautytrees.com"],
+    logo: beautytreesLogo,
+    logoWhite: beautytreesLogo,
+    qr: qrHai,
+    contact: {
+      name: "Hai",
+      whatsappDisplay: "",
+      whatsappNumber: "",
+      email: "",
+      website: "www.beautytrees.com",
+    },
+    theme: {
+      main: "#286bd2",
+      mainRgb: "40, 107, 210",
+      accent: "#43308e",
+      accentRgb: "67, 48, 142",
+      mainDark: "#312579",
+      mainLight: "#e6eeff",
+      surfaceTint: "#f1f5ff",
+      navStart: "#12162d",
+      navEnd: "#27204b",
+      navText: "#eef3ff",
+      dark: "#11172e",
+      dark2: "#211b42",
     },
   },
 };
