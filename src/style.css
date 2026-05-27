@@ -329,9 +329,9 @@ a {
   right: 0;
   width: min(720px, 58vw);
   height: 100%;
-  opacity: 0.86;
+  opacity: 0.5;
   transform: translate(var(--hud-shift-x), var(--hud-shift-y));
-  transition: transform 0.2s ease-out;
+  transition: transform 0.44s ease-out;
 }
 
 .hero-hud__arc,
@@ -342,40 +342,40 @@ a {
 }
 
 .hero-hud__arc {
-  stroke: rgba(var(--accent-rgb), 0.48);
+  stroke: rgba(var(--accent-rgb), 0.22);
   stroke-width: 1px;
   stroke-dasharray: 3 9;
-  animation: hero-hud-arc 10s linear infinite;
+  animation: hero-hud-arc 22s linear infinite;
 }
 
 .hero-hud__arc--inner {
-  stroke: rgba(var(--main-rgb), 0.34);
+  stroke: rgba(var(--main-rgb), 0.16);
   animation-direction: reverse;
-  animation-duration: 13s;
+  animation-duration: 28s;
 }
 
 .hero-hud__route {
-  stroke: rgba(var(--accent-rgb), 0.42);
-  stroke-width: 1.2px;
+  stroke: rgba(var(--accent-rgb), 0.25);
+  stroke-width: 1px;
   stroke-dasharray: 7 8;
 }
 
 .hero-hud__trace {
-  stroke: var(--accent);
-  stroke-width: 2.3px;
+  stroke: rgba(var(--accent-rgb), 0.58);
+  stroke-width: 1.35px;
   stroke-linecap: round;
   stroke-dasharray: 13 87;
-  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.78));
-  animation: hero-hud-trace 2.7s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), 0.18));
+  animation: hero-hud-trace 7.2s linear infinite;
 }
 
 .hero-hud__node {
-  fill: rgba(var(--main-rgb), 0.9);
-  stroke: rgba(255, 255, 255, 0.88);
-  stroke-width: 1.5px;
+  fill: rgba(var(--main-rgb), 0.52);
+  stroke: rgba(255, 255, 255, 0.48);
+  stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
-  animation: hero-hud-node 2.4s ease-in-out infinite;
+  animation: hero-hud-node 5.6s ease-in-out infinite;
 }
 
 .hero-hud__node--two {
@@ -384,52 +384,6 @@ a {
 
 .hero-hud__node--three {
   animation-delay: 1s;
-}
-
-.hero-hud__target {
-  position: absolute;
-  left: var(--hud-x, 76%);
-  top: var(--hud-y, 52%);
-  width: 58px;
-  height: 58px;
-  border: 1px solid rgba(var(--accent-rgb), 0.7);
-  border-radius: 50%;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.72);
-  transition:
-    opacity 0.18s ease,
-    transform 0.22s ease;
-}
-
-.hero-hud__target::before {
-  content: "";
-  position: absolute;
-  inset: 8px;
-  border: 1px dashed rgba(var(--main-rgb), 0.85);
-  border-radius: inherit;
-  animation: hero-hud-spin 3.2s linear infinite;
-}
-
-.hero-hud__target i,
-.hero-hud__target i::after {
-  position: absolute;
-  content: "";
-  top: 50%;
-  left: 50%;
-  width: 72px;
-  height: 1px;
-  background: rgba(var(--accent-rgb), 0.5);
-  transform: translate(-50%, -50%);
-}
-
-.hero-hud__target i::after {
-  width: 1px;
-  height: 72px;
-}
-
-.hero-banner.is-hud-active .hero-hud__target {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
 }
 
 @keyframes hero-hud-trace {
@@ -447,19 +401,13 @@ a {
 @keyframes hero-hud-node {
   0%,
   100% {
-    opacity: 0.46;
-    transform: scale(0.72);
+    opacity: 0.28;
+    transform: scale(0.88);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1.42);
-  }
-}
-
-@keyframes hero-hud-spin {
-  to {
-    transform: rotate(360deg);
+    opacity: 0.62;
+    transform: scale(1.1);
   }
 }
 
@@ -1746,8 +1694,9 @@ a {
   display: block;
   width: 100%;
   height: 100%;
+  opacity: 0.62;
   transform: translate(var(--admin-hud-shift-x), var(--admin-hud-shift-y));
-  transition: transform 0.18s ease-out;
+  transition: transform 0.46s ease-out;
 }
 
 .admin-hud__rule,
@@ -1758,23 +1707,23 @@ a {
 }
 
 .admin-hud__rule {
-  stroke: rgba(71, 85, 105, 0.07);
+  stroke: rgba(71, 85, 105, 0.05);
   stroke-width: 1px;
 }
 
 .admin-hud__route {
-  stroke: rgba(71, 85, 105, 0.27);
-  stroke-width: 1.2px;
+  stroke: rgba(71, 85, 105, 0.17);
+  stroke-width: 1px;
   stroke-dasharray: 6 12;
 }
 
 .admin-hud__trace {
-  stroke: #475569;
-  stroke-width: 2px;
+  stroke: rgba(71, 85, 105, 0.5);
+  stroke-width: 1.35px;
   stroke-linecap: round;
   stroke-dasharray: 17 83;
-  filter: drop-shadow(0 0 6px rgba(71, 85, 105, 0.35));
-  animation: admin-hud-trace 3.1s linear infinite;
+  filter: drop-shadow(0 0 4px rgba(71, 85, 105, 0.12));
+  animation: admin-hud-trace 8s linear infinite;
 }
 
 .admin-hud__trace--bottom {
@@ -1782,62 +1731,16 @@ a {
 }
 
 .admin-hud__node {
-  fill: #475569;
-  stroke: #ffffff;
-  stroke-width: 1.5px;
+  fill: rgba(71, 85, 105, 0.5);
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
-  animation: admin-hud-node 2.7s ease-in-out infinite;
+  animation: admin-hud-node 6.2s ease-in-out infinite;
 }
 
 .admin-hud__node--two {
   animation-delay: 1.25s;
-}
-
-.admin-hud__target {
-  position: fixed;
-  left: var(--admin-hud-x, 78vw);
-  top: var(--admin-hud-y, 38vh);
-  width: 52px;
-  height: 52px;
-  border: 1px solid rgba(71, 85, 105, 0.45);
-  border-radius: 50%;
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.78);
-  transition:
-    opacity 0.16s ease,
-    transform 0.2s ease;
-}
-
-.admin-hud__target::before {
-  content: "";
-  position: absolute;
-  inset: -8px;
-  border: 1px dashed rgba(71, 85, 105, 0.28);
-  border-radius: inherit;
-  animation: admin-hud-spin 3.4s linear infinite;
-}
-
-.admin-hud__target i,
-.admin-hud__target i::after {
-  position: absolute;
-  content: "";
-  top: 50%;
-  left: 50%;
-  width: 68px;
-  height: 1px;
-  background: rgba(71, 85, 105, 0.28);
-  transform: translate(-50%, -50%);
-}
-
-.admin-hud__target i::after {
-  width: 1px;
-  height: 68px;
-}
-
-.admin-page.is-hud-active .admin-hud__target {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
 }
 
 .admin-toast {
@@ -2487,19 +2390,13 @@ a {
 @keyframes admin-hud-node {
   0%,
   100% {
-    opacity: 0.44;
-    transform: scale(0.72);
+    opacity: 0.26;
+    transform: scale(0.88);
   }
 
   50% {
-    opacity: 1;
-    transform: scale(1.5);
-  }
-}
-
-@keyframes admin-hud-spin {
-  to {
-    transform: rotate(360deg);
+    opacity: 0.58;
+    transform: scale(1.12);
   }
 }
 
@@ -3622,18 +3519,13 @@ a {
 }
 
 @media (max-width: 768px) {
-  .admin-hud__target,
-  .hero-hud__target {
-    display: none;
-  }
-
   .admin-hud__map {
-    opacity: 0.45;
+    opacity: 0.32;
   }
 
   .hero-hud__map {
     width: 92vw;
-    opacity: 0.48;
+    opacity: 0.34;
     transform: none;
   }
 
@@ -4135,18 +4027,14 @@ a {
 @media (prefers-reduced-motion: reduce) {
   .admin-hud__trace,
   .admin-hud__node,
-  .admin-hud__target::before,
   .hero-hud__arc,
   .hero-hud__trace,
-  .hero-hud__node,
-  .hero-hud__target::before {
+  .hero-hud__node {
     animation: none !important;
   }
 
   .admin-hud__map,
-  .admin-hud__target,
-  .hero-hud__map,
-  .hero-hud__target {
+  .hero-hud__map {
     transition: none !important;
   }
 

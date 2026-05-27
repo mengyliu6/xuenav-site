@@ -29,7 +29,6 @@
         <circle class="admin-hud__node admin-hud__node--one" cx="1186" cy="106" r="5" />
         <circle class="admin-hud__node admin-hud__node--two" cx="216" cy="706" r="5" />
       </svg>
-      <span class="admin-hud__target"><i></i></span>
     </div>
     <div
       v-if="toast.message"
@@ -1761,14 +1760,11 @@ const trackAdminPointer = (event) => {
 
     const x = Math.min(Math.max(event.clientX, 0), window.innerWidth);
     const y = Math.min(Math.max(event.clientY, 0), window.innerHeight);
-    const shiftX = ((x / window.innerWidth) - 0.5) * 18;
-    const shiftY = ((y / window.innerHeight) - 0.5) * 12;
+    const shiftX = ((x / window.innerWidth) - 0.5) * 8;
+    const shiftY = ((y / window.innerHeight) - 0.5) * 6;
 
-    page.style.setProperty("--admin-hud-x", `${x}px`);
-    page.style.setProperty("--admin-hud-y", `${y}px`);
     page.style.setProperty("--admin-hud-shift-x", `${shiftX}px`);
     page.style.setProperty("--admin-hud-shift-y", `${shiftY}px`);
-    page.classList.add("is-hud-active");
     adminPointerFrame = 0;
   });
 };
@@ -1776,7 +1772,6 @@ const trackAdminPointer = (event) => {
 const resetAdminPointer = () => {
   const page = adminPageRef.value;
   if (!page) return;
-  page.classList.remove("is-hud-active");
   page.style.setProperty("--admin-hud-shift-x", "0px");
   page.style.setProperty("--admin-hud-shift-y", "0px");
 };

@@ -34,7 +34,6 @@
         <circle class="hero-hud__node hero-hud__node--two" cx="486" cy="285" r="5" />
         <circle class="hero-hud__node hero-hud__node--three" cx="548" cy="223" r="5" />
       </svg>
-      <span class="hero-hud__target"><i></i></span>
     </div>
     <div class="hero-mask">
       <div class="container hero-content">
@@ -93,14 +92,11 @@ const trackHeroPointer = (event) => {
     const rect = banner.getBoundingClientRect();
     const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
     const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
-    const shiftX = ((x / rect.width) - 0.5) * 16;
-    const shiftY = ((y / rect.height) - 0.5) * 12;
+    const shiftX = ((x / rect.width) - 0.5) * 7;
+    const shiftY = ((y / rect.height) - 0.5) * 5;
 
-    banner.style.setProperty("--hud-x", `${x}px`);
-    banner.style.setProperty("--hud-y", `${y}px`);
     banner.style.setProperty("--hud-shift-x", `${shiftX}px`);
     banner.style.setProperty("--hud-shift-y", `${shiftY}px`);
-    banner.classList.add("is-hud-active");
     pointerFrame = 0;
   });
 };
@@ -108,7 +104,6 @@ const trackHeroPointer = (event) => {
 const resetHeroPointer = () => {
   const banner = heroRef.value;
   if (!banner) return;
-  banner.classList.remove("is-hud-active");
   banner.style.setProperty("--hud-shift-x", "0px");
   banner.style.setProperty("--hud-shift-y", "0px");
 };
