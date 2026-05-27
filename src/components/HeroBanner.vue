@@ -3,10 +3,12 @@
     <img
       v-if="bannerImageSrc"
       class="hero-banner__image"
+      :class="{ 'is-loaded': bannerImageLoaded }"
       :src="bannerImageSrc"
       alt=""
       fetchpriority="high"
       decoding="async"
+      @load="bannerImageLoaded = true"
     />
     <div class="hero-mask">
       <div class="container hero-content">
@@ -26,7 +28,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { BRAND } from "../config/contact";
 
 const props = defineProps({
@@ -39,5 +41,11 @@ const props = defineProps({
 const bannerImageSrc = computed(() => {
   const customImage = String(props.bannerImage || "").trim();
   return /^https?:\/\//i.test(customImage) ? customImage : "";
+});
+
+const bannerImageLoaded = ref(false);
+
+watch(bannerImageSrc, () => {
+  bannerImageLoaded.value = false;
 });
 </script>

@@ -300,6 +300,17 @@ a {
   height: 100%;
   object-fit: cover;
   object-position: center;
+  opacity: 0;
+  transform: scale(1.018);
+  transition:
+    opacity 0.72s ease,
+    transform 1.05s ease;
+  will-change: opacity, transform;
+}
+
+.hero-banner__image.is-loaded {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .hero-mask {
@@ -3549,6 +3560,11 @@ a {
   }
 
   .product-card {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .hero-banner__image {
     transform: none !important;
     transition: none !important;
   }
