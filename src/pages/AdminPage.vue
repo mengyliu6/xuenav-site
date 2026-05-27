@@ -49,7 +49,22 @@
     </header>
 
     <main v-if="!isAuthenticated" class="admin-auth">
-      <form @submit.prevent="signIn">
+      <section class="admin-auth-visual" aria-hidden="true">
+        <span class="admin-auth-visual__eyebrow">Vehicle Support Console</span>
+        <h2>Connected service,<br />clear content.</h2>
+        <div class="admin-auth-doodle">
+          <span class="admin-sketch-line admin-sketch-line--left"></span>
+          <span class="admin-sketch-line admin-sketch-line--right"></span>
+          <img :src="adminLoadingDoodle" alt="" />
+        </div>
+        <div class="admin-auth-signals">
+          <span><i></i>Products</span>
+          <span><i></i>FAQ</span>
+          <span><i></i>Banner</span>
+        </div>
+      </section>
+
+      <form class="admin-auth-form" @submit.prevent="signIn">
         <span>运营后台登录</span>
         <h2>登录后台管理系统</h2>
         <p>登录后可管理商品、首页 Banner 与 FAQ 内容。</p>
@@ -75,19 +90,21 @@
       aria-live="polite"
       aria-busy="true"
     >
-      <section class="admin-loading-card">
+      <section class="admin-loading-flow">
         <div class="admin-loading-illustration">
           <span class="admin-loading-orbit admin-loading-orbit--one" aria-hidden="true"></span>
           <span class="admin-loading-orbit admin-loading-orbit--two" aria-hidden="true"></span>
           <img :src="adminLoadingDoodle" alt="" />
         </div>
-        <span class="admin-loading-eyebrow">{{ activeSiteName }} Admin</span>
-        <h2>正在同步后台数据</h2>
-        <p>正在读取商品、FAQ 与图片内容，请稍等片刻。</p>
-        <div class="admin-loading-dots" aria-hidden="true">
-          <span></span>
-          <span></span>
-          <span></span>
+        <div class="admin-loading-copy">
+          <span class="admin-loading-eyebrow">{{ activeSiteName }} Admin</span>
+          <h2>正在同步后台数据</h2>
+          <p>正在读取商品、FAQ 与图片内容，请稍等片刻。</p>
+          <div class="admin-loading-dots" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </section>
     </main>

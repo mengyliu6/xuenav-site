@@ -48,8 +48,7 @@
 .faq-hero,
 .admin-card,
 .admin-status-card,
-.admin-tabs,
-.admin-auth form {
+.admin-tabs {
   backdrop-filter: blur(18px) saturate(1.18);
   -webkit-backdrop-filter: blur(18px) saturate(1.18);
 }
@@ -101,8 +100,7 @@
 .faq-hero,
 .admin-card,
 .admin-status-card,
-.admin-tabs,
-.admin-auth form {
+.admin-tabs {
   position: relative;
   overflow: hidden;
   border-color: var(--glass-line);
@@ -272,8 +270,7 @@
   .faq-hero,
   .admin-card,
   .admin-status-card,
-  .admin-tabs,
-  .admin-auth form {
+  .admin-tabs {
     background: #ffffff;
   }
 }
