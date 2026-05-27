@@ -2,7 +2,10 @@
   <div class="site-wrap">
     <HeaderBar />
     <NavBar />
-    <HeroBanner :banner-image="content.settings?.bannerImage" />
+    <HeroBanner
+      :banner-image="content.settings?.bannerImage"
+      :content-ready="contentReady"
+    />
 
     <main id="support-products" class="section-area support-section">
       <div class="container">
@@ -50,8 +53,8 @@
             :title="item.name"
             :image="item.image"
             :loading="!contentReady"
-            :image-loading="index < 3 ? 'eager' : 'lazy'"
-            :image-fetch-priority="index < 3 ? 'high' : 'auto'"
+            :image-loading="index === 0 ? 'eager' : 'lazy'"
+            :image-fetch-priority="index === 0 ? 'auto' : 'low'"
           />
         </div>
 

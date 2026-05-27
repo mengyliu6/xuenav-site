@@ -1,6 +1,6 @@
 const isBrowser = () => typeof window !== "undefined";
 const CONTENT_CACHE_KEY = "remote_content_v2";
-const CONTENT_CACHE_TTL = 5 * 60 * 1000;
+const CONTENT_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 const emptyContent = () => ({
   products: {},
@@ -46,7 +46,7 @@ export const getCachedContent = (siteKey = "xuenav") => {
   if (!isBrowser()) return null;
 
   try {
-    const cached = JSON.parse(window.sessionStorage.getItem(cacheKeyForSite(siteKey)) || "null");
+    const cached = JSON.parse(window.localStorage.getItem(cacheKeyForSite(siteKey)) || "null");
     if (!cached?.savedAt || Date.now() - cached.savedAt > CONTENT_CACHE_TTL) return null;
     return normalizeContent(cached.content);
   } catch {
@@ -58,7 +58,7 @@ const cacheContent = (content, siteKey) => {
   if (!isBrowser() || !content?.configured) return;
 
   try {
-    window.sessionStorage.setItem(
+    window.localStorage.setItem(
       cacheKeyForSite(siteKey),
       JSON.stringify({
         savedAt: Date.now(),

@@ -263,8 +263,8 @@
                   {{ productImageUpload.message }}
                 </p>
                 <p>
-                  上传 JPG/PNG/WebP 后会自动压缩为首页商品图
-                  WebP；单张不超过 3 MB，预览无误后点击“保存商品”。
+                  上传 JPG/PNG/WebP 原图，系统不会降低图片质量；单张不超过
+                  3 MB，预览无误后点击“保存商品”。
                 </p>
               </div>
               <label>
@@ -651,7 +651,7 @@
 
             <p class="admin-help-text">
               推荐图片尺寸 <strong>1920 x 560 px</strong> 或同等宽屏比例，JPG / PNG /
-              WebP。上传时会自动优化为 WebP，重要内容建议放在图片中间区域。
+              WebP。系统会保留上传文件质量，重要内容建议放在图片中间区域。
             </p>
 
             <label class="admin-banner-picker">
@@ -773,11 +773,6 @@ import { faqs as builtInFaqs } from "../data/faqs";
 const DEFAULT_FAQ_PRODUCT_ID = "__default__";
 const PRODUCT_IMAGE_DROPZONE = "product-cover";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
-const PRODUCT_COVER_MAX_WIDTH = 900;
-const PRODUCT_COVER_QUALITY = 0.82;
-const BANNER_MAX_WIDTH = 1920;
-const BANNER_MAX_HEIGHT = 960;
-const BANNER_QUALITY = 0.78;
 const IMAGE_MIME_TYPES = {
   avif: "image/avif",
   bmp: "image/bmp",
@@ -1052,83 +1047,6 @@ const fileToBase64 = (file) =>
     reader.readAsDataURL(file);
   });
 
-const loadImageElement = (file) =>
-  new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("图片读取失败，请换一张图片重试。"));
-    };
-    image.src = url;
-  });
-
-const canvasToBlob = (canvas, type, quality) =>
-  new Promise((resolve) => {
-    canvas.toBlob(resolve, type, quality);
-  });
-
-const webpFileName = (fileName = "cover") =>
-  String(fileName).replace(/\.[^.]+$/, "") + ".webp";
-
-const compressProductCover = async (file) => {
-  const image = await loadImageElement(file);
-  const scale = Math.min(1, PRODUCT_COVER_MAX_WIDTH / image.naturalWidth);
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d", { alpha: false });
-  if (!context) return file;
-
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-
-  const blob = await canvasToBlob(canvas, "image/webp", PRODUCT_COVER_QUALITY);
-  if (!blob) return file;
-
-  return new File([blob], webpFileName(file.name), {
-    type: "image/webp",
-    lastModified: Date.now(),
-  });
-};
-
-const compressBannerImage = async (file) => {
-  const image = await loadImageElement(file);
-  const scale = Math.min(
-    1,
-    BANNER_MAX_WIDTH / image.naturalWidth,
-    BANNER_MAX_HEIGHT / image.naturalHeight
-  );
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d", { alpha: false });
-  if (!context) return file;
-
-  context.fillStyle = "#07111c";
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-
-  const blob = await canvasToBlob(canvas, "image/webp", BANNER_QUALITY);
-  if (!blob) return file;
-
-  return new File([blob], webpFileName(file.name), {
-    type: "image/webp",
-    lastModified: Date.now(),
-  });
-};
-
 const requestAdmin = async (method = "GET", body) => {
   const response = await fetch("/api/admin", {
     method,
@@ -1191,7 +1109,7 @@ const uploadImage = async (file) => {
   }
 
   if (file.size > MAX_UPLOAD_SIZE) {
-    throw new Error("图片不能超过 3MB，请先压缩后再上传。");
+    throw new Error("图片不能超过 3MB，请选择不超过限制的原图后重新上传。");
   }
 
   const base64 = await fileToBase64(file);
@@ -1232,20 +1150,19 @@ const dropProductCover = async (event) => {
 const handleProductCoverFile = async (file) => {
   uploading.value = true;
   error.value = "";
-  setProductUploadStatus("正在压缩并上传商品图片，请稍等...", "uploading");
-  notify("正在压缩并上传商品图片，请稍等...", "info");
+  setProductUploadStatus("正在上传商品原图，请稍等...", "uploading");
+  notify("正在上传商品原图，请稍等...", "info");
 
   try {
-    const optimizedFile = await compressProductCover(file);
-    const imageUrl = await uploadImage(optimizedFile);
+    const imageUrl = await uploadImage(file);
     productDraft.image = imageUrl;
-    productDraft.imagePreview = URL.createObjectURL(optimizedFile);
+    productDraft.imagePreview = URL.createObjectURL(file);
     setProductUploadStatus(
       "商品图片已上传，请点击“保存商品”完成提交。",
       "success"
     );
     notify(
-      "商品图片已压缩为 WebP 并上传成功，请点击“保存商品”完成提交。",
+      "商品原图已上传成功，请点击“保存商品”完成提交。",
       "success"
     );
   } catch (err) {
@@ -1265,13 +1182,12 @@ const uploadBannerImage = async (event) => {
   uploading.value = true;
   error.value = "";
   bannerUpload.state = "uploading";
-  bannerUpload.message = "正在优化并上传首页 Banner 图片...";
+  bannerUpload.message = "正在上传首页 Banner 原图...";
 
   try {
-    const optimizedFile = await compressBannerImage(file);
-    siteSettings.bannerImage = await uploadImage(optimizedFile);
+    siteSettings.bannerImage = await uploadImage(file);
     bannerUpload.state = "success";
-    bannerUpload.message = "图片已优化并上传，请预览后点击“保存 Banner”写入当前网站。";
+    bannerUpload.message = "Banner 原图已上传，请预览后点击“保存 Banner”写入当前网站。";
     notify(bannerUpload.message, "success");
   } catch (err) {
     error.value = err?.message || "上传 Banner 图片失败。";

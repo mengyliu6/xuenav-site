@@ -6,6 +6,7 @@
       :class="{ 'is-loaded': bannerImageLoaded }"
       :src="bannerImageSrc"
       alt=""
+      loading="eager"
       fetchpriority="high"
       decoding="async"
       @load="bannerImageLoaded = true"
@@ -36,11 +37,16 @@ const props = defineProps({
     type: String,
     default: "",
   },
+  contentReady: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const bannerImageSrc = computed(() => {
   const customImage = String(props.bannerImage || "").trim();
-  return /^https?:\/\//i.test(customImage) ? customImage : BRAND.defaultBanner || "";
+  if (/^https?:\/\//i.test(customImage)) return customImage;
+  return props.contentReady ? BRAND.defaultBanner || "" : "";
 });
 
 const bannerImageLoaded = ref(false);
