@@ -1637,10 +1637,50 @@ a {
   --accent-rgb: 71, 85, 105;
   --surface-tint: #f3f4f6;
   min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
   color: #0f172a;
   background:
     radial-gradient(circle at top right, rgba(var(--main-rgb), 0.1), transparent 30%),
     linear-gradient(180deg, #eef0f3 0%, #ffffff 34%, #f8fafc 100%);
+}
+
+.admin-page::before,
+.admin-page::after {
+  content: "";
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.admin-page::before {
+  top: 146px;
+  right: -42px;
+  width: clamp(160px, 18vw, 260px);
+  height: clamp(290px, 38vh, 430px);
+  border-left: 1px dashed rgba(71, 85, 105, 0.12);
+  border-top: 1px solid rgba(71, 85, 105, 0.08);
+  background:
+    radial-gradient(circle at 1px 18px, rgba(71, 85, 105, 0.23) 0 3px, transparent 4px),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 42px,
+      rgba(71, 85, 105, 0.038) 43px,
+      transparent 44px
+    );
+  animation: admin-decor-grid-drift 14s ease-in-out infinite alternate;
+}
+
+.admin-page::after {
+  left: clamp(20px, 4vw, 52px);
+  bottom: 38px;
+  width: clamp(128px, 15vw, 206px);
+  height: 68px;
+  border-bottom: 1px dashed rgba(71, 85, 105, 0.14);
+  border-left: 1px solid rgba(71, 85, 105, 0.08);
+  transform: skewX(-18deg);
+  animation: admin-decor-path-pulse 4.8s ease-in-out infinite;
 }
 
 .admin-toast {
@@ -1725,6 +1765,8 @@ a {
 
 .admin-dashboard,
 .admin-workspace {
+  position: relative;
+  z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
   padding: 22px 24px 24px;
@@ -1942,6 +1984,8 @@ a {
 }
 
 .admin-auth form {
+  position: relative;
+  z-index: 1;
   width: min(460px, 100%);
   display: grid;
   gap: 14px;
@@ -1959,6 +2003,20 @@ a {
   margin-bottom: 8px;
   border-radius: 99px;
   background: #111827;
+}
+
+.admin-auth form::after {
+  content: "";
+  position: absolute;
+  right: -28px;
+  bottom: -62px;
+  width: min(190px, 48%);
+  height: 54px;
+  border-bottom: 1px dashed rgba(71, 85, 105, 0.18);
+  border-right: 1px solid rgba(71, 85, 105, 0.1);
+  border-bottom-right-radius: 22px;
+  pointer-events: none;
+  animation: admin-decor-path-pulse 4.8s ease-in-out infinite 0.65s;
 }
 
 .admin-auth span {
@@ -1984,10 +2042,38 @@ a {
 }
 
 .admin-loading-stage {
+  position: relative;
+  z-index: 1;
   min-height: calc(100vh - 86px);
   display: grid;
   place-items: center;
   padding: 30px 24px 56px;
+}
+
+.admin-loading-stage::before {
+  content: "";
+  position: absolute;
+  top: clamp(56px, 12vh, 110px);
+  right: clamp(30px, 11vw, 160px);
+  width: 126px;
+  height: 82px;
+  border-top: 1px solid rgba(71, 85, 105, 0.1);
+  border-right: 1px dashed rgba(71, 85, 105, 0.16);
+  pointer-events: none;
+  animation: admin-decor-corner-float 5.4s ease-in-out infinite;
+}
+
+.admin-loading-stage::after {
+  content: "";
+  position: absolute;
+  left: clamp(28px, 9vw, 138px);
+  bottom: clamp(48px, 12vh, 112px);
+  width: 132px;
+  height: 46px;
+  border-top: 1px dashed rgba(71, 85, 105, 0.14);
+  transform: rotate(-8deg);
+  pointer-events: none;
+  animation: admin-decor-path-pulse 4.8s ease-in-out infinite 0.8s;
 }
 
 .admin-loading-flow {
@@ -2268,10 +2354,97 @@ a {
 }
 
 .admin-management-layout {
+  position: relative;
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
+}
+
+.admin-management-layout::before {
+  content: "";
+  position: absolute;
+  top: 80px;
+  left: 371px;
+  bottom: 48px;
+  width: 1px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(71, 85, 105, 0.18) 0 3px,
+    transparent 3px 13px
+  );
+  background-size: 1px 52px;
+  pointer-events: none;
+  animation: admin-decor-track 4s linear infinite;
+  transition: opacity 0.3s ease;
+}
+
+.admin-management-layout::after {
+  content: "";
+  position: absolute;
+  right: -14px;
+  bottom: -54px;
+  width: min(220px, 24vw);
+  height: 72px;
+  border-top: 1px dashed rgba(71, 85, 105, 0.13);
+  border-right: 1px solid rgba(71, 85, 105, 0.08);
+  border-top-right-radius: 28px;
+  pointer-events: none;
+  transition:
+    border-color 0.3s ease,
+    transform 0.35s ease,
+    opacity 0.3s ease;
+}
+
+.admin-management-layout:has(.admin-card:hover)::after {
+  border-color: rgba(71, 85, 105, 0.24);
+  transform: translate(-6px, -3px);
+}
+
+.admin-management-layout:has(.admin-card:hover)::before {
+  opacity: 0.78;
+}
+
+@keyframes admin-decor-grid-drift {
+  from {
+    transform: translateY(0);
+    opacity: 0.68;
+  }
+
+  to {
+    transform: translateY(13px);
+    opacity: 1;
+  }
+}
+
+@keyframes admin-decor-path-pulse {
+  0%,
+  100% {
+    opacity: 0.48;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes admin-decor-corner-float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.52;
+  }
+
+  50% {
+    transform: translate(-6px, 5px);
+    opacity: 1;
+  }
+}
+
+@keyframes admin-decor-track {
+  to {
+    background-position: 0 52px;
+  }
 }
 
 .admin-left-rail {
@@ -3393,6 +3566,21 @@ a {
 }
 
 @media (max-width: 768px) {
+  .admin-page::before {
+    opacity: 0.52;
+    width: 110px;
+    right: -56px;
+  }
+
+  .admin-page::after,
+  .admin-auth form::after,
+  .admin-loading-stage::before,
+  .admin-loading-stage::after,
+  .admin-management-layout::before,
+  .admin-management-layout::after {
+    display: none;
+  }
+
   .hero-lineart__ring,
   .hero-lineart__corner {
     display: none;
@@ -3902,6 +4090,23 @@ a {
 
 /* 减少动画用户偏好 */
 @media (prefers-reduced-motion: reduce) {
+  .admin-page::before,
+  .admin-page::after,
+  .admin-auth form::after,
+  .admin-loading-stage::before,
+  .admin-loading-stage::after,
+  .admin-management-layout::before {
+    animation: none !important;
+  }
+
+  .admin-management-layout::after {
+    transition: none !important;
+  }
+
+  .admin-management-layout::before {
+    transition: none !important;
+  }
+
   .admin-loading-illustration img,
   .admin-loading-orbit,
   .admin-loading-dots span,
