@@ -73,7 +73,7 @@ export const BRANDS = {
   boxnav: {
     siteKey: "boxnav",
     name: "BOXNAV",
-    hosts: ["boxnav.com", "www.boxnav.com"],
+    hosts: ["boxnav.com.cn", "www.boxnav.com.cn"],
     logo: "",
     logoWhite: "",
     qr: qrAbby,
@@ -83,7 +83,7 @@ export const BRANDS = {
       whatsappDisplay: "+86 135 4428 3617",
       whatsappNumber: "8613544283617",
       email: "abby@viknav.com",
-      website: "www.boxnav.com",
+      website: "www.boxnav.com.cn",
     },
     theme: {
       main: "#0f766e",
