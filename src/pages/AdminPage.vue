@@ -1,5 +1,36 @@
 <template>
-  <div class="admin-page">
+  <div
+    ref="adminPageRef"
+    class="admin-page"
+    @pointermove="trackAdminPointer"
+    @pointerleave="resetAdminPointer"
+  >
+    <div class="admin-hud" aria-hidden="true">
+      <svg class="admin-hud__map" viewBox="0 0 1440 900" preserveAspectRatio="none">
+        <path class="admin-hud__rule" d="M0 126 H1440 M84 0 V900 M1356 0 V900" />
+        <path
+          class="admin-hud__route admin-hud__route--top"
+          d="M1015 106 H1186 L1240 160 H1425"
+        />
+        <path
+          class="admin-hud__trace admin-hud__trace--top"
+          pathLength="100"
+          d="M1015 106 H1186 L1240 160 H1425"
+        />
+        <path
+          class="admin-hud__route admin-hud__route--bottom"
+          d="M15 770 H152 L216 706 H350 L406 650"
+        />
+        <path
+          class="admin-hud__trace admin-hud__trace--bottom"
+          pathLength="100"
+          d="M15 770 H152 L216 706 H350 L406 650"
+        />
+        <circle class="admin-hud__node admin-hud__node--one" cx="1186" cy="106" r="5" />
+        <circle class="admin-hud__node admin-hud__node--two" cx="216" cy="706" r="5" />
+      </svg>
+      <span class="admin-hud__target"><i></i></span>
+    </div>
     <div
       v-if="toast.message"
       class="admin-toast"
@@ -765,7 +796,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import adminConsoleLineart from "../assets/images/admin-console-lineart.png";
 import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { BRAND_OPTIONS } from "../config/brands";
@@ -808,6 +839,8 @@ const toast = reactive({
   type: "info",
   timer: null,
 });
+const adminPageRef = ref(null);
+let adminPointerFrame = 0;
 const productImageUpload = reactive({
   message: "",
   state: "",
@@ -1718,7 +1751,41 @@ const deleteFaq = async (faq) => {
   }
 };
 
+const trackAdminPointer = (event) => {
+  if (event.pointerType && event.pointerType !== "mouse") return;
+  if (adminPointerFrame) cancelAnimationFrame(adminPointerFrame);
+
+  adminPointerFrame = requestAnimationFrame(() => {
+    const page = adminPageRef.value;
+    if (!page) return;
+
+    const x = Math.min(Math.max(event.clientX, 0), window.innerWidth);
+    const y = Math.min(Math.max(event.clientY, 0), window.innerHeight);
+    const shiftX = ((x / window.innerWidth) - 0.5) * 18;
+    const shiftY = ((y / window.innerHeight) - 0.5) * 12;
+
+    page.style.setProperty("--admin-hud-x", `${x}px`);
+    page.style.setProperty("--admin-hud-y", `${y}px`);
+    page.style.setProperty("--admin-hud-shift-x", `${shiftX}px`);
+    page.style.setProperty("--admin-hud-shift-y", `${shiftY}px`);
+    page.classList.add("is-hud-active");
+    adminPointerFrame = 0;
+  });
+};
+
+const resetAdminPointer = () => {
+  const page = adminPageRef.value;
+  if (!page) return;
+  page.classList.remove("is-hud-active");
+  page.style.setProperty("--admin-hud-shift-x", "0px");
+  page.style.setProperty("--admin-hud-shift-y", "0px");
+};
+
 onMounted(() => {
   window.sessionStorage.removeItem("cms_admin_session");
+});
+
+onBeforeUnmount(() => {
+  if (adminPointerFrame) cancelAnimationFrame(adminPointerFrame);
 });
 </script>
