@@ -649,7 +649,7 @@
                 <p>Homepage desktop preview</p>
               </div>
               <span v-if="!siteSettings.bannerImage">
-                上传图片后在这里预览首页展示效果
+                {{ bannerPreviewImage ? "当前显示网站默认 Banner" : "上传图片后在这里预览首页展示效果" }}
               </span>
             </div>
 
@@ -807,7 +807,12 @@ const bannerUpload = reactive({
 const activeSiteName = computed(
   () => adminSites.find((site) => site.siteKey === adminSiteKey.value)?.name || "当前站点"
 );
-const bannerPreviewImage = computed(() => siteSettings.bannerImage || "");
+const activeAdminSite = computed(() =>
+  adminSites.find((site) => site.siteKey === adminSiteKey.value)
+);
+const bannerPreviewImage = computed(
+  () => siteSettings.bannerImage || activeAdminSite.value?.defaultBanner || ""
+);
 const bannerPreviewStyle = computed(() =>
   bannerPreviewImage.value
     ? {
@@ -1261,7 +1266,7 @@ const uploadBannerImage = async (event) => {
 const clearBanner = () => {
   siteSettings.bannerImage = "";
   bannerUpload.state = "info";
-  bannerUpload.message = "图片已清空，请点击“保存 Banner”使首页恢复主题背景。";
+  bannerUpload.message = "图片已清空，请点击“保存 Banner”使首页恢复网站默认样式。";
 };
 
 const saveBanner = async () => {

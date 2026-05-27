@@ -6,6 +6,8 @@ import qrHai from "../assets/images/qrHai.png";
 import beautytreesLogo from "../assets/images/logoHai.png";
 
 export const DEFAULT_SITE_KEY = "xuenav";
+const XUENAV_DEFAULT_BANNER =
+  "https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&fm=webp&q=72&w=1920&h=560";
 
 export const BRANDS = {
   xuenav: {
@@ -15,6 +17,7 @@ export const BRANDS = {
     logo: xuenavLogo,
     logoWhite: xuenavLogoWhite,
     qr: xuenavQr,
+    defaultBanner: XUENAV_DEFAULT_BANNER,
     contact: {
       name: "Wendy",
       whatsappDisplay: "+86 134 3447 3048",
@@ -127,9 +130,10 @@ export const BRANDS = {
 };
 
 export const BRAND_OPTIONS = Object.values(BRANDS).map(
-  ({ siteKey, name }) => ({
+  ({ siteKey, name, defaultBanner }) => ({
     siteKey,
     name,
+    defaultBanner: defaultBanner || "",
   }),
 );
 
