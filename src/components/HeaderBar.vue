@@ -54,7 +54,7 @@
         </a>
 
         <span v-if="CONTACT.email">Email: {{ CONTACT.email }}</span>
-        <span v-if="CONTACT.website">Website: {{ CONTACT.website }}</span>
+        <span v-if="CONTACT.whatsappDisplay">Phone: {{ CONTACT.whatsappDisplay }}</span>
   
       </div>
   

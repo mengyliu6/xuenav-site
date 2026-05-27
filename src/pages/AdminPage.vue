@@ -55,7 +55,9 @@
         <div class="admin-auth-doodle">
           <span class="admin-sketch-line admin-sketch-line--left"></span>
           <span class="admin-sketch-line admin-sketch-line--right"></span>
-          <img :src="adminLoadingDoodle" alt="" />
+          <span class="admin-sketch-cross"></span>
+          <span class="admin-sketch-route"></span>
+          <img :src="adminConsoleLineart" alt="" />
         </div>
         <div class="admin-auth-signals">
           <span><i></i>Products</span>
@@ -94,7 +96,8 @@
         <div class="admin-loading-illustration">
           <span class="admin-loading-orbit admin-loading-orbit--one" aria-hidden="true"></span>
           <span class="admin-loading-orbit admin-loading-orbit--two" aria-hidden="true"></span>
-          <img :src="adminLoadingDoodle" alt="" />
+          <span class="admin-loading-route" aria-hidden="true"></span>
+          <img :src="adminConsoleLineart" alt="" />
         </div>
         <div class="admin-loading-copy">
           <span class="admin-loading-eyebrow">{{ activeSiteName }} Admin</span>
@@ -763,7 +766,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
+import adminConsoleLineart from "../assets/images/admin-console-lineart.png";
 import { BRAND_OPTIONS } from "../config/brands";
 import { faqs as builtInFaqs } from "../data/faqs";
 
