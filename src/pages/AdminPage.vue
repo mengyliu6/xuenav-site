@@ -10,8 +10,8 @@
 
     <header class="admin-topbar">
       <div class="admin-topbar__brand">
-        <span>Multi-site Admin</span>
-        <h1>售后网站后台管理</h1>
+        <span>Content Admin</span>
+        <h1>售后内容管理</h1>
       </div>
 
       <section v-if="isAuthenticated" class="admin-status-card admin-status-card--topbar">
@@ -51,11 +51,8 @@
     <main v-if="!isAuthenticated" class="admin-auth">
       <form @submit.prevent="signIn">
         <span>运营后台登录</span>
-        <h2>登录你负责的网站后台</h2>
-        <p>
-          每个品牌使用独立账号，登录后仅可维护对应网站的商品、首页
-          Banner 与 FAQ 内容。
-        </p>
+        <h2>登录后台管理系统</h2>
+        <p>登录后可管理商品、首页 Banner 与 FAQ 内容。</p>
         <input
           v-model.trim="loginUsername"
           type="text"
@@ -634,7 +631,7 @@
 
             <p class="admin-help-text">
               推荐图片尺寸 <strong>1920 x 560 px</strong> 或同等宽屏比例，JPG / PNG /
-              WebP，单张不超过 3 MB。重要内容建议放在图片中间区域，移动端裁切时更安全。
+              WebP。上传时会自动优化为 WebP，重要内容建议放在图片中间区域。
             </p>
 
             <label class="admin-banner-picker">
@@ -758,6 +755,9 @@ const PRODUCT_IMAGE_DROPZONE = "product-cover";
 const MAX_UPLOAD_SIZE = 3 * 1024 * 1024;
 const PRODUCT_COVER_MAX_WIDTH = 900;
 const PRODUCT_COVER_QUALITY = 0.82;
+const BANNER_MAX_WIDTH = 1920;
+const BANNER_MAX_HEIGHT = 960;
+const BANNER_QUALITY = 0.78;
 const IMAGE_MIME_TYPES = {
   avif: "image/avif",
   bmp: "image/bmp",
@@ -1080,6 +1080,35 @@ const compressProductCover = async (file) => {
   });
 };
 
+const compressBannerImage = async (file) => {
+  const image = await loadImageElement(file);
+  const scale = Math.min(
+    1,
+    BANNER_MAX_WIDTH / image.naturalWidth,
+    BANNER_MAX_HEIGHT / image.naturalHeight
+  );
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) return file;
+
+  context.fillStyle = "#07111c";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+
+  const blob = await canvasToBlob(canvas, "image/webp", BANNER_QUALITY);
+  if (!blob) return file;
+
+  return new File([blob], webpFileName(file.name), {
+    type: "image/webp",
+    lastModified: Date.now(),
+  });
+};
+
 const requestAdmin = async (method = "GET", body) => {
   const response = await fetch("/api/admin", {
     method,
@@ -1216,12 +1245,13 @@ const uploadBannerImage = async (event) => {
   uploading.value = true;
   error.value = "";
   bannerUpload.state = "uploading";
-  bannerUpload.message = "正在上传首页 Banner 图片...";
+  bannerUpload.message = "正在优化并上传首页 Banner 图片...";
 
   try {
-    siteSettings.bannerImage = await uploadImage(file);
+    const optimizedFile = await compressBannerImage(file);
+    siteSettings.bannerImage = await uploadImage(optimizedFile);
     bannerUpload.state = "success";
-    bannerUpload.message = "图片已上传并可预览，请点击“保存 Banner”写入当前网站。";
+    bannerUpload.message = "图片已优化并上传，请预览后点击“保存 Banner”写入当前网站。";
     notify(bannerUpload.message, "success");
   } catch (err) {
     error.value = err?.message || "上传 Banner 图片失败。";

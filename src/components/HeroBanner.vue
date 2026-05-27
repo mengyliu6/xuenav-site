@@ -1,5 +1,13 @@
 <template>
-  <section class="hero-banner" :style="bannerStyle">
+  <section class="hero-banner" :class="{ 'has-image': bannerImageSrc }">
+    <img
+      v-if="bannerImageSrc"
+      class="hero-banner__image"
+      :src="bannerImageSrc"
+      alt=""
+      fetchpriority="high"
+      decoding="async"
+    />
     <div class="hero-mask">
       <div class="container hero-content">
         <h1>{{ BRAND.name }}</h1>
@@ -28,10 +36,9 @@ const props = defineProps({
   },
 });
 
-const bannerStyle = computed(() => {
+const bannerImageSrc = computed(() => {
   const customImage = String(props.bannerImage || "").trim();
   const image = /^https?:\/\//i.test(customImage) ? customImage : BRAND.defaultBanner;
-  if (!image) return {};
-  return { "--hero-image": `url("${image.replaceAll('"', "%22")}")` };
+  return image || "";
 });
 </script>
