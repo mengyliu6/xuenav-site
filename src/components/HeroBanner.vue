@@ -17,10 +17,18 @@
       decoding="async"
       @load="bannerImageLoaded = true"
     />
-    <div class="hero-hud" aria-hidden="true">
+    <div class="hero-hud hero-hud--ambient" aria-hidden="true">
       <svg class="hero-hud__map" viewBox="0 0 720 430" preserveAspectRatio="xMaxYMid meet">
         <path class="hero-hud__arc" d="M688 42 A168 168 0 0 0 520 210" />
         <path class="hero-hud__arc hero-hud__arc--inner" d="M671 68 A140 140 0 0 0 545 196" />
+        <path
+          class="hero-hud__route hero-hud__route--ambient"
+          d="M176 348 L298 348 L359 285 L486 285 L548 223 L696 223"
+        />
+      </svg>
+    </div>
+    <div class="hero-hud hero-hud--signal" aria-hidden="true">
+      <svg class="hero-hud__map" viewBox="0 0 720 430" preserveAspectRatio="xMaxYMid meet">
         <path
           class="hero-hud__route"
           d="M176 348 L298 348 L359 285 L486 285 L548 223 L696 223"

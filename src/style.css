@@ -318,9 +318,16 @@ a {
 .hero-hud {
   position: absolute;
   inset: 0;
-  z-index: 3;
   overflow: hidden;
   pointer-events: none;
+}
+
+.hero-hud--ambient {
+  z-index: 1;
+}
+
+.hero-hud--signal {
+  z-index: 3;
 }
 
 .hero-hud__map {
@@ -329,9 +336,16 @@ a {
   right: 0;
   width: min(720px, 58vw);
   height: 100%;
-  opacity: 0.5;
   transform: translate(var(--hud-shift-x), var(--hud-shift-y));
   transition: transform 0.44s ease-out;
+}
+
+.hero-hud--ambient .hero-hud__map {
+  opacity: 0.74;
+}
+
+.hero-hud--signal .hero-hud__map {
+  opacity: 0.92;
 }
 
 .hero-hud__arc,
@@ -342,36 +356,41 @@ a {
 }
 
 .hero-hud__arc {
-  stroke: rgba(var(--accent-rgb), 0.22);
+  stroke: rgba(var(--accent-rgb), 0.46);
   stroke-width: 1px;
   stroke-dasharray: 3 9;
   animation: hero-hud-arc 22s linear infinite;
 }
 
 .hero-hud__arc--inner {
-  stroke: rgba(var(--main-rgb), 0.16);
+  stroke: rgba(var(--main-rgb), 0.32);
   animation-direction: reverse;
   animation-duration: 28s;
 }
 
 .hero-hud__route {
-  stroke: rgba(var(--accent-rgb), 0.25);
+  stroke: rgba(var(--accent-rgb), 0.5);
   stroke-width: 1px;
   stroke-dasharray: 7 8;
 }
 
+.hero-hud__route--ambient {
+  stroke: rgba(var(--main-rgb), 0.24);
+  stroke-dasharray: none;
+}
+
 .hero-hud__trace {
-  stroke: rgba(var(--accent-rgb), 0.58);
-  stroke-width: 1.35px;
+  stroke: rgba(var(--accent-rgb), 0.82);
+  stroke-width: 1.5px;
   stroke-linecap: round;
   stroke-dasharray: 13 87;
-  filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), 0.18));
+  filter: drop-shadow(0 0 5px rgba(var(--accent-rgb), 0.28));
   animation: hero-hud-trace 7.2s linear infinite;
 }
 
 .hero-hud__node {
-  fill: rgba(var(--main-rgb), 0.52);
-  stroke: rgba(255, 255, 255, 0.48);
+  fill: rgba(var(--main-rgb), 0.68);
+  stroke: rgba(255, 255, 255, 0.6);
   stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
@@ -401,12 +420,12 @@ a {
 @keyframes hero-hud-node {
   0%,
   100% {
-    opacity: 0.28;
+    opacity: 0.38;
     transform: scale(0.88);
   }
 
   50% {
-    opacity: 0.62;
+    opacity: 0.78;
     transform: scale(1.1);
   }
 }
@@ -1685,7 +1704,7 @@ a {
 .admin-hud {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  z-index: 0;
   overflow: hidden;
   pointer-events: none;
 }
@@ -1694,7 +1713,7 @@ a {
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0.62;
+  opacity: 0.7;
   transform: translate(var(--admin-hud-shift-x), var(--admin-hud-shift-y));
   transition: transform 0.46s ease-out;
 }
@@ -1717,8 +1736,16 @@ a {
   stroke-dasharray: 6 12;
 }
 
+.admin-hud__route--top {
+  stroke: rgba(71, 85, 105, 0.11);
+}
+
+.admin-hud__route--bottom {
+  stroke: rgba(71, 85, 105, 0.2);
+}
+
 .admin-hud__trace {
-  stroke: rgba(71, 85, 105, 0.5);
+  stroke: rgba(71, 85, 105, 0.42);
   stroke-width: 1.35px;
   stroke-linecap: round;
   stroke-dasharray: 17 83;
@@ -1726,7 +1753,12 @@ a {
   animation: admin-hud-trace 8s linear infinite;
 }
 
+.admin-hud__trace--top {
+  opacity: 0.56;
+}
+
 .admin-hud__trace--bottom {
+  opacity: 0.82;
   animation-delay: -1.6s;
 }
 
@@ -1877,6 +1909,7 @@ a {
 
 .admin-auth {
   position: relative;
+  z-index: 1;
   width: min(1260px, 100%);
   margin: 0 auto;
   min-height: calc(100vh - 86px);
@@ -3520,12 +3553,18 @@ a {
 
 @media (max-width: 768px) {
   .admin-hud__map {
-    opacity: 0.32;
+    opacity: 0.44;
   }
 
-  .hero-hud__map {
+  .hero-hud--ambient .hero-hud__map {
     width: 92vw;
-    opacity: 0.34;
+    opacity: 0.54;
+    transform: none;
+  }
+
+  .hero-hud--signal .hero-hud__map {
+    width: 92vw;
+    opacity: 0.76;
     transform: none;
   }
 
