@@ -277,17 +277,19 @@ a {
   background:
     linear-gradient(
       90deg,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.62) 42%,
-      rgba(0, 0, 0, 0.12) 100%
+      rgba(7, 17, 28, 0.98) 0%,
+      rgba(7, 17, 28, 0.9) 46%,
+      rgba(7, 17, 28, 0.62) 100%
     ),
-    url("https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&q=65&w=1400")
-      center / cover no-repeat;
+    radial-gradient(circle at 82% 42%, rgba(var(--main-rgb), 0.3), transparent 34%),
+    linear-gradient(120deg, var(--dark) 0%, var(--dark2) 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .hero-banner.has-image {
-  background: #07111c;
+  background:
+    radial-gradient(circle at 82% 42%, rgba(var(--main-rgb), 0.24), transparent 34%),
+    linear-gradient(120deg, var(--dark) 0%, var(--dark2) 100%);
 }
 
 .hero-banner__image {

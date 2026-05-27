@@ -38,7 +38,6 @@ const props = defineProps({
 
 const bannerImageSrc = computed(() => {
   const customImage = String(props.bannerImage || "").trim();
-  const image = /^https?:\/\//i.test(customImage) ? customImage : BRAND.defaultBanner;
-  return image || "";
+  return /^https?:\/\//i.test(customImage) ? customImage : "";
 });
 </script>
