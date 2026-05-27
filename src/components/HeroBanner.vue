@@ -11,6 +11,11 @@
       decoding="async"
       @load="bannerImageLoaded = true"
     />
+    <div class="hero-lineart" aria-hidden="true">
+      <span class="hero-lineart__ring"></span>
+      <span class="hero-lineart__corner"></span>
+      <span class="hero-lineart__route"></span>
+    </div>
     <div class="hero-mask">
       <div class="container hero-content">
         <h1>{{ BRAND.name }}</h1>

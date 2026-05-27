@@ -97,7 +97,7 @@
           <span class="admin-loading-orbit admin-loading-orbit--one" aria-hidden="true"></span>
           <span class="admin-loading-orbit admin-loading-orbit--two" aria-hidden="true"></span>
           <span class="admin-loading-route" aria-hidden="true"></span>
-          <img :src="adminConsoleLineart" alt="" />
+          <img :src="adminLoadingDoodle" alt="" />
         </div>
         <div class="admin-loading-copy">
           <span class="admin-loading-eyebrow">{{ activeSiteName }} Admin</span>
@@ -767,6 +767,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
 import adminConsoleLineart from "../assets/images/admin-console-lineart.png";
+import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { BRAND_OPTIONS } from "../config/brands";
 import { faqs as builtInFaqs } from "../data/faqs";
 
