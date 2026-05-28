@@ -236,7 +236,7 @@
                 <span>商品名称 / 视频标题</span>
                 <textarea
                   v-model.trim="productDraft.name"
-                  placeholder="官网及 Installation 页面显示的商品标题"
+                  placeholder="Car Radio for Chevrolet Camaro 2010-2015"
                   rows="3"
                 />
                 <small class="admin-field-note">
@@ -855,6 +855,7 @@ const toast = reactive({
 });
 const adminPageRef = ref(null);
 let adminPointerFrame = 0;
+let lastAdminPointer = { x: 0, y: 0 };
 const productImageUpload = reactive({
   message: "",
   state: "",
@@ -1842,16 +1843,50 @@ const deleteFaq = async (faq) => {
   }
 };
 
+const ADMIN_POINTER_SKIP_SELECTOR = [
+  "a",
+  "button",
+  "input",
+  "label",
+  "select",
+  "textarea",
+  "[draggable='true']",
+  ".admin-card",
+  ".admin-preview-modal",
+].join(",");
+
+const shouldSkipAdminPointer = (event) => {
+  if (
+    loading.value ||
+    uploading.value ||
+    draggingProductId.value ||
+    draggingFaqId.value
+  ) {
+    return true;
+  }
+
+  return (
+    event.target instanceof Element &&
+    Boolean(event.target.closest(ADMIN_POINTER_SKIP_SELECTOR))
+  );
+};
+
 const trackAdminPointer = (event) => {
   if (event.pointerType && event.pointerType !== "mouse") return;
-  if (adminPointerFrame) cancelAnimationFrame(adminPointerFrame);
+  if (shouldSkipAdminPointer(event)) return;
+
+  lastAdminPointer = {
+    x: Math.min(Math.max(event.clientX, 0), window.innerWidth),
+    y: Math.min(Math.max(event.clientY, 0), window.innerHeight),
+  };
+
+  if (adminPointerFrame) return;
 
   adminPointerFrame = requestAnimationFrame(() => {
     const page = adminPageRef.value;
     if (!page) return;
 
-    const x = Math.min(Math.max(event.clientX, 0), window.innerWidth);
-    const y = Math.min(Math.max(event.clientY, 0), window.innerHeight);
+    const { x, y } = lastAdminPointer;
     const shiftX = ((x / window.innerWidth) - 0.5) * 8;
     const shiftY = ((y / window.innerHeight) - 0.5) * 6;
 

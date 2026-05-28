@@ -1735,7 +1735,7 @@ a {
   height: 100%;
   opacity: 0.7;
   transform: translate(var(--admin-hud-shift-x), var(--admin-hud-shift-y));
-  transition: transform 0.46s ease-out;
+  will-change: transform;
 }
 
 .admin-hud__rule,
