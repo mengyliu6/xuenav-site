@@ -186,14 +186,24 @@
 
             <div class="admin-product-list">
               <button
-                v-for="item in sortedProducts"
+                v-for="(item, index) in sortedProducts"
                 :key="item.recordId || item.productId"
                 type="button"
                 :class="{
                   active: item.productId === productDraft.productId,
+                  'is-dragging': draggingProductId === itemKey(item),
+                  'is-drop-target': dragOverProductId === itemKey(item),
                 }"
+                :draggable="!loading && !uploading"
+                :aria-grabbed="draggingProductId === itemKey(item)"
+                @dragstart="startProductDrag(item, $event)"
+                @dragenter.prevent="setProductDropTarget(item)"
+                @dragover.prevent="setProductDropTarget(item)"
+                @drop.prevent="dropProduct(index)"
+                @dragend="endDrag"
                 @click="selectProduct(item)"
               >
+                <span class="admin-drag-handle" aria-hidden="true">↕</span>
                 <strong>{{ item.name || "未命名商品" }}</strong>
                 <small>{{ item.productId || "未填写商品 ID" }}</small>
               </button>
@@ -829,6 +839,8 @@ const error = ref("");
 const products = ref([]);
 const faqs = ref([]);
 const activeTab = ref("products");
+const draggingProductId = ref("");
+const dragOverProductId = ref("");
 const draggingFaqId = ref("");
 const dragOverFaqId = ref("");
 const activeUploadDropzone = ref("");
@@ -1418,6 +1430,8 @@ const selectProduct = (item) => {
 };
 
 const endDrag = () => {
+  draggingProductId.value = "";
+  dragOverProductId.value = "";
   draggingFaqId.value = "";
   dragOverFaqId.value = "";
 };
@@ -1432,6 +1446,80 @@ const moveItem = (items, fromIndex, toIndex) => {
 const startFaqDrag = (faq) => {
   draggingFaqId.value = itemKey(faq);
   dragOverFaqId.value = "";
+};
+
+const startProductDrag = (product, event) => {
+  draggingProductId.value = itemKey(product);
+  dragOverProductId.value = "";
+  event?.dataTransfer?.setData("text/plain", draggingProductId.value);
+  if (event?.dataTransfer) event.dataTransfer.effectAllowed = "move";
+};
+
+const setProductDropTarget = (product) => {
+  dragOverProductId.value =
+    draggingProductId.value && itemKey(product) !== draggingProductId.value
+      ? itemKey(product)
+      : "";
+};
+
+const saveProductOrder = async (orderedProducts) => {
+  loading.value = true;
+  error.value = "";
+  notify("正在保存商品排序...", "info");
+
+  try {
+    await Promise.all(
+      orderedProducts
+        .filter((item) => item.recordId)
+        .map((item) =>
+          requestAdmin("POST", {
+            resource: "product",
+            recordId: item.recordId,
+            fields: {
+              Sort: Number(item.sort || 0),
+            },
+          })
+        )
+    );
+    notify("商品排序已保存。", "success");
+  } catch (err) {
+    error.value = err?.message || "保存商品排序失败。";
+    notify(error.value, "error");
+    await loadAdminContent();
+  } finally {
+    loading.value = false;
+  }
+};
+
+const dropProduct = async (targetIndex) => {
+  dragOverProductId.value = "";
+  const currentProducts = sortedProducts.value;
+  const fromIndex = currentProducts.findIndex(
+    (item) => itemKey(item) === draggingProductId.value
+  );
+  if (fromIndex < 0 || fromIndex === targetIndex) {
+    endDrag();
+    return;
+  }
+
+  const orderedProducts = moveItem(currentProducts, fromIndex, targetIndex).map(
+    (item, index) => ({
+      ...item,
+      sort: index + 1,
+    })
+  );
+  const orderMap = new Map(
+    orderedProducts.map((item) => [itemKey(item), item.sort])
+  );
+  products.value = products.value.map((item) => ({
+    ...item,
+    sort: orderMap.get(itemKey(item)) || item.sort,
+  }));
+  if (productDraft.recordId && orderMap.has(itemKey(productDraft))) {
+    productDraft.sort = orderMap.get(itemKey(productDraft));
+  }
+  endDrag();
+  await saveProductOrder(orderedProducts);
 };
 
 const setFaqDropTarget = (faq) => {

@@ -3128,6 +3128,12 @@ a {
   border-style: dashed;
 }
 
+.admin-product-list button.is-drop-target {
+  border-color: var(--main);
+  background: #f3f4f6;
+  box-shadow: 0 10px 24px rgba(var(--main-rgb), 0.1);
+}
+
 .admin-product-list strong {
   color: var(--dark);
   line-height: 1.35;
