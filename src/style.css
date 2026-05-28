@@ -3975,7 +3975,7 @@ a {
   transition: opacity 0.22s ease;
 }
 
-.product-card-link:hover .product-card::after {
+.product-card-link:hover .product-card.is-tilting::after {
   opacity: 1;
 }
 
@@ -4189,7 +4189,7 @@ a {
   transition: opacity 0.26s ease;
 }
 
-.product-card:hover::after {
+.product-card.is-tilting::after {
   opacity: 1;
 }
 

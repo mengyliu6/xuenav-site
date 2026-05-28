@@ -103,7 +103,6 @@ const measureCard = (event) => {
   if (!card) return;
 
   cardRect = card.getBoundingClientRect();
-  card.classList.add("is-tilting");
   handlePointerMove(event);
 };
 
@@ -144,6 +143,7 @@ const handlePointerMove = (event) => {
     card.style.setProperty("--ry", `${rotateY.toFixed(2)}deg`);
     card.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
     card.style.setProperty("--my", `${shineY.toFixed(1)}%`);
+    card.classList.add("is-tilting");
   });
 };
 
