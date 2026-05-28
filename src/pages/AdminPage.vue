@@ -46,6 +46,9 @@
 
       <section v-if="isAuthenticated" class="admin-status-card admin-status-card--topbar">
         <div>
+          <span v-if="activeContactName" class="admin-welcome-pill">
+            Welcome, {{ activeContactName }}
+          </span>
           <h2>{{ statusTitle }}</h2>
           <p>{{ statusText }}</p>
         </div>
@@ -870,6 +873,7 @@ const activeSiteName = computed(
 const activeAdminSite = computed(() =>
   adminSites.find((site) => site.siteKey === adminSiteKey.value)
 );
+const activeContactName = computed(() => activeAdminSite.value?.contactName || "");
 const bannerPreviewImage = computed(
   () => siteSettings.bannerImage || activeAdminSite.value?.defaultBanner || ""
 );

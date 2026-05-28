@@ -130,9 +130,10 @@ export const BRANDS = {
 };
 
 export const BRAND_OPTIONS = Object.values(BRANDS).map(
-  ({ siteKey, name, defaultBanner }) => ({
+  ({ siteKey, name, defaultBanner, contact }) => ({
     siteKey,
     name,
+    contactName: contact?.name || "",
     defaultBanner: defaultBanner || "",
   }),
 );
