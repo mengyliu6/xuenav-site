@@ -87,7 +87,8 @@ const props = defineProps({
 
 const cardRef = ref(null);
 const imageLoaded = ref(false);
-let cardRect = null;
+let linkRect = null;
+let activeLink = null;
 let pointerFrame = 0;
 let pendingPointer = null;
 
@@ -102,7 +103,8 @@ const measureCard = (event) => {
   const card = cardRef.value;
   if (!card) return;
 
-  cardRect = card.getBoundingClientRect();
+  activeLink = event.currentTarget;
+  linkRect = activeLink.getBoundingClientRect();
   handlePointerMove(event);
 };
 
@@ -110,8 +112,10 @@ const handlePointerMove = (event) => {
   if (event.pointerType && event.pointerType !== "mouse") return;
 
   const card = cardRef.value;
-  if (!card) return;
-  if (!cardRect) cardRect = card.getBoundingClientRect();
+  const link = event.currentTarget || activeLink;
+  if (!card || !link) return;
+  activeLink = link;
+  if (!linkRect) linkRect = link.getBoundingClientRect();
 
   pendingPointer = {
     x: event.clientX,
@@ -121,7 +125,7 @@ const handlePointerMove = (event) => {
   if (pointerFrame) return;
 
   pointerFrame = requestAnimationFrame(() => {
-    const rect = cardRect;
+    const rect = linkRect;
     const pointer = pendingPointer;
     pointerFrame = 0;
 
@@ -141,25 +145,29 @@ const handlePointerMove = (event) => {
 
     card.style.setProperty("--rx", `${rotateX.toFixed(2)}deg`);
     card.style.setProperty("--ry", `${rotateY.toFixed(2)}deg`);
-    card.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
-    card.style.setProperty("--my", `${shineY.toFixed(1)}%`);
+    activeLink?.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
+    activeLink?.style.setProperty("--my", `${shineY.toFixed(1)}%`);
     card.classList.add("is-tilting");
+    activeLink?.classList.add("is-tilting");
   });
 };
 
-const resetCard = () => {
+const resetCard = (event) => {
   const card = cardRef.value;
+  const link = event?.currentTarget || activeLink;
   if (!card) return;
 
   if (pointerFrame) cancelAnimationFrame(pointerFrame);
   pointerFrame = 0;
   pendingPointer = null;
-  cardRect = null;
+  linkRect = null;
+  activeLink = null;
   card.classList.remove("is-tilting");
+  link?.classList.remove("is-tilting");
   card.style.setProperty("--rx", "0deg");
   card.style.setProperty("--ry", "0deg");
-  card.style.setProperty("--mx", "50%");
-  card.style.setProperty("--my", "50%");
+  link?.style.setProperty("--mx", "50%");
+  link?.style.setProperty("--my", "50%");
 };
 
 onBeforeUnmount(() => {
