@@ -106,7 +106,7 @@ export const BRANDS = {
     logoWhite: beautytreesLogo,
     qr: qrHai,
     contact: {
-      name: "Hai",
+      name: "Engineer Jayzhou",
       whatsappDisplay: "+86 134 2383 3705",
       whatsappNumber: "8613423833705",
       email: "autostereo@163.com",
