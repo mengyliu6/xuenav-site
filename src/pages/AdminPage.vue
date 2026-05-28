@@ -221,13 +221,13 @@
               </label>
               <label>
                 <span>商品名称 / 视频标题</span>
-                <input
+                <textarea
                   v-model.trim="productDraft.name"
-                  type="text"
                   placeholder="官网及 Installation 页面显示的商品标题"
+                  rows="3"
                 />
                 <small class="admin-field-note">
-                  保存后同步显示在商品卡片与 Installation 视频下方。
+                  保存后同步显示在商品卡片与 Installation 视频下方，建议标题不要太长。
                 </small>
               </label>
               <div
