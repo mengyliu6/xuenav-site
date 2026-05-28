@@ -4,7 +4,7 @@
     <div class="container top-grid">
   
       <!-- Logo -->
-      <div class="logo-side">
+      <RouterLink class="logo-side logo-home-link" to="/" aria-label="Back to home">
         <img
           v-if="BRAND.logo"
           :src="BRAND.logo"
@@ -17,7 +17,7 @@
           decoding="async"
         />
         <span v-else class="brand-wordmark">{{ BRAND.name }}</span>
-      </div>
+      </RouterLink>
   
       <!-- Wendy -->
       <div class="name-side">
