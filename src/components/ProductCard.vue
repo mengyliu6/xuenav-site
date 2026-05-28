@@ -2,8 +2,11 @@
   <RouterLink
     :to="`/product/${id}`"
     class="product-card-link"
-    @mousemove="handleMouseMove"
-    @mouseleave="resetCard"
+    @pointerenter="measureCard"
+    @pointermove="handlePointerMove"
+    @pointerleave="resetCard"
+    @pointercancel="resetCard"
+    @blur="resetCard"
   >
     <article ref="cardRef" class="product-card">
       <div class="card-image-wrap" :class="{ 'is-loading': loading || !imageLoaded }">
@@ -47,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 import productLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 
@@ -84,6 +87,9 @@ const props = defineProps({
 
 const cardRef = ref(null);
 const imageLoaded = ref(false);
+let cardRect = null;
+let pointerFrame = 0;
+let pendingPointer = null;
 
 watch(
   () => [props.image, props.loading],
@@ -92,37 +98,71 @@ watch(
   }
 );
 
-const handleMouseMove = (event) => {
+const measureCard = (event) => {
   const card = cardRef.value;
   if (!card) return;
 
-  const rect = card.getBoundingClientRect();
+  cardRect = card.getBoundingClientRect();
+  card.classList.add("is-tilting");
+  handlePointerMove(event);
+};
 
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
+const handlePointerMove = (event) => {
+  if (event.pointerType && event.pointerType !== "mouse") return;
 
-  const centerX = rect.width / 2;
-  const centerY = rect.height / 2;
+  const card = cardRef.value;
+  if (!card) return;
+  if (!cardRect) cardRect = card.getBoundingClientRect();
 
-  const rotateX = ((centerY - y) / centerY) * 4;
-  const rotateY = ((x - centerX) / centerX) * 5;
+  pendingPointer = {
+    x: event.clientX,
+    y: event.clientY,
+  };
 
-  const shineX = (x / rect.width) * 100;
-  const shineY = (y / rect.height) * 100;
+  if (pointerFrame) return;
 
-  card.style.setProperty("--rx", `${rotateX}deg`);
-  card.style.setProperty("--ry", `${rotateY}deg`);
-  card.style.setProperty("--mx", `${shineX}%`);
-  card.style.setProperty("--my", `${shineY}%`);
+  pointerFrame = requestAnimationFrame(() => {
+    const rect = cardRect;
+    const pointer = pendingPointer;
+    pointerFrame = 0;
+
+    if (!rect || !pointer) return;
+
+    const x = Math.min(Math.max(pointer.x - rect.left, 0), rect.width);
+    const y = Math.min(Math.max(pointer.y - rect.top, 0), rect.height);
+
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = ((centerY - y) / centerY) * 2.4;
+    const rotateY = ((x - centerX) / centerX) * 3;
+
+    const shineX = (x / rect.width) * 100;
+    const shineY = (y / rect.height) * 100;
+
+    card.style.setProperty("--rx", `${rotateX.toFixed(2)}deg`);
+    card.style.setProperty("--ry", `${rotateY.toFixed(2)}deg`);
+    card.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
+    card.style.setProperty("--my", `${shineY.toFixed(1)}%`);
+  });
 };
 
 const resetCard = () => {
   const card = cardRef.value;
   if (!card) return;
 
+  if (pointerFrame) cancelAnimationFrame(pointerFrame);
+  pointerFrame = 0;
+  pendingPointer = null;
+  cardRect = null;
+  card.classList.remove("is-tilting");
   card.style.setProperty("--rx", "0deg");
   card.style.setProperty("--ry", "0deg");
   card.style.setProperty("--mx", "50%");
   card.style.setProperty("--my", "50%");
 };
+
+onBeforeUnmount(() => {
+  if (pointerFrame) cancelAnimationFrame(pointerFrame);
+});
 </script>

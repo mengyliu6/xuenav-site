@@ -4139,13 +4139,21 @@ a {
   transform:
     rotateX(var(--rx, 0deg))
     rotateY(var(--ry, 0deg))
-    translateY(0) !important;
+    translate3d(0, 0, 0) !important;
   transform-style: preserve-3d;
+  backface-visibility: hidden;
+  contain: layout paint;
   will-change: transform;
   transition:
-    transform 0.18s ease-out,
+    transform 0.24s ease-out,
     box-shadow 0.28s ease,
     border-color 0.28s ease;
+}
+
+.product-card.is-tilting {
+  transition:
+    box-shadow 0.24s ease,
+    border-color 0.24s ease;
 }
 
 /* hover 时不要大幅上浮，只加阴影和边框质感 */
@@ -4153,10 +4161,10 @@ a {
   transform:
     rotateX(var(--rx, 0deg))
     rotateY(var(--ry, 0deg))
-    translateY(-2px) !important;
-  border-color: rgba(var(--main-rgb), 0.34);
+    translate3d(0, -1px, 0) !important;
+  border-color: rgba(var(--main-rgb), 0.28);
   box-shadow:
-    0 28px 70px rgba(7, 17, 28, 0.13),
+    0 22px 52px rgba(7, 17, 28, 0.1),
     0 0 0 1px rgba(var(--main-rgb), 0.06);
 }
 
@@ -4170,10 +4178,10 @@ a {
   background:
     radial-gradient(
       circle at var(--mx, 50%) var(--my, 50%),
-      rgba(255, 255, 255, 0.38),
-      rgba(255, 255, 255, 0.12) 18%,
-      rgba(var(--main-rgb), 0.06) 34%,
-      transparent 56%
+      rgba(255, 255, 255, 0.3),
+      rgba(255, 255, 255, 0.08) 17%,
+      rgba(var(--main-rgb), 0.035) 32%,
+      transparent 52%
     );
   opacity: 0;
   transition: opacity 0.26s ease;
@@ -4185,40 +4193,38 @@ a {
 
 /* 图片只做非常轻微的专业动效 */
 .card-image {
-  transform: translateZ(18px) scale(1);
+  transform: translateZ(8px) scale(1);
   transition:
-    transform 0.45s ease,
-    filter 0.45s ease;
+    transform 0.34s ease;
 }
 
 .product-card:hover .card-image {
-  transform: translateZ(22px) scale(1.025) !important;
-  filter: saturate(1.04) contrast(1.03);
+  transform: translateZ(10px) scale(1.012) !important;
 }
 
 /* 图片区域和内容区域做轻微层次 */
 .card-image-wrap {
-  transform: translateZ(12px);
+  transform: translateZ(6px);
 }
 
 .card-body {
-  transform: translateZ(18px);
+  transform: translateZ(9px);
 }
 
 /* Support 标签微微浮起 */
 .card-badge {
-  transform: translateZ(30px);
-  box-shadow: 0 10px 22px rgba(var(--main-rgb), 0.22);
+  transform: translateZ(14px);
+  box-shadow: 0 8px 18px rgba(var(--main-rgb), 0.16);
 }
 
 /* 联系方式框保持稳定，只做一点层次 */
 .card-contact {
-  transform: translateZ(20px);
+  transform: translateZ(8px);
 }
 
 /* 按钮保持深色，不再突然变橙 */
 .card-btn {
-  transform: translateZ(26px) !important;
+  transform: translateZ(12px) !important;
   background: linear-gradient(180deg, #182230 0%, #0b1520 100%) !important;
   box-shadow: 0 12px 24px rgba(7, 17, 28, 0.14);
   transition:
@@ -4235,9 +4241,9 @@ a {
 /* hover 时按钮只轻微提亮 */
 .product-card:hover .card-btn,
 .card-btn:hover {
-  transform: translateZ(30px) translateY(-1px) !important;
+  transform: translateZ(14px) translateY(-1px) !important;
   background: linear-gradient(180deg, #223244 0%, #0b1520 100%) !important;
-  box-shadow: 0 16px 30px rgba(7, 17, 28, 0.18);
+  box-shadow: 0 13px 24px rgba(7, 17, 28, 0.15);
 }
 
 /* 箭头轻微右移，保留反馈 */
@@ -4255,7 +4261,7 @@ a {
 
 /* 点击反馈 */
 .card-btn:active {
-  transform: translateZ(24px) translateY(0) !important;
+  transform: translateZ(12px) translateY(0) !important;
 }
 
 /* 手机端关闭 3D，避免滑动时晃动 */
