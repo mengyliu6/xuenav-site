@@ -2,11 +2,13 @@
   <RouterLink
     :to="`/product/${id}`"
     class="product-card-link"
+    draggable="false"
     @pointerenter="measureCard"
     @pointermove="handlePointerMove"
     @pointerleave="resetCard"
     @pointercancel="resetCard"
     @blur="resetCard"
+    @dragstart.prevent
   >
     <article ref="cardRef" class="product-card">
       <span class="product-card-halo" aria-hidden="true"></span>
@@ -31,6 +33,7 @@
           width="600"
           height="600"
           class="card-image"
+          draggable="false"
           :class="{ 'is-loaded': imageLoaded }"
           @load="imageLoaded = true"
           @error="imageLoaded = true"
