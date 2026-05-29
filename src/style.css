@@ -357,7 +357,7 @@ a {
   width: min(720px, 58vw);
   height: 100%;
   transform: translate(var(--hud-shift-x), var(--hud-shift-y));
-  transition: transform 0.44s ease-out;
+  will-change: transform;
 }
 
 .hero-hud--ambient .hero-hud__map {
@@ -3975,8 +3975,6 @@ a {
 
 .product-card-link {
   display: block;
-  --mx: 50%;
-  --my: 50%;
   position: relative;
   border-radius: 24px;
   color: inherit;
@@ -3986,26 +3984,11 @@ a {
 }
 
 .product-card-link::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  border-radius: inherit;
-  background:
-    radial-gradient(
-      circle at var(--mx) var(--my),
-      rgba(255, 255, 255, 0.3),
-      rgba(255, 255, 255, 0.08) 17%,
-      rgba(var(--main-rgb), 0.035) 32%,
-      transparent 52%
-    );
-  opacity: 0;
-  transition: opacity 0.22s ease;
+  display: none;
 }
 
 .product-card-link.is-tilting::after {
-  opacity: 1;
+  display: none;
 }
 
 .product-card-link:hover,
@@ -4022,6 +4005,8 @@ a {
 .product-card {
   --rx: 0deg;
   --ry: 0deg;
+  --mx: 50%;
+  --my: 50%;
 
   position: relative;
   z-index: 1;
@@ -4067,6 +4052,29 @@ a {
 }
 
 .product-card-link:hover .product-card.is-tilting::after {
+  opacity: 1;
+}
+
+.product-card-halo {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at var(--mx) var(--my),
+      rgba(255, 255, 255, 0.34),
+      rgba(255, 255, 255, 0.12) 16%,
+      rgba(var(--main-rgb), 0.05) 32%,
+      transparent 54%
+    );
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  will-change: opacity;
+}
+
+.product-card.is-tilting .product-card-halo {
   opacity: 1;
 }
 
@@ -4189,6 +4197,7 @@ a {
     transition: none !important;
   }
 
+  .product-card-halo,
   .product-card-link::after,
   .product-card::after {
     display: none;
@@ -4208,6 +4217,7 @@ a {
     transform: none !important;
   }
 
+  .product-card-halo,
   .product-card-link::after,
   .product-card::after {
     display: none;
@@ -4353,6 +4363,7 @@ a {
     transform: none !important;
   }
 
+  .product-card-halo,
   .product-card-link::after,
   .product-card::after {
     display: none;
@@ -4384,6 +4395,7 @@ a {
     transform: none !important;
   }
 
+  .product-card-halo,
   .product-card::after {
     display: none;
   }
