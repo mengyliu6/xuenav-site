@@ -1,10 +1,5 @@
 <template>
-  <div
-    ref="adminPageRef"
-    class="admin-page"
-    @pointermove="trackAdminPointer"
-    @pointerleave="resetAdminPointer"
-  >
+  <div class="admin-page">
     <div class="admin-hud" aria-hidden="true">
       <svg class="admin-hud__map" viewBox="0 0 1440 900" preserveAspectRatio="none">
         <path class="admin-hud__rule" d="M0 126 H1440 M84 0 V900 M1356 0 V900" />
@@ -808,7 +803,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import adminConsoleLineart from "../assets/images/admin-console-lineart.png";
 import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { BRAND_OPTIONS } from "../config/brands";
@@ -853,9 +848,6 @@ const toast = reactive({
   type: "info",
   timer: null,
 });
-const adminPageRef = ref(null);
-let adminPointerFrame = 0;
-let lastAdminPointer = { x: 0, y: 0 };
 const productImageUpload = reactive({
   message: "",
   state: "",
@@ -1843,71 +1835,7 @@ const deleteFaq = async (faq) => {
   }
 };
 
-const ADMIN_POINTER_SKIP_SELECTOR = [
-  "a",
-  "button",
-  "input",
-  "label",
-  "select",
-  "textarea",
-  "[draggable='true']",
-  ".admin-card",
-  ".admin-preview-modal",
-].join(",");
-
-const shouldSkipAdminPointer = (event) => {
-  if (
-    loading.value ||
-    uploading.value ||
-    draggingProductId.value ||
-    draggingFaqId.value
-  ) {
-    return true;
-  }
-
-  return (
-    event.target instanceof Element &&
-    Boolean(event.target.closest(ADMIN_POINTER_SKIP_SELECTOR))
-  );
-};
-
-const trackAdminPointer = (event) => {
-  if (event.pointerType && event.pointerType !== "mouse") return;
-  if (shouldSkipAdminPointer(event)) return;
-
-  lastAdminPointer = {
-    x: Math.min(Math.max(event.clientX, 0), window.innerWidth),
-    y: Math.min(Math.max(event.clientY, 0), window.innerHeight),
-  };
-
-  if (adminPointerFrame) return;
-
-  adminPointerFrame = requestAnimationFrame(() => {
-    const page = adminPageRef.value;
-    if (!page) return;
-
-    const { x, y } = lastAdminPointer;
-    const shiftX = ((x / window.innerWidth) - 0.5) * 8;
-    const shiftY = ((y / window.innerHeight) - 0.5) * 6;
-
-    page.style.setProperty("--admin-hud-shift-x", `${shiftX}px`);
-    page.style.setProperty("--admin-hud-shift-y", `${shiftY}px`);
-    adminPointerFrame = 0;
-  });
-};
-
-const resetAdminPointer = () => {
-  const page = adminPageRef.value;
-  if (!page) return;
-  page.style.setProperty("--admin-hud-shift-x", "0px");
-  page.style.setProperty("--admin-hud-shift-y", "0px");
-};
-
 onMounted(() => {
   window.sessionStorage.removeItem("cms_admin_session");
-});
-
-onBeforeUnmount(() => {
-  if (adminPointerFrame) cancelAnimationFrame(adminPointerFrame);
 });
 </script>

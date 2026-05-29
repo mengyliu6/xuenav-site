@@ -1715,8 +1715,6 @@ a {
   --accent: #475569;
   --accent-rgb: 71, 85, 105;
   --surface-tint: #f3f4f6;
-  --admin-hud-shift-x: 0px;
-  --admin-hud-shift-y: 0px;
   min-height: 100vh;
   position: relative;
   isolation: isolate;
@@ -1740,8 +1738,6 @@ a {
   width: 100%;
   height: 100%;
   opacity: 0.7;
-  transform: translate(var(--admin-hud-shift-x), var(--admin-hud-shift-y));
-  will-change: transform;
 }
 
 .admin-hud__rule,
@@ -1776,7 +1772,6 @@ a {
   stroke-linecap: round;
   stroke-dasharray: 17 83;
   filter: drop-shadow(0 0 4px rgba(71, 85, 105, 0.12));
-  animation: admin-hud-trace 8s linear infinite;
 }
 
 .admin-hud__trace--top {
@@ -1785,7 +1780,6 @@ a {
 
 .admin-hud__trace--bottom {
   opacity: 0.82;
-  animation-delay: -1.6s;
 }
 
 .admin-hud__node {
@@ -1794,11 +1788,6 @@ a {
   stroke-width: 1px;
   transform-box: fill-box;
   transform-origin: center;
-  animation: admin-hud-node 6.2s ease-in-out infinite;
-}
-
-.admin-hud__node--two {
-  animation-delay: 1.25s;
 }
 
 .admin-toast {
@@ -2467,25 +2456,6 @@ a {
   grid-template-columns: 360px minmax(0, 1fr);
   gap: 24px;
   align-items: start;
-}
-
-@keyframes admin-hud-trace {
-  to {
-    stroke-dashoffset: -100;
-  }
-}
-
-@keyframes admin-hud-node {
-  0%,
-  100% {
-    opacity: 0.26;
-    transform: scale(0.88);
-  }
-
-  50% {
-    opacity: 0.58;
-    transform: scale(1.12);
-  }
 }
 
 .admin-left-rail {
