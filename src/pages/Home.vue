@@ -54,7 +54,7 @@
             :image="item.image"
             :loading="!contentReady"
             :image-loading="index === 0 ? 'eager' : 'lazy'"
-            :image-fetch-priority="index === 0 ? 'auto' : 'low'"
+            :image-fetch-priority="index === 0 ? 'high' : 'low'"
           />
         </div>
 

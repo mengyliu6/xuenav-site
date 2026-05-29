@@ -1,6 +1,7 @@
 const isBrowser = () => typeof window !== "undefined";
 const CONTENT_CACHE_KEY = "remote_content_v2";
 const CONTENT_CACHE_TTL = 24 * 60 * 60 * 1000;
+const CONTENT_FETCH_TIMEOUT = 10000;
 
 const emptyContent = () => ({
   products: {},
@@ -73,9 +74,13 @@ const cacheContent = (content, siteKey) => {
 export const loadRemoteContent = async (fallback = emptyContent(), siteKey = "xuenav") => {
   if (!isBrowser()) return fallback;
 
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CONTENT_FETCH_TIMEOUT);
+
   try {
     const response = await fetch(`/api/content?siteKey=${encodeURIComponent(siteKey)}`, {
       headers: { accept: "application/json" },
+      signal: controller.signal,
     });
 
     if (!response.ok) return fallback;
@@ -86,6 +91,8 @@ export const loadRemoteContent = async (fallback = emptyContent(), siteKey = "xu
     return content;
   } catch {
     return getCachedContent(siteKey) || fallback;
+  } finally {
+    window.clearTimeout(timeoutId);
   }
 };
 

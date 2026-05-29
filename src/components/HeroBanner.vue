@@ -84,6 +84,7 @@ const bannerImageSrc = computed(() => {
 const bannerImageLoaded = ref(false);
 const heroRef = ref(null);
 let pointerFrame = 0;
+let latestPointer = { x: 0, y: 0 };
 
 watch(bannerImageSrc, () => {
   bannerImageLoaded.value = false;
@@ -91,15 +92,21 @@ watch(bannerImageSrc, () => {
 
 const trackHeroPointer = (event) => {
   if (event.pointerType && event.pointerType !== "mouse") return;
-  if (pointerFrame) cancelAnimationFrame(pointerFrame);
+
+  latestPointer = {
+    x: event.clientX,
+    y: event.clientY,
+  };
+
+  if (pointerFrame) return;
 
   pointerFrame = requestAnimationFrame(() => {
     const banner = heroRef.value;
     if (!banner) return;
 
     const rect = banner.getBoundingClientRect();
-    const x = Math.min(Math.max(event.clientX - rect.left, 0), rect.width);
-    const y = Math.min(Math.max(event.clientY - rect.top, 0), rect.height);
+    const x = Math.min(Math.max(latestPointer.x - rect.left, 0), rect.width);
+    const y = Math.min(Math.max(latestPointer.y - rect.top, 0), rect.height);
     const shiftX = ((x / rect.width) - 0.5) * 7;
     const shiftY = ((y / rect.height) - 0.5) * 5;
 

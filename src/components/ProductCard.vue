@@ -9,6 +9,7 @@
     @blur="resetCard"
   >
     <article ref="cardRef" class="product-card">
+      <span class="product-card-halo" aria-hidden="true"></span>
       <div class="card-image-wrap" :class="{ 'is-loading': loading || !imageLoaded }">
         <div v-if="loading || !imageLoaded" class="card-image-loader" aria-hidden="true">
           <img :src="productLoadingDoodle" alt="" />
@@ -87,8 +88,6 @@ const props = defineProps({
 
 const cardRef = ref(null);
 const imageLoaded = ref(false);
-let linkRect = null;
-let activeLink = null;
 let pointerFrame = 0;
 let pendingPointer = null;
 
@@ -103,8 +102,6 @@ const measureCard = (event) => {
   const card = cardRef.value;
   if (!card) return;
 
-  activeLink = event.currentTarget;
-  linkRect = activeLink.getBoundingClientRect();
   handlePointerMove(event);
 };
 
@@ -112,10 +109,7 @@ const handlePointerMove = (event) => {
   if (event.pointerType && event.pointerType !== "mouse") return;
 
   const card = cardRef.value;
-  const link = event.currentTarget || activeLink;
-  if (!card || !link) return;
-  activeLink = link;
-  if (!linkRect) linkRect = link.getBoundingClientRect();
+  if (!card) return;
 
   pendingPointer = {
     x: event.clientX,
@@ -125,7 +119,7 @@ const handlePointerMove = (event) => {
   if (pointerFrame) return;
 
   pointerFrame = requestAnimationFrame(() => {
-    const rect = linkRect;
+    const rect = card.getBoundingClientRect();
     const pointer = pendingPointer;
     pointerFrame = 0;
 
@@ -145,29 +139,24 @@ const handlePointerMove = (event) => {
 
     card.style.setProperty("--rx", `${rotateX.toFixed(2)}deg`);
     card.style.setProperty("--ry", `${rotateY.toFixed(2)}deg`);
-    activeLink?.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
-    activeLink?.style.setProperty("--my", `${shineY.toFixed(1)}%`);
+    card.style.setProperty("--mx", `${shineX.toFixed(1)}%`);
+    card.style.setProperty("--my", `${shineY.toFixed(1)}%`);
     card.classList.add("is-tilting");
-    activeLink?.classList.add("is-tilting");
   });
 };
 
-const resetCard = (event) => {
+const resetCard = () => {
   const card = cardRef.value;
-  const link = event?.currentTarget || activeLink;
   if (!card) return;
 
   if (pointerFrame) cancelAnimationFrame(pointerFrame);
   pointerFrame = 0;
   pendingPointer = null;
-  linkRect = null;
-  activeLink = null;
   card.classList.remove("is-tilting");
-  link?.classList.remove("is-tilting");
   card.style.setProperty("--rx", "0deg");
   card.style.setProperty("--ry", "0deg");
-  link?.style.setProperty("--mx", "50%");
-  link?.style.setProperty("--my", "50%");
+  card.style.setProperty("--mx", "50%");
+  card.style.setProperty("--my", "50%");
 };
 
 onBeforeUnmount(() => {
