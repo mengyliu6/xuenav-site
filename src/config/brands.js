@@ -16,6 +16,7 @@ export const BRANDS = {
     hosts: ["xuenav.com", "www.xuenav.com"],
     logo: xuenavLogo,
     logoWhite: xuenavLogoWhite,
+    favicon: "/favicon.png",
     qr: xuenavQr,
     defaultBanner: XUENAV_DEFAULT_BANNER,
     contact: {
@@ -46,6 +47,7 @@ export const BRANDS = {
     hosts: ["viknan.com", "www.viknan.com"],
     logo: "",
     logoWhite: "",
+    favicon: "/favicon-viknan.svg",
     qr: qrAbby,
     contact: {
       name: "Abby",
@@ -75,6 +77,7 @@ export const BRANDS = {
     hosts: ["boxnav.com.cn", "www.boxnav.com.cn"],
     logo: "",
     logoWhite: "",
+    favicon: "/favicon-boxnav.svg",
     qr: qrAbby,
     contact: {
       name: "Abby",
@@ -104,6 +107,7 @@ export const BRANDS = {
     hosts: ["beautytrees.com", "www.beautytrees.com"],
     logo: beautytreesLogo,
     logoWhite: beautytreesLogo,
+    favicon: "/favicon-beautytrees.svg",
     qr: qrHai,
     contact: {
       name: "Engineer Jayzhou",
@@ -162,6 +166,32 @@ export const resolveSiteKey = () => {
 
 export const CURRENT_BRAND = BRANDS[resolveSiteKey()];
 
+const updateBrandFavicon = (brand = CURRENT_BRAND) => {
+  const favicon = brand.favicon || "/favicon.png";
+  const type = favicon.endsWith(".svg") ? "image/svg+xml" : "image/png";
+  const iconLinks = document.querySelectorAll(
+    "link[rel='icon'], link[rel='shortcut icon']",
+  );
+
+  if (iconLinks.length) {
+    iconLinks.forEach((link) => {
+      link.setAttribute("href", favicon);
+      link.setAttribute("type", type);
+    });
+  } else {
+    const link = document.createElement("link");
+    link.setAttribute("rel", "icon");
+    link.setAttribute("type", type);
+    link.setAttribute("href", favicon);
+    document.head.appendChild(link);
+  }
+
+  const appleTouchIcon = document.querySelector("link[rel='apple-touch-icon']");
+  if (appleTouchIcon && !favicon.endsWith(".svg")) {
+    appleTouchIcon.setAttribute("href", favicon);
+  }
+};
+
 export const applyBrandTheme = (brand = CURRENT_BRAND) => {
   if (typeof document === "undefined") return;
 
@@ -174,4 +204,5 @@ export const applyBrandTheme = (brand = CURRENT_BRAND) => {
     root.style.setProperty(`--${variableName}`, value);
   });
   document.title = `${brand.name} After-Sales Support`;
+  updateBrandFavicon(brand);
 };
