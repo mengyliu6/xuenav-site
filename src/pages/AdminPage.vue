@@ -395,6 +395,14 @@
                       placeholder="给客户看的标准回答"
                     ></textarea>
                   </label>
+                  <label>
+                    <span>YouTube 视频</span>
+                    <input
+                      v-model.trim="faq.videoUrl"
+                      type="url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </label>
                 </div>
                 <div
                   class="admin-upload-field compact admin-dropzone"
@@ -569,6 +577,14 @@
                       rows="3"
                       placeholder="默认 FAQ 回答"
                     ></textarea>
+                  </label>
+                  <label>
+                    <span>YouTube 视频</span>
+                    <input
+                      v-model.trim="faq.videoUrl"
+                      type="url"
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
                   </label>
                 </div>
                 <div
@@ -1140,6 +1156,9 @@ const validateFaqDraft = (faq, requireProduct = true) => {
   }
   if (!faq.question?.trim()) return "请填写 FAQ 问题。";
   if (!faq.answer?.trim()) return "请填写 FAQ 回答。";
+  if (faq.videoUrl && !isYoutubeVideoLink(faq.videoUrl)) {
+    return "FAQ 视频链接请输入有效的 YouTube 视频地址。";
+  }
   return "";
 };
 
@@ -1684,6 +1703,7 @@ const newFaq = () => {
     productId: savedProduct.productId,
     question: "",
     answer: "",
+    videoUrl: "",
     images: "",
     sort: nextSort(selectedFaqs.value),
     status: "Published",
@@ -1698,6 +1718,7 @@ const newDefaultFaq = () => {
     productId: DEFAULT_FAQ_PRODUCT_ID,
     question: "",
     answer: "",
+    videoUrl: "",
     images: "",
     sort: nextSort(defaultFaqs.value),
     status: "Published",
@@ -1760,6 +1781,7 @@ const saveFaqRecord = async (faq, productId) => {
       "Product ID": productId,
       Question: faq.question.trim(),
       Answer: faq.answer.trim(),
+      "Video URL": faq.videoUrl || "",
       ...(faq.images || faq.imagesDirty ? { Images: faq.images } : {}),
       Sort: Number(faq.sort || 0),
       Status: faq.status || "Published",

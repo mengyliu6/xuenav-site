@@ -1068,9 +1068,56 @@ a {
   background: #fbfcfe;
 }
 
+.faq-list > article.faq-item {
+  padding: 18px 20px 20px;
+}
+
 .faq-item[open] {
   border-color: rgba(var(--main-rgb), 0.28);
   background: var(--surface-tint);
+}
+
+.faq-item.is-expanded,
+.faq-item.is-collapsible {
+  border-color: rgba(var(--main-rgb), 0.24);
+  background: var(--surface-tint);
+}
+
+.faq-question-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.faq-question {
+  margin: 0;
+  color: var(--dark);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.faq-toggle {
+  flex: 0 0 auto;
+  padding: 8px 13px;
+  border: 1px solid rgba(var(--main-rgb), 0.22);
+  border-radius: 999px;
+  color: var(--main-dark);
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.faq-toggle:hover {
+  color: #ffffff;
+  border-color: var(--main);
+  background: var(--main);
 }
 
 .faq-item summary {
@@ -1111,17 +1158,47 @@ a {
   background: var(--main);
 }
 
-.faq-item p {
+.admin-preview-faq-item p {
   margin: 0;
   padding: 0 20px 20px;
   color: #64748b;
   line-height: 1.75;
 }
 
+.faq-answer {
+  margin: 12px 0 0;
+  color: #64748b;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.faq-answer.is-clamped {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.faq-video-block {
+  max-width: 560px;
+  margin-top: 16px;
+}
+
+.faq-video-block .video-card {
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(7, 17, 28, 0.12);
+}
+
 .faq-image-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+  margin-top: 16px;
+}
+
+.admin-preview-faq-item .faq-image-grid {
+  margin-top: 0;
   padding: 0 20px 20px;
 }
 
@@ -3741,12 +3818,29 @@ a {
     font-size: 16px;
   }
 
-  .faq-item p {
+  .faq-list > article.faq-item {
+    padding: 16px;
+  }
+
+  .faq-question-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .faq-toggle {
+    width: 100%;
+  }
+
+  .admin-preview-faq-item p {
     padding: 0 16px 16px;
   }
 
   .faq-image-grid {
     grid-template-columns: 1fr;
+  }
+
+  .admin-preview-faq-item .faq-image-grid {
+    padding: 0 16px 16px;
   }
 
   .installation-hero {

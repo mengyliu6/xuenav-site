@@ -15,6 +15,15 @@ const FIELD_ALIASES = {
   sort: ["Sort", "sort", "\u6392\u5e8f"],
   question: ["Question", "question", "\u95ee\u9898"],
   answer: ["Answer", "answer", "\u56de\u7b54", "\u7b54\u6848"],
+  faqVideoUrl: [
+    "Video URL",
+    "FAQ Video URL",
+    "YouTube URL",
+    "Youtube URL",
+    "videoUrl",
+    "video_url",
+    "\u89c6\u9891\u94fe\u63a5",
+  ],
   faqImages: [
     "Image URLs",
     "Images",
@@ -52,7 +61,7 @@ const textFromValue = (value) => {
         );
       })
       .filter(Boolean)
-      .join(" ")
+      .join("\n")
       .trim();
   }
 
@@ -276,6 +285,7 @@ const toContent = ({ products, faqs }) => {
     const item = {
       question,
       answer,
+      videoUrl: textFromValue(getField(fields, "faqVideoUrl")),
       images: faqImagesFromFields(fields),
     };
 

@@ -62,6 +62,7 @@ docs/templates/feishu-faqs-template.csv
 | Product ID | 文本 | camaro-radio-10-15 | 对应商品；默认 FAQ 使用 `__default__` |
 | Question | 文本 | What should I check before installation? | FAQ 问题 |
 | Answer | 多行文本 | Please confirm wiring... | FAQ 回答 |
+| Video URL | 文本 | https://www.youtube.com/watch?v=... | FAQ 内嵌 YouTube 视频链接，可留空 |
 | Image URLs | 多行文本 | https://...jpg | FAQ 图片公开 URL，每行一张 |
 | Images | 附件或文本 URL | https://...jpg | 旧数据兼容字段 |
 | Sort | 数字 | 1 | 排序 |
@@ -185,6 +186,7 @@ ADMIN_BEAUTYTREES_PASSWORD
 - `Product ID` 在同一站点内必须唯一。
 - 不同站点可以使用相同 `Product ID`，程序会按 `Site Key` 隔离读取、修改和删除。
 - FAQ 新上传图片写入 `Image URLs` 多行文本字段；旧 `Images` 数据仍可显示。
+- FAQ 视频写入 `Video URL` 文本字段；后台首次保存时会尝试自动创建该字段。
 - 如 `Image URLs` 尚不存在，后台首次保存图片会尝试自动创建文本字段，因此飞书应用必须具有字段管理权限。
 - 首页 Banner 和商品封面直接使用 Products 表的 `Cover Image` 字段。
 

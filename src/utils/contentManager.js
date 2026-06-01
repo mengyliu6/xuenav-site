@@ -22,6 +22,7 @@ const normalizeFaqs = (items = []) =>
     .map((item) => ({
       question: String(item?.question || "").trim(),
       answer: String(item?.answer || "").trim(),
+      videoUrl: String(item?.videoUrl || item?.video || "").trim(),
       images: normalizeImages(item?.images),
     }))
     .filter((item) => item.question && item.answer);

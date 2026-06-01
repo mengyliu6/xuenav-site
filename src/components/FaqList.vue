@@ -1,15 +1,43 @@
 <template>
   <div class="faq-list">
-    <details
-      v-for="(item, index) in items"
-      :key="item.question"
+    <article
+      v-for="(item, index) in faqItems"
+      :key="faqKey(item, index)"
       class="faq-item"
-      :open="index === 0 && openFirst"
+      :class="{
+        'is-collapsible': isCollapsible(item, index),
+        'is-expanded': isExpanded(item, index),
+      }"
     >
-      <summary>
-        <span>{{ item.question }}</span>
-      </summary>
-      <p>{{ item.answer }}</p>
+      <div class="faq-question-row">
+        <h3 class="faq-question">{{ item.question }}</h3>
+        <button
+          v-if="isCollapsible(item, index)"
+          type="button"
+          class="faq-toggle"
+          :aria-expanded="isExpanded(item, index)"
+          @click="toggleAnswer(item, index)"
+        >
+          {{ isExpanded(item, index) ? "Show less" : "Show more" }}
+        </button>
+      </div>
+
+      <p
+        :ref="(el) => setAnswerRef(faqKey(item, index), el)"
+        class="faq-answer"
+        :class="{ 'is-clamped': isCollapsible(item, index) && !isExpanded(item, index) }"
+      >
+        {{ item.answer }}
+      </p>
+
+      <div v-if="item.videoUrl" class="faq-video-block">
+        <VideoModal
+          :video-url="item.videoUrl"
+          :title="item.question"
+          image-loading="lazy"
+          image-fetch-priority="low"
+        />
+      </div>
 
       <div v-if="item.images?.length" class="faq-image-grid">
         <figure v-for="(image, imageIndex) in item.images" :key="image.url">
@@ -29,7 +57,7 @@
           <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
         </figure>
       </div>
-    </details>
+    </article>
 
     <Teleport to="body">
       <div
@@ -93,9 +121,18 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, reactive } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUpdated,
+  reactive,
+  ref,
+} from "vue";
+import VideoModal from "./VideoModal.vue";
 
-defineProps({
+const props = defineProps({
   items: {
     type: Array,
     required: true,
@@ -105,6 +142,11 @@ defineProps({
     default: true,
   },
 });
+
+const faqItems = computed(() => props.items || []);
+const answerElements = new Map();
+const overflowKeys = ref(new Set());
+const expandedKeys = ref(new Set());
 
 const preview = reactive({
   item: null,
@@ -127,6 +169,59 @@ const downloadUrl = computed(() => {
 const visibleCaption = (caption = "") => {
   const text = String(caption || "").trim();
   return text && !/^https?:\/\//i.test(text);
+};
+
+const faqKey = (item, index) =>
+  `${item?.recordId || item?.id || item?.question || "faq"}-${index}`;
+
+const sameSet = (left, right) =>
+  left.size === right.size && [...left].every((item) => right.has(item));
+
+const setAnswerRef = (key, el) => {
+  if (el) {
+    answerElements.set(key, el);
+    return;
+  }
+
+  answerElements.delete(key);
+};
+
+const measureAnswerOverflow = () => {
+  nextTick(() => {
+    const nextOverflowKeys = new Set();
+
+    answerElements.forEach((el, key) => {
+      const style = window.getComputedStyle(el);
+      const fontSize = Number.parseFloat(style.fontSize) || 16;
+      const lineHeight =
+        Number.parseFloat(style.lineHeight) || Math.round(fontSize * 1.75);
+      const maxHeight = lineHeight * 4;
+
+      if (el.scrollHeight > maxHeight + 2) {
+        nextOverflowKeys.add(key);
+      }
+    });
+
+    if (!sameSet(nextOverflowKeys, overflowKeys.value)) {
+      overflowKeys.value = nextOverflowKeys;
+    }
+  });
+};
+
+const isCollapsible = (item, index) => overflowKeys.value.has(faqKey(item, index));
+const isExpanded = (item, index) => expandedKeys.value.has(faqKey(item, index));
+
+const toggleAnswer = (item, index) => {
+  const key = faqKey(item, index);
+  const nextExpandedKeys = new Set(expandedKeys.value);
+
+  if (nextExpandedKeys.has(key)) {
+    nextExpandedKeys.delete(key);
+  } else {
+    nextExpandedKeys.add(key);
+  }
+
+  expandedKeys.value = nextExpandedKeys;
 };
 
 const openPreview = (item, index) => {
@@ -158,5 +253,7 @@ const handleKeydown = (event) => {
   if (event.key === "ArrowRight" && previewImages.value.length > 1) showNext();
 };
 
+onMounted(measureAnswerOverflow);
+onUpdated(measureAnswerOverflow);
 onBeforeUnmount(closePreview);
 </script>

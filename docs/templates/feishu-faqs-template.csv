@@ -1,4 +1,4 @@
-Site Key,Product ID,Question,Answer,Image URLs,Sort,Status
-xuenav,camaro-radio-10-15,What should I confirm before installation?,"Please confirm your car year, original radio style, wiring harness, CANBUS box and screen connector before powering on the device.",https://example.com/images/camaro-radio-wiring.jpg,1,Published
-xuenav,camaro-radio-10-15,What should I do if there is no sound?,"Send us photos of the audio connector and system settings. We will help check amplifier settings, CANBUS selection and wiring connection.",,2,Published
-xuenav,camaro-cluster-10-15,What should I send for cluster support?,"Please send the order number, car year, original cluster photo, installed cluster photo and a short video of the issue.",https://example.com/images/camaro-cluster-front.jpg,1,Published
+Site Key,Product ID,Question,Answer,Video URL,Image URLs,Sort,Status
+xuenav,camaro-radio-10-15,What should I confirm before installation?,"Please confirm your car year, original radio style, wiring harness, CANBUS box and screen connector before powering on the device.",,https://example.com/images/camaro-radio-wiring.jpg,1,Published
+xuenav,camaro-radio-10-15,What should I do if there is no sound?,"Send us photos of the audio connector and system settings. We will help check amplifier settings, CANBUS selection and wiring connection.",,,2,Published
+xuenav,camaro-cluster-10-15,What should I send for cluster support?,"Please send the order number, car year, original cluster photo, installed cluster photo and a short video of the issue.",,https://example.com/images/camaro-cluster-front.jpg,1,Published

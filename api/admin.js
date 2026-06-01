@@ -2,6 +2,7 @@ import { put } from "@vercel/blob";
 
 const FEISHU_API = "https://open.feishu.cn/open-apis";
 const FAQ_IMAGE_URL_FIELD = "Image URLs";
+const FAQ_VIDEO_URL_FIELD = "Video URL";
 const SETTINGS_PRODUCT_ID = "__site_settings__";
 const DEFAULT_SITE_KEY = "xuenav";
 const SITE_KEYS = new Set(["xuenav", "viknan", "boxnav", "beautytrees"]);
@@ -22,6 +23,7 @@ const FAQ_FIELDS = [
   "Product ID",
   "Question",
   "Answer",
+  FAQ_VIDEO_URL_FIELD,
   "Images",
   FAQ_IMAGE_URL_FIELD,
   "Sort",
@@ -340,6 +342,44 @@ const resolveFaqImageUrlsField = async (token, appToken, tableId) => {
   return FAQ_IMAGE_URL_FIELD;
 };
 
+const resolveFaqVideoUrlField = async (token, appToken, tableId) => {
+  const fields = await listFields(token, appToken, tableId);
+  const videoUrlField = fields.find(
+    (field) => field.field_name === FAQ_VIDEO_URL_FIELD,
+  );
+
+  if (videoUrlField) {
+    if (videoUrlField.type !== 1) {
+      throw new Error(`FAQ 表字段 "${FAQ_VIDEO_URL_FIELD}" 必须设置为文本类型。`);
+    }
+    return FAQ_VIDEO_URL_FIELD;
+  }
+
+  const response = await fetch(
+    `${FEISHU_API}/bitable/v1/apps/${appToken}/tables/${tableId}/fields`,
+    {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        field_name: FAQ_VIDEO_URL_FIELD,
+        type: 1,
+      }),
+    },
+  );
+  const data = await response.json();
+
+  if (!response.ok || data.code !== 0) {
+    throw new Error(
+      `无法自动创建 FAQ 文本字段 "${FAQ_VIDEO_URL_FIELD}"，请在飞书 FAQ 表新增该文本字段后重试。`,
+    );
+  }
+
+  return FAQ_VIDEO_URL_FIELD;
+};
+
 const tableForResource = (resource) => {
   if (resource === "product" || resource === "settings") return getEnv("FEISHU_PRODUCTS_TABLE_ID");
   if (resource === "faq") return getEnv("FEISHU_FAQS_TABLE_ID");
@@ -370,6 +410,7 @@ const normalizeFaq = (record) => ({
   productId: textFromValue(record.fields?.["Product ID"]),
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
+  videoUrl: textFromValue(record.fields?.[FAQ_VIDEO_URL_FIELD]),
   images:
     urlsFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
     linkTextFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
@@ -456,6 +497,13 @@ const saveRecord = async ({ token, resource, recordId, fields, siteKey }) => {
     if (hasField(nextFields, "Video URL")) {
       nextFields["Video URL"] = linkFieldFromValue(nextFields["Video URL"]);
     }
+  }
+
+  if (resource === "faq" && hasField(nextFields, FAQ_VIDEO_URL_FIELD)) {
+    const videoUrl = nextFields[FAQ_VIDEO_URL_FIELD];
+    const videoUrlField = await resolveFaqVideoUrlField(token, appToken, tableId);
+    delete nextFields[FAQ_VIDEO_URL_FIELD];
+    nextFields[videoUrlField] = String(videoUrl || "").trim();
   }
 
   if (
