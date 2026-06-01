@@ -379,23 +379,29 @@
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
-                  <label>
+                  <label class="admin-faq-question-field">
                     <span>问题</span>
-                    <input
+                    <textarea
                       v-model.trim="faq.question"
-                      type="text"
+                      class="admin-faq-question-textarea"
+                      rows="2"
                       placeholder="客户常问的问题"
-                    />
+                      @focus="resizeTextarea($event.target)"
+                      @input="resizeTextarea($event.target)"
+                    ></textarea>
                   </label>
-                  <label>
+                  <label class="admin-faq-answer-field">
                     <span>回答</span>
                     <textarea
                       v-model.trim="faq.answer"
-                      rows="3"
+                      class="admin-faq-answer-textarea"
+                      rows="5"
                       placeholder="给客户看的标准回答"
+                      @focus="resizeTextarea($event.target)"
+                      @input="resizeTextarea($event.target)"
                     ></textarea>
                   </label>
-                  <label>
+                  <label class="admin-faq-video-field">
                     <span>YouTube 视频</span>
                     <input
                       v-model.trim="faq.videoUrl"
@@ -562,23 +568,29 @@
                   </div>
                 </div>
                 <div class="admin-faq-content-grid">
-                  <label>
+                  <label class="admin-faq-question-field">
                     <span>问题</span>
-                    <input
+                    <textarea
                       v-model.trim="faq.question"
-                      type="text"
+                      class="admin-faq-question-textarea"
+                      rows="2"
                       placeholder="客户常问的问题"
-                    />
+                      @focus="resizeTextarea($event.target)"
+                      @input="resizeTextarea($event.target)"
+                    ></textarea>
                   </label>
-                  <label>
+                  <label class="admin-faq-answer-field">
                     <span>回答</span>
                     <textarea
                       v-model.trim="faq.answer"
-                      rows="3"
+                      class="admin-faq-answer-textarea"
+                      rows="5"
                       placeholder="默认 FAQ 回答"
+                      @focus="resizeTextarea($event.target)"
+                      @input="resizeTextarea($event.target)"
                     ></textarea>
                   </label>
-                  <label>
+                  <label class="admin-faq-video-field">
                     <span>YouTube 视频</span>
                     <input
                       v-model.trim="faq.videoUrl"
@@ -819,7 +831,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import adminConsoleLineart from "../assets/images/admin-console-lineart.png";
 import adminLoadingDoodle from "../assets/images/admin-loading-doodle.jpg";
 import { BRAND_OPTIONS } from "../config/brands";
@@ -1090,6 +1102,23 @@ const assignProductDraft = (item) => {
   Object.assign(productDraft, emptyProduct(), {
     ...item,
     imagePreview: imageCanPreview(item?.image) ? item.image : "",
+  });
+};
+
+const resizeTextarea = (target) => {
+  if (!target) return;
+  target.style.height = "auto";
+  const minHeight = target.classList.contains("admin-faq-answer-textarea") ? 156 : 76;
+  const maxHeight = target.classList.contains("admin-faq-answer-textarea") ? 380 : 150;
+  const nextHeight = Math.min(Math.max(target.scrollHeight, minHeight), maxHeight);
+  target.style.height = `${nextHeight}px`;
+};
+
+const resizeFaqTextareas = () => {
+  nextTick(() => {
+    document
+      .querySelectorAll(".admin-faq-question-textarea, .admin-faq-answer-textarea")
+      .forEach((textarea) => resizeTextarea(textarea));
   });
 };
 
@@ -1388,6 +1417,7 @@ const loadAdminContent = async () => {
         (item) => item.productId === productDraft.productId
       ) || products.value[0];
     if (current) assignProductDraft(current);
+    resizeFaqTextareas();
     notify("后台数据已刷新。", "success");
     return true;
   } catch (err) {
@@ -1442,6 +1472,7 @@ const clearSession = () => {
 
 const selectProduct = (item) => {
   assignProductDraft(item);
+  resizeFaqTextareas();
   notify(`正在编辑：${item.name || item.productId}`, "info");
 };
 
@@ -1708,6 +1739,7 @@ const newFaq = () => {
     sort: nextSort(selectedFaqs.value),
     status: "Published",
   });
+  resizeFaqTextareas();
   notify("已新增商品 FAQ 草稿，请填写后保存。", "info");
 };
 
@@ -1723,6 +1755,7 @@ const newDefaultFaq = () => {
     sort: nextSort(defaultFaqs.value),
     status: "Published",
   });
+  resizeFaqTextareas();
   notify("已新增默认 FAQ 草稿，请填写后保存。", "info");
 };
 
@@ -1859,5 +1892,16 @@ const deleteFaq = async (faq) => {
 
 onMounted(() => {
   window.sessionStorage.removeItem("cms_admin_session");
+  resizeFaqTextareas();
 });
+
+watch(
+  () => [
+    activeTab.value,
+    productDraft.productId,
+    selectedFaqs.value.length,
+    defaultFaqs.value.length,
+  ],
+  resizeFaqTextareas
+);
 </script>

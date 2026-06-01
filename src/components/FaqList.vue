@@ -30,32 +30,48 @@
         {{ item.answer }}
       </p>
 
-      <div v-if="item.videoUrl" class="faq-video-block">
-        <VideoModal
-          :video-url="item.videoUrl"
-          :title="item.question"
-          image-loading="lazy"
-          image-fetch-priority="low"
-        />
-      </div>
+      <div
+        v-if="item.videoUrl || item.images?.length"
+        class="faq-media-panel"
+        :class="{
+          'has-video': item.videoUrl,
+          'has-images': item.images?.length,
+        }"
+      >
+        <div v-if="item.videoUrl" class="faq-video-block">
+          <span class="faq-media-label">Video guide</span>
+          <VideoModal
+            :video-url="item.videoUrl"
+            :title="item.question"
+            image-loading="lazy"
+            image-fetch-priority="low"
+          />
+        </div>
 
-      <div v-if="item.images?.length" class="faq-image-grid">
-        <figure v-for="(image, imageIndex) in item.images" :key="image.url">
-          <button
-            type="button"
-            class="faq-image-trigger"
-            :aria-label="`Preview image ${imageIndex + 1} for ${item.question}`"
-            @click="openPreview(item, imageIndex)"
-          >
-            <img
-              :src="image.url"
-              :alt="image.caption || item.question"
-              loading="lazy"
-              decoding="async"
-            />
-          </button>
-          <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
-        </figure>
+        <div v-if="item.images?.length" class="faq-image-block">
+          <div class="faq-media-label-row">
+            <span class="faq-media-label">Reference images</span>
+            <small>{{ item.images.length }} {{ item.images.length > 1 ? "images" : "image" }}</small>
+          </div>
+          <div class="faq-image-grid">
+            <figure v-for="(image, imageIndex) in item.images" :key="image.url">
+              <button
+                type="button"
+                class="faq-image-trigger"
+                :aria-label="`Preview image ${imageIndex + 1} for ${item.question}`"
+                @click="openPreview(item, imageIndex)"
+              >
+                <img
+                  :src="image.url"
+                  :alt="image.caption || item.question"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+              <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
+            </figure>
+          </div>
+        </div>
       </div>
     </article>
 
