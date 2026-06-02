@@ -41,9 +41,21 @@
                 class="faq-product-section"
               >
                 <div class="faq-product-section__head">
-                  <div>
-                    <span>{{ product.faqs.length }} {{ product.faqs.length > 1 ? "FAQs" : "FAQ" }}</span>
-                    <h3>{{ product.name || product.id }}</h3>
+                  <div class="faq-product-section__title">
+                    <div class="faq-product-thumb" aria-hidden="true">
+                      <img
+                        v-if="product.image"
+                        :src="product.image"
+                        :alt="product.name || product.id"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <span v-else>{{ productInitial(product) }}</span>
+                    </div>
+                    <div>
+                      <span>{{ product.faqs.length }} {{ product.faqs.length > 1 ? "FAQs" : "FAQ" }}</span>
+                      <h3>{{ product.name || product.id }}</h3>
+                    </div>
                   </div>
                   <RouterLink class="secondary-btn" :to="`/product/${product.id}`">
                     View Product
@@ -113,6 +125,8 @@ const productFaqSections = computed(() =>
     (product) => product.hasCustomFaqs && product.faqs?.length
   )
 );
+const productInitial = (product) =>
+  String(product?.name || product?.id || BRAND.name || "P").trim().charAt(0).toUpperCase();
 
 onMounted(async () => {
   content.value = await loadRemoteContent(content.value, BRAND.siteKey);
