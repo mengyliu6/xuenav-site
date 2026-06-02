@@ -50,7 +50,7 @@
                   </RouterLink>
                 </div>
 
-                <FaqList :items="product.faqs" />
+                <FaqList :items="product.faqs" default-collapsed />
               </article>
             </section>
           </article>

@@ -1085,6 +1085,25 @@ a {
   background: var(--surface-tint);
 }
 
+.faq-item.is-default-collapsed {
+  background: #ffffff;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.faq-item.is-default-collapsed:hover {
+  border-color: rgba(var(--main-rgb), 0.22);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.055);
+}
+
+.faq-item.is-default-collapsed.is-expanded {
+  background:
+    linear-gradient(135deg, rgba(var(--main-rgb), 0.045), transparent 42%),
+    #ffffff;
+}
+
 .faq-question-row {
   display: flex;
   align-items: flex-start;
@@ -1120,6 +1139,14 @@ a {
   color: #ffffff;
   border-color: var(--main);
   background: var(--main);
+}
+
+.faq-item.is-default-collapsed .faq-toggle {
+  min-width: 118px;
+}
+
+.faq-item-content.is-hidden {
+  display: none;
 }
 
 .faq-item summary {
@@ -1740,7 +1767,7 @@ a {
 
 .faq-product-section {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   padding: 18px;
   border: 1px solid #e6ebf2;
   border-radius: 22px;
@@ -1750,11 +1777,22 @@ a {
   box-shadow: 0 12px 34px rgba(15, 23, 42, 0.04);
 }
 
+.faq-product-section .faq-list {
+  gap: 10px;
+}
+
+.faq-product-section .faq-list > article.faq-item {
+  padding: 16px 18px;
+  border-radius: 16px;
+}
+
 .faq-product-section__head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eef2f7;
 }
 
 .faq-product-section__head span {

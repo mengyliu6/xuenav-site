@@ -7,6 +7,7 @@
       :class="{
         'is-collapsible': isCollapsible(item, index),
         'is-expanded': isExpanded(item, index),
+        'is-default-collapsed': defaultCollapsed,
       }"
     >
       <div class="faq-question-row">
@@ -18,58 +19,65 @@
           :aria-expanded="isExpanded(item, index)"
           @click="toggleAnswer(item, index)"
         >
-          {{ isExpanded(item, index) ? "Show less" : "Show more" }}
+          {{ isExpanded(item, index) ? "Hide answer" : "View answer" }}
         </button>
       </div>
 
-      <p
-        :ref="(el) => setAnswerRef(faqKey(item, index), el)"
-        class="faq-answer"
-        :class="{ 'is-clamped': isCollapsible(item, index) && !isExpanded(item, index) }"
-      >
-        {{ item.answer }}
-      </p>
-
       <div
-        v-if="item.videoUrl || item.images?.length"
-        class="faq-media-panel"
-        :class="{
-          'has-video': item.videoUrl,
-          'has-images': item.images?.length,
-        }"
+        class="faq-item-content"
+        :class="{ 'is-hidden': defaultCollapsed && !isExpanded(item, index) }"
       >
-        <div v-if="item.videoUrl" class="faq-video-block">
-          <span class="faq-media-label">Video guide</span>
-          <VideoModal
-            :video-url="item.videoUrl"
-            :title="item.question"
-            image-loading="lazy"
-            image-fetch-priority="low"
-          />
-        </div>
+        <p
+          :ref="(el) => setAnswerRef(faqKey(item, index), el)"
+          class="faq-answer"
+          :class="{
+            'is-clamped': isTextClamped(item, index),
+          }"
+        >
+          {{ item.answer }}
+        </p>
 
-        <div v-if="item.images?.length" class="faq-image-block">
-          <div class="faq-media-label-row">
-            <span class="faq-media-label">Reference images</span>
-            <small>{{ item.images.length }} {{ item.images.length > 1 ? "images" : "image" }}</small>
+        <div
+          v-if="item.videoUrl || item.images?.length"
+          class="faq-media-panel"
+          :class="{
+            'has-video': item.videoUrl,
+            'has-images': item.images?.length,
+          }"
+        >
+          <div v-if="item.videoUrl" class="faq-video-block">
+            <span class="faq-media-label">Video guide</span>
+            <VideoModal
+              :video-url="item.videoUrl"
+              :title="item.question"
+              image-loading="lazy"
+              image-fetch-priority="low"
+            />
           </div>
-          <div class="faq-image-grid">
-            <figure v-for="(image, imageIndex) in item.images" :key="image.url">
-              <button
-                type="button"
-                class="faq-image-trigger"
-                :aria-label="`Preview image ${imageIndex + 1} for ${item.question}`"
-                @click="openPreview(item, imageIndex)"
-              >
-                <img
-                  :src="image.url"
-                  :alt="image.caption || item.question"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </button>
-              <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
-            </figure>
+
+          <div v-if="item.images?.length" class="faq-image-block">
+            <div class="faq-media-label-row">
+              <span class="faq-media-label">Reference images</span>
+              <small>{{ item.images.length }} {{ item.images.length > 1 ? "images" : "image" }}</small>
+            </div>
+            <div class="faq-image-grid">
+              <figure v-for="(image, imageIndex) in item.images" :key="image.url">
+                <button
+                  type="button"
+                  class="faq-image-trigger"
+                  :aria-label="`Preview image ${imageIndex + 1} for ${item.question}`"
+                  @click="openPreview(item, imageIndex)"
+                >
+                  <img
+                    :src="image.url"
+                    :alt="image.caption || item.question"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </button>
+                <figcaption v-if="visibleCaption(image.caption)">{{ image.caption }}</figcaption>
+              </figure>
+            </div>
           </div>
         </div>
       </div>
@@ -157,6 +165,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  defaultCollapsed: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const faqItems = computed(() => props.items || []);
@@ -224,8 +236,13 @@ const measureAnswerOverflow = () => {
   });
 };
 
-const isCollapsible = (item, index) => overflowKeys.value.has(faqKey(item, index));
+const isCollapsible = (item, index) =>
+  props.defaultCollapsed || overflowKeys.value.has(faqKey(item, index));
 const isExpanded = (item, index) => expandedKeys.value.has(faqKey(item, index));
+const isTextClamped = (item, index) =>
+  !props.defaultCollapsed &&
+  overflowKeys.value.has(faqKey(item, index)) &&
+  !isExpanded(item, index);
 
 const toggleAnswer = (item, index) => {
   const key = faqKey(item, index);
