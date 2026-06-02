@@ -9,13 +9,24 @@ const emptyContent = () => ({
   settings: { bannerImage: "" },
 });
 
-const normalizeImages = (images = []) =>
-  images
-    .map((item) => ({
-      url: String(item?.url || "").trim(),
-      caption: String(item?.caption || "").trim(),
-    }))
-    .filter((item) => item.url);
+const normalizeImages = (images = []) => {
+  const items = Array.isArray(images) ? images : String(images || "").split(/[\n,]/);
+  const seen = new Set();
+
+  return items
+    .map((item) => {
+      const url = String(item?.url || item || "").trim();
+      return {
+        url,
+        caption: String(item?.caption || "").trim(),
+      };
+    })
+    .filter((item) => {
+      if (!item.url || seen.has(item.url)) return false;
+      seen.add(item.url);
+      return true;
+    });
+};
 
 const normalizeFaqs = (items = []) =>
   items

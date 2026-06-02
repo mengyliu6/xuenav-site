@@ -138,6 +138,17 @@ const imagesFromValue = (value) => {
     .filter((item) => item.url);
 };
 
+const uniqueImages = (...groups) => {
+  const seen = new Set();
+
+  return groups.flat().filter((image) => {
+    const url = String(image?.url || "").trim();
+    if (!url || seen.has(url)) return false;
+    seen.add(url);
+    return true;
+  });
+};
+
 const siteKeyFromValue = (value) => {
   const key = textFromValue(value).toLowerCase();
   return SITE_KEYS.has(key) ? key : DEFAULT_SITE_KEY;
@@ -151,15 +162,15 @@ const belongsToSite = (record, siteKey) =>
 
 const faqImagesFromFields = (fields) => {
   const imageUrls = imagesFromValue(fields["Image URLs"]);
-  if (imageUrls.length) return imageUrls;
-
-  const legacyValue =
-    fields.Images ??
+  const legacyImages = imagesFromValue(fields.Images);
+  const aliasImages = imagesFromValue(
     fields["FAQ Images"] ??
-    fields.images ??
-    fields["\u56fe\u7247"] ??
-    fields["FAQ\u56fe\u7247"];
-  return imagesFromValue(legacyValue);
+      fields.images ??
+      fields["\u56fe\u7247"] ??
+      fields["FAQ\u56fe\u7247"],
+  );
+
+  return uniqueImages(imageUrls, legacyImages, aliasImages);
 };
 
 const isPublished = (fields) => {

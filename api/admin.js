@@ -164,6 +164,19 @@ const urlsFromValue = (value) => {
   return [...new Set(urls)].join("\n");
 };
 
+const mergeUrlText = (...values) =>
+  [
+    ...new Set(
+      values
+        .flatMap((value) =>
+          String(value || "")
+            .split(/\r?\n/)
+            .map((item) => item.trim()),
+        )
+        .filter(Boolean),
+    ),
+  ].join("\n");
+
 const cleanFields = (fields, allowed) => {
   const next = {};
 
@@ -411,11 +424,12 @@ const normalizeFaq = (record) => ({
   question: textFromValue(record.fields?.Question),
   answer: textFromValue(record.fields?.Answer),
   videoUrl: textFromValue(record.fields?.[FAQ_VIDEO_URL_FIELD]),
-  images:
-    urlsFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
-    linkTextFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]) ||
-    urlsFromValue(record.fields?.Images) ||
+  images: mergeUrlText(
+    urlsFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]),
+    linkTextFromValue(record.fields?.[FAQ_IMAGE_URL_FIELD]),
+    urlsFromValue(record.fields?.Images),
     linkTextFromValue(record.fields?.Images),
+  ),
   sort: textFromValue(record.fields?.Sort),
   status: textFromValue(record.fields?.Status) || "Published",
 });

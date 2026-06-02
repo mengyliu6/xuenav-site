@@ -1023,6 +1023,7 @@ a {
 }
 
 .faq-image-grid figure {
+  margin: 0;
   overflow: hidden;
   border: 1px solid #e6ebf2;
   border-radius: 18px;

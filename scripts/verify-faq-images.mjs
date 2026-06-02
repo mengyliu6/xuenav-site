@@ -204,6 +204,7 @@ const verifyPublicImagePayload = async () => {
                 Answer: "Answer",
                 "Image URLs":
                   "https://cdn.example/a.jpg\nhttps://cdn.example/b.jpg",
+                Images: "https://cdn.example/c.jpg",
                 Status: "Published",
               },
             },
@@ -228,7 +229,8 @@ const verifyPublicImagePayload = async () => {
   await contentHandler({ method: "GET" }, res);
   const faqs = captured.body.products.p1.faqs;
 
-  assert.equal(faqs[0].images.length, 2);
+  assert.equal(faqs[0].images.length, 3);
+  assert.equal(faqs[0].images[2].url, "https://cdn.example/c.jpg");
   assert.equal(faqs[1].images[0].url, "https://cdn.example/legacy.jpg");
   assert.equal(captured.body.products["viknan-only"], undefined);
   assert.equal(captured.body.products.__site_settings__, undefined);
