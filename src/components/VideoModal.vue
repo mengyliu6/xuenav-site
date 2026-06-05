@@ -24,26 +24,28 @@
       <div v-else class="video-card__label">Support available</div>
     </div>
 
-    <div v-if="visible" class="video-modal" @click.self="close">
-      <div class="video-wrapper">
-        <iframe
-          v-if="embedUrl"
-          :src="embedUrl"
-          title="YouTube video player"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          referrerpolicy="strict-origin-when-cross-origin"
-          allowfullscreen
-        ></iframe>
+    <Teleport to="body">
+      <div v-if="visible" class="video-modal" @click.self="close">
+        <div class="video-wrapper">
+          <iframe
+            v-if="embedUrl"
+            :src="embedUrl"
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+          ></iframe>
 
-        <span class="close-btn" @click="close">×</span>
+          <button type="button" class="close-btn" aria-label="Close video" @click="close">×</button>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { BRAND } from "../config/contact";
 
 const props = defineProps({
@@ -79,15 +81,31 @@ const props = defineProps({
 
 const visible = ref(false);
 
+const unlockPageScroll = () => {
+  document.body.classList.remove("video-modal-open");
+  window.removeEventListener("keydown", handleKeydown);
+};
+
+const handleKeydown = (event) => {
+  if (event.key === "Escape") {
+    close();
+  }
+};
+
 const open = () => {
   if (!hasVideo.value) return;
 
   visible.value = true;
+  document.body.classList.add("video-modal-open");
+  window.addEventListener("keydown", handleKeydown);
 };
 
 const close = () => {
   visible.value = false;
+  unlockPageScroll();
 };
+
+onBeforeUnmount(close);
 
 const parseTimeToSeconds = (value) => {
   if (!value) return 0;
